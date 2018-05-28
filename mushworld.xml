@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<world>
+    <places>
+        <place name="the Draco Mountain">
+            <flock type="dragon" amount="8-11" variant="small;medium" /> <!-- ';' separates random choices -->
+            <flock type="dragon" amount="3-9" variant="baby" />
+            <entity type="dragon" variant="large" />
+        </place>
+        
+        <place name="Yohantown's Prairies">
+            <flock type="sheep" amount="10-25" variant="*" /> <!-- "*" means random variant -->
+        </place>
+    </places>
+    
+    <paths> 
+        <path ends="mountain;prairies" />
+    </paths>
+    
+    <etypes> <!-- entity dependencies -->
+        <etype filename="etypes/dragon.xml" />
+        <etype filename="etypes/sheep.xml" />
+    </etypes>
+</world>

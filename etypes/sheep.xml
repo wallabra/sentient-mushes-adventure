@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<entitytype name="Sheep" id="sheep">
+    <functions>
+        <function name="tick">
+            import random
+        
+            def sheep_tick(index, entity, world):
+                if random.random() &lt;= 0.275:
+                    # wander
+                    possib = set()
+                    
+                    for p in world.paths:
+                        if entity.place in p:
+                            possib.add(p)
+                            
+                    if len(possib) &gt; 0:
+                        entity.place = random.choice(tuple(possib))
+                
+                if random.random() &lt;= 0.35:
+                    # graze
+                    world.heal_entity_index(index, random.uniform(5, 15))
+        </function>
+    </functions>
+    
+    <base>
+        <attr name="type" value="creature" />
+        
+        <!-- reaction traits, in a scale from 1 to 10 -->
+        <attr name="hostility" value="0" /> <!-- negativity of reaction to living entities of other kinds --> 
+        <attr name="courage" value="2" /> <!-- likelihood to stay when underwhelmed or outnumbered -->
+        <attr name="sociality" value="8.5" /> <!-- likelihood to form 'friends' (will tend to follow each other and share friends and enemies) -->
+        <attr name="leadership" value="2" /> <!-- likelihood to become leader (least likely to follow friends, most likely to be followed) -->
+        
+        <!-- kinetic (movement & combat) attributes -->
+        <attr name="speed" value="0.7125" /> <!-- likelihood to evade enemy attacks -->
+    </base>
+    
+    <variants>
+        <variant name="White Sheep" id="white">
+            <attr name="size" value="1.5" />
+            <attr name="health" value="120" />
+            <attr weight="70" /> <!-- in kilograms -->
+        </variant>
+        
+        <variant name="Brown Sheep" id="brown">
+            <attr name="size" value="1.5" />
+            <attr name="health" value="120" />
+            <attr weight="70" /> <!-- in kilograms -->
+        </variant>
+        
+        <variant name="Baby Sheep" id="pup">
+            <attr name="size" value="0.8" />
+            <attr name="health" value="70" />
+            <attr weight="55" /> <!-- in kilograms -->
+        </variant>
+        
+        <variant name="Naked Summer Sheep" id="summer">
+            <attr name="size" value="1.4" />
+            <attr name="health" value="115" />
+            <attr weight="64" /> <!-- in kilograms -->
+        </variant>
+        
+        <variant name="Intelligent Sheep" id="mushy">
+            <attr name="size" value="1.4" />
+            <attr name="health" value="115" />
+            <attr weight="64" /> <!-- in kilograms -->
+            <attr name="courage" value="3.5" />
+            <flag name="mush" />
+        </variant>
+    </variants>
+</entitytype>

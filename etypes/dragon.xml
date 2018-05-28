@@ -1,0 +1,102 @@
+<?xml version="1.0"?>
+<entitytype name="Dragon" id="dragon">
+    <functions>
+        <function name="tick">
+            import random
+        
+            def dragon_tick(index, entity, world):
+                if random.random() &lt;= 0.1:
+                    # wander
+                    possib = set()
+                    
+                    for p in world.paths:
+                        if entity.place in p:
+                            possib.add(p)
+                            
+                    if len(possib) &gt; 0:
+                        entity.place = random.choice(tuple(possib))
+        </function>
+        
+        <function name="fly">
+            def dragon_fly(index, entity, world):
+                if entity.attr['destination'] == entity.place:
+                    return False
+                    
+                i = 2
+                
+                while entity.attr['destination'] != entity.place and i > 0:
+                    i -= 1
+                    world.path_move(entity, entity.attr['destination'])
+                    
+                return i > 0
+        </function> 
+        
+        <function name="slash">
+            def dragon_slash(index, entity, world):
+                if entity.attr['target'] is None:
+                    return
+                    
+                if world.load_entity_index(entity.attr['target']).size &lt; entity.variant['size']:
+                    return
+                    
+                world.damage_entity_index(entity.attr['target'], __import__('random').uniform(30, 50))
+        </function>
+        
+        <function name="firebreath">
+            def dragon_fire(index, entity, world):
+                if entity.attr['target'] is None:
+                    return
+                    
+                if world.load_entity_index(entity.attr['target']).size &gt;= entity.variant['size']:
+                    return
+                    
+                for _ in range(6):
+                    world.damage_entity_index(entity.attr['target'], __import__('random').uniform(10, 25))
+        </function>
+    </functions>
+    
+    <base>
+        <attr name="type" value="creature" />
+        
+        <flag name="hasMelee" />
+        <flag name="hasRanged" />
+        <attr name="meleeAttackFunc" value="slash" /> <!-- function called when attacking a close enemy (larger enemies) -->
+        <attr name="rangedAttackFunc" value="firebreath" /> <!-- function called when attacking a far enemy (smaller enemies) -->
+        
+        <!-- reaction traits, in a scale from 1 to 10 -->
+        <attr name="hostility" value="2.25" /> <!-- negativity of reaction to living entities of other kinds --> 
+        <attr name="courage" value="8" /> <!-- likelihood to stay when underwhelmed or outnumbered -->
+        <attr name="sociality" value="6" /> <!-- likelihood to form 'friends' (will tend to follow each other and share friends and enemies) -->
+        <attr name="leadership" value="7.2" /> <!-- likelihood to become leader (least likely to follow friends, most likely to be followed) -->
+        
+        <!-- kinetic (movement & combat) attributes -->
+        <attr name="specialMoveFunc" value="fly" /> <!-- special movement is used when hunting, chasing or fleeing -->
+        <attr name="speed" value="0.3" /> <!-- likelihood to evade enemy attacks -->
+    </base>
+    
+    <variants>
+        <variant name="Baby Dragon" id="baby">
+            <attr name="size" value="1.2" />
+            <attr name="health" value="160" />
+            <attr weight="45" /> <!-- in kilograms -->
+        </variant>
+    
+        <variant name="Small Dragon" id="small">
+            <attr name="size" value="2.5" />
+            <attr name="health" value="280" />
+            <attr weight="78" /> <!-- in kilograms -->
+        </variant>
+        
+        <variant name="Medium-sized Dragon" id="medium">
+            <attr name="size" value="4" />
+            <attr name="health" value="350" />
+            <attr weight="138" />
+        </variant>
+        
+        <variant name="Large Dragon" id="large">
+            <attr name="size" value="5" />
+            <attr name="health" value="400" />
+            <attr weight="210" />
+        </variant>
+    </variants>
+</entitytype>
