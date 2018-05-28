@@ -82,10 +82,10 @@
             <flag name="mush" />
         </variant>
         
-        <variant name="" id="">
-            <attr name="size" value="1.4" />
-            <attr name="health" value="115" />
-            <attr weight="64" /> <!-- in kilograms -->
+        <variant name="Very Wooly Sheep" id="xwool">
+            <attr name="size" value="1.7" />
+            <attr name="health" value="125" />
+            <attr weight="75" /> <!-- in kilograms -->
         </variant>
     </variants>
 </entitytype>
