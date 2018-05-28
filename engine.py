@@ -288,4 +288,4 @@ class XMLGameLoader(object):
         finally:
             funcholder.deinit()
         
-        return (EntityType(name, id, base, variants, functions, systems), item_types)
+        return (EntityType(name, id, base, variants, functions, systems, default), item_types)

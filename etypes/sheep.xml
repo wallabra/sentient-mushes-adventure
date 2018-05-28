@@ -23,8 +23,6 @@
     </functions>
     
     <base>
-        <attr name="type" value="creature" />
-        
         <!-- reaction traits, in a scale from 1 to 10 -->
         <attr name="hostility" value="0" /> <!-- negativity of reaction to living entities of other kinds --> 
         <attr name="courage" value="2" /> <!-- likelihood to stay when underwhelmed or outnumbered -->
@@ -33,6 +31,7 @@
         
         <!-- kinetic (movement & combat) attributes -->
         <attr name="speed" value="0.7125" /> <!-- likelihood to evade enemy attacks -->
+        <attr name="moveSpeed" value="0.85" /> <!-- chance, from 0 to 1, for a succesful tile move -->
     </base>
     
     <default>
@@ -66,6 +65,7 @@
             <attr name="size" value="0.8" />
             <attr name="health" value="70" />
             <attr weight="55" /> <!-- in kilograms -->
+            <flag name="baby" />
         </variant>
         
         <variant name="Naked Summer Sheep" id="summer">
@@ -80,6 +80,12 @@
             <attr weight="64" /> <!-- in kilograms -->
             <attr name="courage" value="3.5" />
             <flag name="mush" />
+        </variant>
+        
+        <variant name="" id="">
+            <attr name="size" value="1.4" />
+            <attr name="health" value="115" />
+            <attr weight="64" /> <!-- in kilograms -->
         </variant>
     </variants>
 </entitytype>

@@ -6,3 +6,8 @@ world = loader.load_world('mushworld.xml')
 for i, e in enumerate(world.entities):
     le = engine.LoadedEntity(world, i, e)
     print("{} the {} from {}".format(le.name, le.variant['name'], le.place))
+    
+    for k, v in le.attr.items():
+        print("  * {}: {}".format(k, v))
+        
+    print()

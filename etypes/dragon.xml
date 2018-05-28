@@ -56,8 +56,6 @@
     </functions>
     
     <base>
-        <attr name="type" value="creature" />
-        
         <flag name="hasMelee" />
         <flag name="hasRanged" />
         <attr name="meleeAttackFunc" value="slash" /> <!-- function called when attacking a close enemy (larger enemies) -->
@@ -67,11 +65,12 @@
         <attr name="hostility" value="2.25" /> <!-- negativity of reaction to living entities of other kinds --> 
         <attr name="courage" value="8" /> <!-- likelihood to stay when underwhelmed or outnumbered -->
         <attr name="sociality" value="6" /> <!-- likelihood to form 'friends' (will tend to follow each other and share friends and enemies) -->
-        <attr name="leadership" value="7.2" /> <!-- likelihood to become leader (least likely to follow friends, most likely to be followed) -->
+        <attr name="leadership" value="7.2" /> <!-- likelihood to become leader (most likely to be followed by friends) -->
         
         <!-- kinetic (movement & combat) attributes -->
         <attr name="specialMoveFunc" value="fly" /> <!-- special movement is used when hunting, chasing or fleeing -->
         <attr name="speed" value="0.3" /> <!-- likelihood to evade enemy attacks -->
+        <attr name="moveSpeed" value="0.8" /> <!-- chance, from 0 to 1, for a succesful tile move -->
     </base>
     
     <default>
@@ -93,6 +92,7 @@
             <attr name="size" value="1.2" />
             <attr name="health" value="160" />
             <attr weight="45" /> <!-- in kilograms -->
+            <flag name="baby" />
         </variant>
     
         <variant name="Small Dragon" id="small">
@@ -104,13 +104,13 @@
         <variant name="Medium-sized Dragon" id="medium">
             <attr name="size" value="4" />
             <attr name="health" value="350" />
-            <attr weight="138" />
+            <attr weight="138" /> <!-- in kilograms -->
         </variant>
         
         <variant name="Large Dragon" id="large">
             <attr name="size" value="5" />
             <attr name="health" value="400" />
-            <attr weight="210" />
+            <attr weight="210" /> <!-- in kilograms -->
         </variant>
     </variants>
 </entitytype>

@@ -4,6 +4,7 @@
     nickname: "SMAdventure"
     channels:
         - "#jongtest"
+        - "##lazy-valoran"
         
 -   name: "mibbit"
     server: "irc.mibbit.net"

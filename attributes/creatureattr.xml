@@ -1,4 +1,18 @@
 <?xml version="1.0"?>
 <default>
+    <attribute key="type" value="'creature'" />
+    
     <attribute key="health" value="100" /> # default health amount
+    <attribute key="hostility" value="0" />
+    <attribute key="courage" value="1" />
+    <attribute key="sociality" value="5" />
+    <attribute key="leadership" value="0" />
+    
+    <attribute key="speed" value="0.4" />
+    
+    <declare key="target" />
+    <declare key="destination" />
+    <declare key="specialMoveFunc" />
+    <declare key="rangedAttackFunc" />
+    <declare key="meleeAttackFunc" />
 </default>
