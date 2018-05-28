@@ -8,11 +8,12 @@ Improved by: Gustavo R. Rehermann (Gustavo6046)
 
 import random
 
-vowels = "aeiou"
-consonants = "bcdfghjklmnpqrstvwxyz"
-pre_consonants = "tspdkcmn"
-post_consonants = "rhpzk"
-ditongs = ["ae", "ai", "ou", "ao", "oe", "oi", "oy", "aeo", "eio"]
+vowels = 'aeiou'
+consonants = 'bcdfghjklmnpqrstvwxyz'
+pre_consonants = 'tspdkcmnlxr'
+post_consonants = 'rhpzklt'
+triple_consonants = ['str', 'spl', 'xpl']
+ditongs = ["ae", "ai", "ou", "ao", "oe", "oi", "oy", "aeo", "eio", "ee", "oo"]
 
 def generate_name(length, digraph_rate=0.3, ditong_rate=0.2, hyphen_rate=0.125):
     if length <= 0:
@@ -36,8 +37,12 @@ def generate_name(length, digraph_rate=0.3, ditong_rate=0.2, hyphen_rate=0.125):
             
         elif decision == 'consonant':
             if random.random() <= digraph_rate:
-                syl_choice = random.choice(pre_consonants) + random.choice(post_consonants)
-                # length -= 1
+                if random.random() <= 0.2:
+                    syl_choice = random.choice(triple_consonants)
+            
+                else:
+                    syl_choice = random.choice(pre_consonants) + random.choice(post_consonants)
+                    # length -= 1
             
             else:
                 syl_choice = random.choice(consonants)

@@ -4,12 +4,12 @@
         <function name="tick">
             import random
         
-            def dragon_tick(index, entity, world):
+            def dragon_tick(index, entity):
                 if random.random() &lt;= 0.1:
                     # wander
                     possib = set()
                     
-                    for p in world.paths:
+                    for p in self.world.paths:
                         if entity.place in p:
                             possib.add(p)
                             
@@ -18,7 +18,7 @@
         </function>
         
         <function name="fly">
-            def dragon_fly(index, entity, world):
+            def dragon_fly(index, entity):
                 if entity.attr['destination'] == entity.place:
                     return False
                     
@@ -26,32 +26,32 @@
                 
                 while entity.attr['destination'] != entity.place and i > 0:
                     i -= 1
-                    world.path_move(entity, entity.attr['destination'])
+                    self.world.path_move(entity, entity.attr['destination'])
                     
                 return i > 0
         </function> 
         
         <function name="slash">
-            def dragon_slash(index, entity, world):
+            def dragon_slash(index, entity):
                 if entity.attr['target'] is None:
                     return
                     
-                if world.load_entity_index(entity.attr['target']).size &lt; entity.variant['size']:
+                if self.world.load_entity_index(entity.attr['target']).size &lt; entity.variant['size']:
                     return
                     
-                world.damage_entity_index(entity.attr['target'], __import__('random').uniform(30, 50))
+                self.world.damage_entity_index(entity.attr['target'], __import__('random').uniform(30, 50))
         </function>
         
         <function name="firebreath">
-            def dragon_fire(index, entity, world):
+            def dragon_fire(index, entity):
                 if entity.attr['target'] is None:
                     return
                     
-                if world.load_entity_index(entity.attr['target']).size &gt;= entity.variant['size']:
+                if self.world.load_entity_index(entity.attr['target']).size &gt;= entity.variant['size']:
                     return
                     
                 for _ in range(6):
-                    world.damage_entity_index(entity.attr['target'], __import__('random').uniform(10, 25))
+                    self.world.damage_entity_index(entity.attr['target'], __import__('random').uniform(10, 25))
         </function>
     </functions>
     
@@ -73,6 +73,20 @@
         <attr name="specialMoveFunc" value="fly" /> <!-- special movement is used when hunting, chasing or fleeing -->
         <attr name="speed" value="0.3" /> <!-- likelihood to evade enemy attacks -->
     </base>
+    
+    <default>
+        <import name="creatureattr" href="attributes/creatureattr.xml" />
+        <attribute key="drops" value="{'scale': (1, 3)}" />
+    </default>
+    
+    <systems>
+        <system name="creature" href="systems/creature.py" />
+        <system name="drops" href="systems/drops.py" />
+    </systems>
+    
+    <itemdefs>
+        <item name="scale" />
+    </itemdefs>
     
     <variants>
         <variant name="Baby Dragon" id="baby">

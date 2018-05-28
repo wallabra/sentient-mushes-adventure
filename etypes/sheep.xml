@@ -4,7 +4,7 @@
         <function name="tick">
             import random
         
-            def sheep_tick(index, entity, world):
+            def sheep_tick(index, entity):
                 if random.random() &lt;= 0.275:
                     # wander
                     possib = set()
@@ -35,6 +35,20 @@
         <attr name="speed" value="0.7125" /> <!-- likelihood to evade enemy attacks -->
     </base>
     
+    <default>
+        <import name="creatureattr" href="attributes/creatureattr.xml" />
+        <attribute key="drops" value="{'wool': (1, 5), 'raw steak': (1, 3)}" />
+    </default>
+    
+    <systems>
+        <system name="creature" href="systems/creature.py" />
+        <system name="drops" href="systems/drops.py" />    
+    </systems>
+    
+    <itemdefs>
+        <item name="wool" />
+    </itemdefs>
+        
     <variants>
         <variant name="White Sheep" id="white">
             <attr name="size" value="1.5" />

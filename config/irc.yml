@@ -1,0 +1,13 @@
+-   name: "freenode"
+    server: "irc.freenode.net"
+    port: 6667
+    nickname: "SMAdventure"
+    channels:
+        - "#jongtest"
+        
+-   name: "mibbit"
+    server: "irc.mibbit.net"
+    port: 6667
+    nickname: "SMAdventure"
+    channels:
+        - "#sentientmushes"

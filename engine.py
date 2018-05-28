@@ -1,10 +1,10 @@
 import json
 import lxml
-import tempfile
+import embedcode
 import namegen
+import importlib
 import random
 
-# from irc.bot import SimpleIRCBot
 from lxml import etree
 
 
@@ -22,12 +22,14 @@ class EntityType(object):
     
     So, if we have a 'dragon#Mountain#large#{""}'"""
 
-    def __init__(self, name, id=None, base_attributes=(), variants=(), functions=()):
+    def __init__(self, name, id=None, base_attributes=(), variants=(), functions=(), systems=(), default_entity_attr=()):
         self.name = name
         self.id = id or idnum
         self.base_attributes = dict(base_attributes)
         self.variants = dict(variants)
         self.functions = dict(functions)
+        self.systems = list(systems)
+        self.default_attr = dict(default_entity_attr)
         
         for k, v in variants.items():
             variants[k]['flags'] = set(v['flags'])
@@ -48,33 +50,56 @@ class EntityType(object):
             idnum += 1
         
     def instantiate(self, place, variant):
-        """Creates an entity string and returns it."""
-        return "{}#{}#{}#{}".format(self.id, namegen.generate_name(random.randint(4, 9)), place, variant)
+        """Creates a default entity string and returns it."""
+        attr = self.default_attr
         
-    def call(self, func, index, entity, world):
-        return self.functions[func](index, entity, world)
+        for k, v in self.variants[variant]['attr'].items():
+            if k in attr:
+                attr[k] = v
+        
+        return "{}#{}#{}#{}#{}".format(self.id, namegen.generate_name(random.randint(4, 9)), place, variant, json.dumps(attr))
+        
+    def call(self, func, index, entity):
+        return self.functions[func](index, entity)
 
 class LoadedEntity(object):
-    def __init__(self, world, s):
+    def __init__(self, world, index, s):
+        self.world = world
+        self.index = index
         self.type = world.etypes[s.split("#")[0]]
         self.name = s.split('#')[1]
         self.place = s.split("#")[2]
         self.variant = self.type.variants[s.split("#")[3]]
+        self.attr = json.loads(s.split("#")[4])
+        
+    def __setitem__(self, key, val):
+        self.attr[key] = val
+        self.world.entities[self.index] = "{}#{}#{}#{}#{}".format(self.type.id, self.name, self.place, self.variant, json.dumps(self.attr))
+        
+    def __getitem__(self, key):
+        return self.attr.get(key, None)
         
 class GameWorld(object):
-    def __init__(self, etypes, paths, places, entities):
+    def __init__(self, etypes, paths, places, entities, item_types):
         self.etypes = dict(etypes)
         self.paths = list(paths)
         self.places = list(places)
         self.entities = list(entities)
+        self.item_types = list(item_types)
         
     def tick(self):
         for i, e in enumerate(self.entities):
-            en = LoadedEntity(self, e)
+            en = LoadedEntity(self, i, e)
             et = self.etypes[en.type]
 
-            if 'tick' in self.etypes.functions:
-                self.etypes.call('tick', i, e, self)
+            if 'tick' in et.functions:
+                et.call('tick', i, en)
+                
+            for s in et.systems:
+                s('tick', i, en)
+                
+    def load_entity_index(self, index):
+        return LoadedEntity(self, index, self.entities[index])
         
 class GameLoader(object):
     """A class which children will load
@@ -116,13 +141,15 @@ class XMLGameLoader(object):
         paths = []
         places = []
         entities = []
+        item_types = []
         
         for el in xworld.iter():
             if el.tag == 'etypes':
                 for t in el:
                     if t.tag == 'etype':
-                        e = self.load_entity_type(t.get('filename'))
+                        (e, items) = self.load_entity_type(t.get('filename'))
                         etypes[e.id] = e
+                        item_types.extend(items)
                     
         for el in xworld.iter():
             if el.tag == "places":
@@ -152,7 +179,7 @@ class XMLGameLoader(object):
                     if p.tag == "path":
                         paths.append(set(p.get('ends').split(';')))
                 
-        return GameWorld(etypes, paths, places, entities)
+        return GameWorld(etypes, paths, places, entities, item_types)
         
     def load_entity_type(self, filename):
         """Returns an EntityType instance.
@@ -162,6 +189,21 @@ class XMLGameLoader(object):
         to create the instance after processing the file's
         content."""
         
+        item_types = [] # Entity's item definitions
+        
+        def import_attr(el):
+            imported = etree.parse(open(el.get('href')))
+                            
+            for a in imported.iter():
+                if a.tag == "attribute":
+                    default[a.get('key')] = eval(a.get('value'))
+                    
+                elif a.tag == "declare":
+                    default[a.get('key')] = None
+                    
+                elif a.tag == "import":
+                    import_attr(el)
+        
         try:
             etype = etree.parse(open(filename))
             name = etype.getroot().get('name')
@@ -170,8 +212,10 @@ class XMLGameLoader(object):
             functions = {}
             base = { 'attr': {}, 'flags': set() }
             variants = {}
+            systems = []
+            default = {}
             
-            funcholder = tempfile.CodeHolder()
+            funcholder = embedcode.CodeHolder()
             
             for sub in etype.iter():
                 if sub.tag == "functions":
@@ -187,9 +231,50 @@ class XMLGameLoader(object):
                         elif a.tag == "flag":
                             base['flags'].add(a.get('name'))
                             
+                elif sub.tag == "systems":
+                    for sys in sub:
+                        if sys.tag == "system":
+                            fncs = list(funcholder.quick("{}-{}".format(id, sys.get('name')), open(sys.get('href')).read()))
+                            systems.append(fncs[-1])
+                            
+                elif sub.tag == "default":
+                    for att in sub:
+                        if att.tag == "import":
+                            import_attr(att)
+                           
+                        elif a.tag == "declare":
+                            default[att.get('key')] = None
+                           
+                        elif att.tag == "attribute":
+                            default[att.get('key')] = eval(att.get('value'))
+                            
+                elif sub.tag == "itemdefs":
+                    for item in sub:
+                        if item.tag == 'item':
+                            i = {
+                                'name': item.get('name'),
+                                'functions': {},
+                                'attr': {}
+                            }
+                            
+                            for char in item:
+                                if char.tag == 'function':
+                                    i['functions'][char.get('name')] = funcholder.quick('{}-{}'.format(item.get('name'), char.get('name')), char.text)
+                                    
+                                elif char.tag == 'attribute':
+                                    val = char.get('value')
+                                    
+                                    if val:
+                                        i['attr'][char.get('key')] = eval(val)
+                                        
+                                    else:
+                                        i['attr'][char.get('key')] = None
+                        
+                            item_types.append(i)
+                            
                 elif sub.tag == "variants":
                     for va in sub:
-                        v = { 'attr': {}, 'flags': set() }
+                        v = { 'name': va.get('name'), 'id': va.get('id'), 'attr': {}, 'flags': set() }
                         
                         for a in va:
                             if a.tag == "attr":
@@ -198,10 +283,9 @@ class XMLGameLoader(object):
                             elif a.tag == "flag":
                                 v['flags'].add(a.get('name'))
                                 
-                        v['name'] = va.get('name')
                         variants[va.get('id')] = v
                         
         finally:
             funcholder.deinit()
         
-        return EntityType(name, id, base, variants, functions)
+        return (EntityType(name, id, base, variants, functions, systems), item_types)

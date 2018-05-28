@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<default>
+    <attribute key="health" value="100" /> # default health amount
+</default>
