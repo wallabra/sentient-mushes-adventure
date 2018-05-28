@@ -5,4 +5,4 @@ world = loader.load_world('mushworld.xml')
 
 for e in world.entities:
     le = engine.LoadedEntity(world, e)
-    print("{} from {}".format(le.name, le.place))
+    print("{} the {} from {}".format(le.name, le.variant['name'], le.place))

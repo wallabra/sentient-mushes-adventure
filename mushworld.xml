@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <world>
     <places>
-        <place name="the Draco Mountain">
+        <place name="Mount Bayoku">
             <flock type="dragon" amount="8-11" variant="small;medium" /> <!-- ';' separates random choices -->
             <flock type="dragon" amount="3-9" variant="baby" />
             <entity type="dragon" variant="large" />

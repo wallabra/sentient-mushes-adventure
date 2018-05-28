@@ -3,4 +3,4 @@
 
 -----
 
-A project of reasonable dimensions, soon to bring you the adventuroust sensation of exploring long, contiguous lands surrounding Yohantown.
+A project of reasonable dimensions, soon to bring you the adventuroust sensation of exploring long, contiguous lands surrounding Yohantow.

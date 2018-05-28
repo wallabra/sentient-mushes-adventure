@@ -49,7 +49,7 @@ class EntityType(object):
         
     def instantiate(self, place, variant):
         """Creates an entity string and returns it."""
-        return "{}#{}#{}#{}".format(self.id, "{} the {}".format(namegen.generate_name(random.randint(4, 12)), self.variants[variant]['name']), place, variant)
+        return "{}#{}#{}#{}".format(self.id, namegen.generate_name(random.randint(4, 9)), place, variant)
         
     def call(self, func, index, entity, world):
         return self.functions[func](index, entity, world)

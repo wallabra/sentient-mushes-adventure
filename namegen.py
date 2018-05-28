@@ -10,15 +10,16 @@ import random
 
 vowels = "aeiou"
 consonants = "bcdfghjklmnpqrstvwxyz"
-pre_consonants = "tspdk"
-post_consonants = "rhpz"
-ditongs = ["ae", "ai", "ou", "ao", "oe", "oi"]
+pre_consonants = "tspdkcmn"
+post_consonants = "rhpzk"
+ditongs = ["ae", "ai", "ou", "ao", "oe", "oi", "oy", "aeo", "eio"]
 
 def generate_name(length, digraph_rate=0.3, ditong_rate=0.2, hyphen_rate=0.125):
     if length <= 0:
         return False
 
     full_syl = ""
+    fl = length
     
     while length > 0:
         if full_syl == '':
@@ -52,4 +53,4 @@ def generate_name(length, digraph_rate=0.3, ditong_rate=0.2, hyphen_rate=0.125):
         full_syl += syl_choice
         length -= len(syl_choice)
     
-    return '-'.join(map(lambda x: x[0].upper() + x[1:], filter(lambda x: len(x) > 0, full_syl.split('-'))))
+    return '-'.join(map(lambda x: x[0].upper() + x[1:], filter(lambda x: len(x) > 0, full_syl.split('-'))))[:fl]
