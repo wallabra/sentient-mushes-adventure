@@ -4,21 +4,27 @@
         <function name="tick">
             import random
         
-            def sheep_tick(entity):
+            def tick(entity):
+                entity.call('creature_tick')
+            
                 if random.random() &lt;= 0.275:
                     # wander
                     possib = set()
                     
-                    for p in world.paths:
+                    for p in entity.world.paths:
                         if entity.place in p:
-                            possib.add(p)
+                            possib |= p
+                            
+                    possib -= {entity.place}
                             
                     if len(possib) &gt; 0:
-                        entity.place = random.choice(tuple(possib))
+                        p = random.choice(tuple(possib))
+                        entity.set_place(p)
+                        entity.world.broadcast(0, entity, " has wandered to ", p, ".")
                 
-                if random.random() &lt;= 0.35:
-                    # graze
-                    self.call('heal', self, random.uniform(5, 15))
+                if entity['health'] &lt; entity['maxGrazeHealth'] and random.random() &lt;= 0.2:
+                    # grazed
+                    entity.call('heal', entity, min(entity['maxGrazeHealth'] - entity['health'], random.uniform(5, 15)))
         </function>
     </functions>
     
@@ -57,18 +63,21 @@
         
     <variants>
         <variant name="White Sheep" id="white">
+            <attr name="maxGrazeHealth" value="135" />
             <attr name="size" value="1.5" />
             <attr name="health" value="120" />
             <attr name="weight" value="70" /> <!-- in kilograms -->
         </variant>
         
         <variant name="Brown Sheep" id="brown">
+            <attr name="maxGrazeHealth" value="135" />
             <attr name="size" value="1.5" />
             <attr name="health" value="120" />
             <attr name="weight" value="70" /> <!-- in kilograms -->
         </variant>
         
         <variant name="Baby Sheep" id="pup">
+            <attr name="maxGrazeHealth" value="85" />
             <attr name="size" value="0.8" />
             <attr name="health" value="70" />
             <attr name="weight" value="55" /> <!-- in kilograms -->
@@ -77,12 +86,14 @@
         </variant>
         
         <variant name="Naked Summer Sheep" id="summer">
+            <attr name="maxGrazeHealth" value="125" />
             <attr name="size" value="1.4" />
             <attr name="health" value="115" />
             <attr name="weight" value="64" /> <!-- in kilograms -->
         </variant>
         
         <variant name="Intelligent Sheep" id="mushy">
+            <attr name="maxGrazeHealth" value="122" />
             <attr name="size" value="1.4" />
             <attr name="health" value="115" />
             <attr name="weight" value="64" /> <!-- in kilograms -->
@@ -91,6 +102,7 @@
         </variant>
         
         <variant name="Very Wooly Sheep" id="xwool">
+            <attr name="maxGrazeHealth" value="140" />
             <attr name="size" value="1.7" />
             <attr name="health" value="125" />
             <attr name="weight" value="75" /> <!-- in kilograms -->

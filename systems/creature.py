@@ -1,5 +1,2 @@
-def creature_system(event, entity):
-    if entity.attr['isPlayer']:
-        return
-        
-    pass # Work in Progress
+def creature(event, entity):
+    pass # superseded by creatureattr's Entity Functions

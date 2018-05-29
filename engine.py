@@ -4,12 +4,22 @@ import embedcode
 import namegen
 import importlib
 import random
+import atexit
 
 from lxml import etree
 
 
 idnum = 0 # The default ID counter.
 
+
+# Broadcast levels
+BCAST_VERBOSE = -2
+BCAST_DEBUG = -1
+BCAST_INFO = 0
+BCAST_INTERESTING = 1
+BCAST_IMPORTANT = 2
+BCAST_EVENT = 3
+    
 class EntityType(object):
     """An entity type.
     
@@ -79,10 +89,14 @@ class LoadedEntity(object):
         
     def __setitem__(self, key, val):
         self.attr[key] = val
-        self.world.entities[self.index] = "{}#{}#{}#{}#{}".format(self.type.id, self.name, self.place, self.variant, json.dumps(self.attr))
+        self.update()
+        
+    def update(self):
+        self.world.set_with_id(self.id, "{}#{}#{}#{}#{}#{}".format(self.id, self.type.id, self.name, self.place, self.variant['id'], json.dumps(self.attr)))
         
     def __getitem__(self, key):
-        return self.attr.get(key, None) or self.variant['attr'].get(key, None)
+        a = self.attr.get(key, None)
+        return a if a is not None else self.variant['attr'].get(key, None)
     
     def call(self, func, *args):
         return self.type.call(func, self, *args)
@@ -90,6 +104,14 @@ class LoadedEntity(object):
     def event(self, evt):
         for s in self.type.systems:
             s(evt, self)
+    
+    def set_place(self, p):
+        self.place = p
+        self.update()
+            
+    def print_attr(self):
+        for k, v in self.attr.items():
+            print('  * {} -> {}'.format(k, v))
             
     def __str__(self):
         return "{} the {} from {}".format(self.name, self.variant['name'], self.place)
@@ -107,10 +129,17 @@ class GameWorld(object):
         
         self.broadcast_channels = []
         
-    def add_broadcast_channel(self, *channels):
+    def add_broadcast_channel(self, level, *channels):
+        for c in channels:
+            def _exit():
+                c('\n')
+                
+            atexit.register(_exit)
+            setattr(c, '_level', level)
+    
         self.broadcast_channels.extend(channels)
         
-    def broadcast(self, *message):
+    def broadcast(self, level, *message):
         m = ""
         
         for node in message:
@@ -124,18 +153,32 @@ class GameWorld(object):
                 m += str(node)
     
         for b in self.broadcast_channels:
-            b(m)
+            if level >= b._level:
+                b(m)
         
     def tick(self):
         for i, e in enumerate(self.entities):
             en = LoadedEntity(self, i, e)
-            et = self.etypes[en.type]
 
-            if 'tick' in et.functions:
+            if 'tick' in en.type.functions:
                 en.call('tick')
                 
-            for s in et.systems:
+            for s in en.type.systems:
                 s('tick', en)
+        
+    def find_item(self, name):
+        for i in self.item_types:
+            if i['name'] == name:
+                return i
+                
+        return None
+        
+    def find_place(self, name):
+        for p in self.places:
+            if p['name'] == name:
+                return p
+                
+        return None
         
     def from_id(self, uid):
         for i, e in enumerate(self.entities):
@@ -143,6 +186,29 @@ class GameWorld(object):
                 return LoadedEntity(self, i, e)
                 
         return None
+        
+    def from_index(self, ind):
+        return self.from_id(self.entities[ind].split('#')[0])
+        
+    def set_with_id(self, id, val):
+        e = self.from_id(id)
+        
+        if e:
+            self.entities[e.index] = val
+            return True
+        
+        return False
+        
+    def all_in_place(self, place):
+        res = []
+        
+        for i, e in enumerate(self.entities):
+            le = LoadedEntity(self, i, e)
+        
+            if le.place == place:
+                res.append(le)
+                
+        return res
         
     def item_type(self, name):
         for it in self.item_types:
@@ -220,7 +286,10 @@ class XMLGameLoader(object):
                                 if sub.get('type') in world.etypes:
                                     world.entities.append(world.etypes[sub.get('type')].instantiate(world, p.get('name'), (random.choice(sub.get('variant').split(';')) if sub.get('variant') != '*' else random.choice(tuple(world.etypes[sub.get('type')].variants.keys())))))
                     
-                        world.places.append(p.get('name'))
+                        world.places.append({
+                            'name': p.get('name'),
+                            'items': {}
+                        })
                 
             elif el.tag == "paths":
                 for p in el:
@@ -270,8 +339,15 @@ class XMLGameLoader(object):
                         base['attr'][a.get('name')] = eval(a.get('value'))
                         
                     elif a.tag == "function":
-                        fncs = list(funcholder.quick("{}-{}".format(id, a.get('name')), a.text).values())
-                        functions[a.get('name')] = fncs[-1]
+                        allfunc = tuple(funcholder.quick("{}-{}".format(id, a.get('name')), a.text).values())
+                        fncs = filter(lambda f: f.__name__ == a.get('name'), allfunc)
+                        
+                        try:
+                            functions[a.get('name')] = tuple(fncs)[-1]
+                            
+                        except IndexError:
+                            print("No matching function for '{}'!".format(a.get('name')))
+                            raise
                         
                     elif a.tag == 'item':
                         name = a.get('name')
@@ -309,8 +385,14 @@ class XMLGameLoader(object):
             for sub in etype.getroot():
                 if sub.tag == "functions":
                     for f in sub:
-                        fncs = list(funcholder.quick("{}-{}".format(id, f.get('name')), f.text).values())
-                        functions[f.get('name')] = fncs[-1]
+                        fncs = filter(lambda g: g.__name__ == f.get('name'), list(funcholder.quick("{}-{}".format(id, f.get('name')), f.text).values()))
+                        
+                        try:
+                            functions[f.get('name')] = tuple(fncs)[-1]
+                            
+                        except IndexError:
+                            print("No matching function for '{}'!".format(f.get('name')))
+                            raise
                         
                 elif sub.tag == "base":
                     for a in sub:
@@ -323,8 +405,14 @@ class XMLGameLoader(object):
                 elif sub.tag == "systems":
                     for sys in sub:
                         if sys.tag == "system":
-                            fncs = list(funcholder.quick("{}-{}".format(id, sys.get('name')), open(sys.get('href')).read()))
-                            systems.append(fncs[-1])
+                            fncs = filter(lambda f: f.__name__ == sys.get('name'), list(funcholder.quick("{}-{}".format(id, sys.get('name')), open(sys.get('href')).read()).values()))
+                            
+                            try:
+                                systems.append(tuple(fncs)[-1])
+                                
+                            except IndexError:
+                                print("No matching function for '{}'!".format(sys.get('name')))
+                                raise
                             
                 elif sub.tag == "default":
                     for att in sub:
@@ -349,11 +437,11 @@ class XMLGameLoader(object):
                             
                             for char in item:
                                 if char.tag == 'function':
-                                    i['functions'][char.get('name')] = tuple(funcholder.quick('{}-{}'.format(item.get('name'), char.get('name')), char.text).values())[-1]
+                                    i['functions'][char.get('name')] = tuple(filter(lambda f: f.__name__ == char.get('name'), tuple(funcholder.quick('{}-{}'.format(item.get('name'), char.get('name')), char.text).values())))[-1]
                                     
                                 elif char.tag == 'attribute':
                                     val = char.get('value')
-                                    
+                                     
                                     if val:
                                         i['attr'][char.get('key')] = eval(val)
                                         

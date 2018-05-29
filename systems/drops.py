@@ -1,6 +1,6 @@
 import random
 
-def drop_system(event, entity):
+def drops(event, entity):
     if event == 'death' and entity['drops'] and entity['instigator']:
         inv = entity.world.from_index(entity['instigator'])['inventory']
         

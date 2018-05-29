@@ -4,21 +4,27 @@
         <function name="tick">
             import random
         
-            def dragon_tick(index, entity):
+            def tick(entity):
+                entity.call('creature_tick')
+            
                 if random.random() &lt;= 0.1:
                     # wander
                     possib = set()
                     
-                    for p in self.world.paths:
+                    for p in entity.world.paths:
                         if entity.place in p:
-                            possib.add(p)
+                            possib |= p
+                            
+                    possib -= {entity.place}
                             
                     if len(possib) &gt; 0:
-                        entity.place = random.choice(tuple(possib))
+                        p = random.choice(tuple(possib))
+                        entity.set_place(p)
+                        entity.world.broadcast(0, entity, " has wandered to ", p, ".")
         </function>
         
         <function name="fly">
-            def dragon_fly(index, entity):
+            def fly(entity):
                 if entity['destination'] == entity.place:
                     return False
                     
@@ -32,11 +38,11 @@
         </function> 
         
         <function name="slash">
-            def dragon_slash(index, entity):
+            def slash(entity):
                 if entity.attr['target'] is None:
                     return
                     
-                if self.world.from_id(entity.attr['target']).size &lt; entity.variant['size']:
+                if entity.world.from_id(entity.attr['target']).size &lt; entity.variant['size']:
                     return
                     
                 entity.call('attack', world.from_id(entity['target']), __import__('random').uniform(30, 50))
@@ -45,11 +51,11 @@
         <function name="firebreath">
             import random
         
-            def dragon_fire(index, entity):
+            def firebreath(entity):
                 if entity.attr['target'] is None:
                     return
                     
-                if self.world.from_id(entity.attr['target'])['size'] &gt;= entity['size']:
+                if entity.world.from_id(entity.attr['target'])['size'] &gt;= entity['size']:
                     return
                     
                 for _ in range(6):
@@ -68,10 +74,10 @@
         <attr name="rangedAttackFunc" value="'firebreath'" /> <!-- function called when attacking a far enemy (smaller enemies) -->
         
         <!-- reactive and social traits, in a scale from 1 to 10 -->
-        <attr name="hostility" value="2.25" /> <!-- negativity of reaction to living entities of other kinds --> 
+        <attr name="hostility" value="2" /> <!-- negativity of reaction to living entities of other kinds --> 
         <attr name="courage" value="8" /> <!-- likelihood to stay when underwhelmed or outnumbered -->
         <attr name="sociality" value="6" /> <!-- likelihood to form 'friends' (will tend to follow each other and share friends and enemies) -->
-        <attr name="leadership" value="7.2" /> <!-- likelihood to become leader (most likely to be followed by friends) -->
+        <attr name="leadership" value="7.75" /> <!-- likelihood to become leader (most likely to be followed by friends) -->
         <attr name="dangerousness" value="100" /> <!-- Poor sheep... I wonder if we should give them some attack. Old Sentient Mushes IRCRPG (MushyBot/SMBot) used to let animals fight back as well. -->
         
         <!-- kinetic (movement & combat) attributes -->
