@@ -4,7 +4,7 @@
         <function name="tick">
             import random
         
-            def sheep_tick(index, entity):
+            def sheep_tick(entity):
                 if random.random() &lt;= 0.275:
                     # wander
                     possib = set()
@@ -18,7 +18,7 @@
                 
                 if random.random() &lt;= 0.35:
                     # graze
-                    world.heal_entity_index(index, random.uniform(5, 15))
+                    self.call('heal', self, random.uniform(5, 15))
         </function>
     </functions>
     
@@ -28,9 +28,9 @@
         <attr name="courage" value="2" /> <!-- likelihood to stay when underwhelmed or outnumbered -->
         <attr name="sociality" value="8.5" /> <!-- likelihood to form 'friends' (will tend to follow each other and share friends and enemies) -->
         <attr name="leadership" value="2" /> <!-- likelihood to become leader (least likely to follow friends, most likely to be followed) -->
-        
+        <attr name="dangerousness" value="0" /> <!-- Poor sheep... I wonder if we should give them some attack. Old Sentient Mushes IRCRPG (MushyBot/SMBot) used to let animals fight back as well. -->
         <!-- kinetic (movement & combat) attributes -->
-        <attr name="speed" value="0.7125" /> <!-- likelihood to evade enemy attacks -->
+        <attr name="speed" value="0.7125" /> <!-- likelihood to evade enemy attacks, from 0 to 1 -->
         <attr name="moveSpeed" value="0.85" /> <!-- chance, from 0 to 1, for a succesful tile move -->
     </base>
     
@@ -45,47 +45,56 @@
     </systems>
     
     <itemdefs>
-        <item name="wool" />
+        <item name="wool">
+            <function name="modify_damage">
+                import random
+                
+                def modify_damage(entity, world, dmg):
+                    return max(0, random.uniform(dmg - 15, dmg - 5))
+            </function>
+        </item>
     </itemdefs>
         
     <variants>
         <variant name="White Sheep" id="white">
             <attr name="size" value="1.5" />
             <attr name="health" value="120" />
-            <attr weight="70" /> <!-- in kilograms -->
+            <attr name="weight" value="70" /> <!-- in kilograms -->
         </variant>
         
         <variant name="Brown Sheep" id="brown">
             <attr name="size" value="1.5" />
             <attr name="health" value="120" />
-            <attr weight="70" /> <!-- in kilograms -->
+            <attr name="weight" value="70" /> <!-- in kilograms -->
         </variant>
         
         <variant name="Baby Sheep" id="pup">
             <attr name="size" value="0.8" />
             <attr name="health" value="70" />
-            <attr weight="55" /> <!-- in kilograms -->
+            <attr name="weight" value="55" /> <!-- in kilograms -->
             <flag name="baby" />
+            <default key="drops" value="{'wool': (1, 2), 'raw steak': (0, 1)}" />
         </variant>
         
         <variant name="Naked Summer Sheep" id="summer">
             <attr name="size" value="1.4" />
             <attr name="health" value="115" />
-            <attr weight="64" /> <!-- in kilograms -->
+            <attr name="weight" value="64" /> <!-- in kilograms -->
         </variant>
         
         <variant name="Intelligent Sheep" id="mushy">
             <attr name="size" value="1.4" />
             <attr name="health" value="115" />
-            <attr weight="64" /> <!-- in kilograms -->
+            <attr name="weight" value="64" /> <!-- in kilograms -->
             <attr name="courage" value="3.5" />
-            <flag name="mush" />
+            <default key="mush" value="True" />
         </variant>
         
         <variant name="Very Wooly Sheep" id="xwool">
             <attr name="size" value="1.7" />
             <attr name="health" value="125" />
-            <attr weight="75" /> <!-- in kilograms -->
+            <attr name="weight" value="75" /> <!-- in kilograms -->
+            <default key="drops" value="{'wool': (2, 7), 'raw steak': (1, 3)}" />
         </variant>
     </variants>
 </entitytype>

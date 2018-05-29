@@ -1,4 +1,4 @@
-def creature_system(event, index, entity):
+def creature_system(event, entity):
     if entity.attr['isPlayer']:
         return
         

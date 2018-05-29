@@ -1,18 +1,153 @@
 <?xml version="1.0"?>
 <default>
-    <attribute key="type" value="'creature'" />
+    <flag name="living" />
     
+    <static name="speed" value="0.4" />
+    <static name="hostility" value="0" />
+    <static name="courage" value="1" />
+    <static name="sociality" value="5" />
+    <static name="leadership" value="0" />
+    <static name="dangerousness" value="15" /> <!-- uses health scale -->
+    
+    <static name="specialMoveFunc" value="None" />
+    <static name="rangedAttackFunc" value="None" />
+    <static name="meleeAttackFunc" value="None" />
+
     <attribute key="health" value="100" /> # default health amount
-    <attribute key="hostility" value="0" />
-    <attribute key="courage" value="1" />
-    <attribute key="sociality" value="5" />
-    <attribute key="leadership" value="0" />
+    <attribute key="speedModifier" value="1" />
+    <attribute key="mush" value="False" />
+    <attribute key="humor" value="0.5" /> <!-- from 0 to 1 -->
     
-    <attribute key="speed" value="0.4" />
+    <attribute key="burning" value="False" />
     
+    <declare key="instigator" /> 
     <declare key="target" />
     <declare key="destination" />
-    <declare key="specialMoveFunc" />
-    <declare key="rangedAttackFunc" />
-    <declare key="meleeAttackFunc" />
+    
+    <item name="raw steak">
+        <flag name="food" />
+    </item>
+    
+    <function name="creature_tick">
+        import random
+        
+        def creature_tick(entity):
+            if entity['dead']:
+                dead
+        
+            if entity['burning'] and random.random() &lt;= 0.4:
+                dmg = random.uniform(1, 5)
+                entity.world.broadcast("Ouch! ", entity, " is taking ", dmg, " burn damage!")
+                entity.call("take_damage", dmg)
+                
+            if entity['destination'] and entity['destination'] != entity.place and not entity['target']:
+                entity.call('pathmove', entity['destination'])
+    </function>
+    
+    <function name="pathmove">
+        def neighbor_paths(place, world):
+            res = set()
+        
+            for p in world.paths:
+                if place in p:
+                    res |= p
+                    
+            res -= {place}
+            
+            return res
+    
+        def path_move(entity, navdest):
+            if entity['dead']:
+                return
+        
+            open = [entity.place]
+            closed = set()
+            come_from = {entity.place: None}
+            p = None
+            
+            while navdest not in open and len(open) > 0:
+                cur = open.pop()
+            
+                for n in neighbor_paths(cur, entity.world):
+                    if n in closed:
+                        continue
+                
+                    for pl in n:
+                        come_from[pl] = cur
+                
+                    if navdest in n:
+                        p = n
+                        break
+                    
+                    for pl in n:
+                        open.append(pl)
+                    
+                    closed.add(n)
+                    
+            if p is None:
+                return
+                
+            path = []
+            
+            c = navdest
+            while c is not None:
+                path.append(c)
+                c = come_from[c]
+                
+            return path[0]
+    </function>
+    
+    <function name="attack">
+        import random
+    
+        def attack(entity, other, damage):
+            if entity['dead'] or entity['place'] != other['place']:
+                return
+        
+            if random.random() * 0.5 + entity['humor'] &lt;= other['speed']:
+                entity.world.broadcast(entity, " tried to attack ", other, "! It missed!")
+                return
+                
+            other['instigator'] = entity.id
+            entity.world.broadcast(entity, " attacks ", other, "!")
+            other.call('take_damage', damage)
+    </function>
+    
+    <function name="take_damage">
+        def take_damage(entity, damage):
+            if entity['dead']:
+                return
+        
+            for i in self['inventory'].keys():
+                if self['inventory'].get(i) &gt; 0 and 'modify_damage' in entity.world.item_type(i).functions:
+                    damage = entity.world.item_type(i).functions['modify_damage'](entity, world, damage)
+                    
+            entity['health'] = entity['health'] - damage
+
+            if entity['health'] &lt;= 0:
+                if entity['instigator'] and entity.from_id(entity['instigator'])['obituary']:
+                    entity.world.broadcast(entity.from_id(entity['instigator'])['obituary'].format())
+            
+                else:
+                    entity.world.broadcast(entity, " took ", damage, " damage and died!")
+                    
+                entity['dead'] = True
+            
+            else:
+                if entity['instigator']:
+                    entity.world.broadcast(entity, " took ", damage, " damage!")
+                    entity['target'] = entity['instigator']
+                    entity['instigator'] = None
+            
+    </function>
+    
+    <function name="heal">
+        def heal(entity, other, amount):
+            if entity['dead']:
+                return
+        
+            if entity['place'] == other['place']:
+                entity.world.broadcast(entity, " is healing ", other, " by ", amount, " hitpoints!")
+                other['health'] = other['health'] + amount
+    </function>
 </default>

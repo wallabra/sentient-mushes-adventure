@@ -49,43 +49,82 @@ class EntityType(object):
         if not id:
             idnum += 1
         
-    def instantiate(self, place, variant):
+    def instantiate(self, world, place, variant):
         """Creates a default entity string and returns it."""
         attr = self.default_attr
         
-        for k, v in self.variants[variant]['attr'].items():
-            if k in attr:
-                attr[k] = v
+        for k, v in self.variants[variant]['default'].items():
+            attr[k] = v
         
-        return "{}#{}#{}#{}#{}".format(self.id, namegen.generate_name(random.randint(4, 9)), place, variant, json.dumps(attr))
+        id = ''.join([random.choice('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789') for _ in range(24)])
         
-    def call(self, func, index, entity):
-        return self.functions[func](index, entity)
+        while world.from_id(id):
+            id = ''.join([random.choice('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789') for _ in range(24)])
+        
+        return "{}#{}#{}#{}#{}#{}".format(id, self.id, namegen.generate_name(random.randint(4, 9)), place, variant, json.dumps(attr))
+        
+    def call(self, func, entity, *args):
+        return self.functions[func](entity, *args)
 
 class LoadedEntity(object):
     def __init__(self, world, index, s):
         self.world = world
         self.index = index
-        self.type = world.etypes[s.split("#")[0]]
-        self.name = s.split('#')[1]
-        self.place = s.split("#")[2]
-        self.variant = self.type.variants[s.split("#")[3]]
-        self.attr = json.loads(s.split("#")[4])
+        self.id = s.split("#")[0]
+        self.type = world.etypes[s.split("#")[1]]
+        self.name = s.split('#')[2]
+        self.place = s.split("#")[3]
+        self.variant = self.type.variants[s.split("#")[4]]
+        self.attr = json.loads(s.split("#")[5])
         
     def __setitem__(self, key, val):
         self.attr[key] = val
         self.world.entities[self.index] = "{}#{}#{}#{}#{}".format(self.type.id, self.name, self.place, self.variant, json.dumps(self.attr))
         
     def __getitem__(self, key):
-        return self.attr.get(key, None)
+        return self.attr.get(key, None) or self.variant['attr'].get(key, None)
+    
+    def call(self, func, *args):
+        return self.type.call(func, self, *args)
+        
+    def event(self, evt):
+        for s in self.type.systems:
+            s(evt, self)
+            
+    def __str__(self):
+        return "{} the {} from {}".format(self.name, self.variant['name'], self.place)
+        
+    def __format__(self):
+        return str(self)
         
 class GameWorld(object):
-    def __init__(self, etypes, paths, places, entities, item_types):
+    def __init__(self, etypes=(), paths=(), places=(), entities=(), item_types=()):
         self.etypes = dict(etypes)
         self.paths = list(paths)
         self.places = list(places)
         self.entities = list(entities)
         self.item_types = list(item_types)
+        
+        self.broadcast_channels = []
+        
+    def add_broadcast_channel(self, *channels):
+        self.broadcast_channels.extend(channels)
+        
+    def broadcast(self, *message):
+        m = ""
+        
+        for node in message:
+            if isinstance(node, LoadedEntity):
+                m += "{} the {} from {}".format(node.name, node.variant['name'], node.place)
+                
+            elif isinstance(node, EntityType):
+                m += node.name
+                
+            else:
+                m += str(node)
+    
+        for b in self.broadcast_channels:
+            b(m)
         
     def tick(self):
         for i, e in enumerate(self.entities):
@@ -93,13 +132,24 @@ class GameWorld(object):
             et = self.etypes[en.type]
 
             if 'tick' in et.functions:
-                et.call('tick', i, en)
+                en.call('tick')
                 
             for s in et.systems:
-                s('tick', i, en)
+                s('tick', en)
+        
+    def from_id(self, uid):
+        for i, e in enumerate(self.entities):
+            if e.split("#")[0] == uid:
+                return LoadedEntity(self, i, e)
                 
-    def load_entity_index(self, index):
-        return LoadedEntity(self, index, self.entities[index])
+        return None
+        
+    def item_type(self, name):
+        for it in self.item_types:
+            if it.name == name:
+                return it
+               
+        return None
         
 class GameLoader(object):
     """A class which children will load
@@ -137,51 +187,49 @@ class XMLGameLoader(object):
         Location instances that represent places in
         the game world."""
         xworld = etree.parse(open(filename))
-        etypes = {}
-        paths = []
-        places = []
-        entities = []
-        item_types = []
         
-        for el in xworld.iter():
+        world = GameWorld()
+        
+        for el in xworld.getroot():
             if el.tag == 'etypes':
                 for t in el:
                     if t.tag == 'etype':
-                        (e, items) = self.load_entity_type(t.get('filename'))
-                        etypes[e.id] = e
-                        item_types.extend(items)
+                        (e, items) = self.load_entity_type(world, t.get('filename'))
+                        world.etypes[e.id] = e
+                        world.item_types.extend(items)
                     
-        for el in xworld.iter():
+        for el in xworld.getroot():
             if el.tag == "places":
                 for p in el:
-                    for sub in p:
-                        if sub.tag == "flock":
-                            if sub.get('type') in etypes:
-                                amount = sub.get('amount')
+                    if p.tag == "place":
+                        for sub in p:
+                            if sub.tag == "flock":
+                                if sub.get('type') in world.etypes:
+                                    amount = sub.get('amount')
+                                    
+                                    if '-' in amount:
+                                        amount = random.randint(int(amount.split('-')[0]), int(amount.split('-')[1]))
+                                        
+                                    else:
+                                        amount = int(amount)
                                 
-                                if '-' in amount:
-                                    amount = random.randint(int(amount.split('-')[0]), int(amount.split('-')[1]))
-                                    
-                                else:
-                                    amount = int(amount)
-                            
-                                for _ in range(amount):
-                                    entities.append(etypes[sub.get('type')].instantiate(p.get('name'), (random.choice(sub.get('variant').split(';')) if sub.get('variant') != '*' else random.choice(tuple(etypes[sub.get('type')].variants.keys())))))
-                                    
-                        elif sub.tag == "entity":
-                            if sub.get('type') in etypes:
-                                entities.append(etypes[sub.get('type')].instantiate(p.get('name'), (random.choice(sub.get('variant').split(';')) if sub.get('variant') != '*' else random.choice(tuple(etypes[sub.get('type')].variants.keys())))))
-                
-                    places.append(p.get('name'))
+                                    for _ in range(amount):
+                                        world.entities.append(world.etypes[sub.get('type')].instantiate(world, p.get('name'), (random.choice(sub.get('variant').split(';')) if sub.get('variant') != '*' else random.choice(tuple(world.etypes[sub.get('type')].variants.keys())))))
+                                        
+                            elif sub.tag == "entity":
+                                if sub.get('type') in world.etypes:
+                                    world.entities.append(world.etypes[sub.get('type')].instantiate(world, p.get('name'), (random.choice(sub.get('variant').split(';')) if sub.get('variant') != '*' else random.choice(tuple(world.etypes[sub.get('type')].variants.keys())))))
+                    
+                        world.places.append(p.get('name'))
                 
             elif el.tag == "paths":
                 for p in el:
                     if p.tag == "path":
-                        paths.append(set(p.get('ends').split(';')))
-                
-        return GameWorld(etypes, paths, places, entities, item_types)
+                        world.paths.append(set(p.get('ends').split(';')))
+                        
+        return world
         
-    def load_entity_type(self, filename):
+    def load_entity_type(self, world, filename):
         """Returns an EntityType instance.
         
         The filename is one of the entity type filenames
@@ -189,22 +237,9 @@ class XMLGameLoader(object):
         to create the instance after processing the file's
         content."""
         
-        item_types = [] # Entity's item definitions
-        
-        def import_attr(el):
-            imported = etree.parse(open(el.get('href')))
-                            
-            for a in imported.iter():
-                if a.tag == "attribute":
-                    default[a.get('key')] = eval(a.get('value'))
-                    
-                elif a.tag == "declare":
-                    default[a.get('key')] = None
-                    
-                elif a.tag == "import":
-                    import_attr(el)
-        
         try:
+            item_types = [] # Entity's item definitions
+            
             etype = etree.parse(open(filename))
             name = etype.getroot().get('name')
             id = etype.getroot().get('id')
@@ -215,9 +250,63 @@ class XMLGameLoader(object):
             systems = []
             default = {}
             
+            def import_attr(el):
+                imported = etree.parse(open(el.get('href')))
+                                
+                for a in imported.getroot():
+                    if a.tag == "attribute":
+                        default[a.get('key')] = eval(a.get('value'))
+                        
+                    elif a.tag == "declare":
+                        default[a.get('key')] = None
+                        
+                    elif a.tag == "import":
+                        import_attr(el)
+                
+                    elif a.tag == "flag":
+                        base['flags'].add(a.get('name'))
+                        
+                    elif a.tag == "static":
+                        base['attr'][a.get('name')] = eval(a.get('value'))
+                        
+                    elif a.tag == "function":
+                        fncs = list(funcholder.quick("{}-{}".format(id, a.get('name')), a.text).values())
+                        functions[a.get('name')] = fncs[-1]
+                        
+                    elif a.tag == 'item':
+                        name = a.get('name')
+                        
+                        if name in map(lambda item: item['name'], world.item_types):
+                            continue
+                    
+                        i = {
+                            'name': name,
+                            'functions': {},
+                            'attr': {},
+                            'flags': set()
+                        }
+                        
+                        for char in a:
+                            if char.tag == 'function':
+                                i['functions'][char.get('name')] = funcholder.quick('{}-{}'.format(a.get('name'), char.get('name')), char.text)
+                                
+                            elif char.tag == 'attribute':
+                                val = char.get('value')
+                                
+                                if val:
+                                    i['attr'][char.get('key')] = eval(val)
+                                    
+                                else:
+                                    i['attr'][char.get('key')] = None
+                                    
+                            elif char.tag == 'flag':
+                                i['flags'].add(char.get('name'))
+                        
+                        item_types.append(i)
+            
             funcholder = embedcode.CodeHolder()
             
-            for sub in etype.iter():
+            for sub in etype.getroot():
                 if sub.tag == "functions":
                     for f in sub:
                         fncs = list(funcholder.quick("{}-{}".format(id, f.get('name')), f.text).values())
@@ -226,7 +315,7 @@ class XMLGameLoader(object):
                 elif sub.tag == "base":
                     for a in sub:
                         if a.tag == "attr":
-                            base['attr'][a.get('name')] = a.get('value')
+                            base['attr'][a.get('name')] = eval(a.get('value'))
                             
                         elif a.tag == "flag":
                             base['flags'].add(a.get('name'))
@@ -254,12 +343,13 @@ class XMLGameLoader(object):
                             i = {
                                 'name': item.get('name'),
                                 'functions': {},
-                                'attr': {}
+                                'attr': {},
+                                'flags': set()
                             }
                             
                             for char in item:
                                 if char.tag == 'function':
-                                    i['functions'][char.get('name')] = funcholder.quick('{}-{}'.format(item.get('name'), char.get('name')), char.text)
+                                    i['functions'][char.get('name')] = tuple(funcholder.quick('{}-{}'.format(item.get('name'), char.get('name')), char.text).values())[-1]
                                     
                                 elif char.tag == 'attribute':
                                     val = char.get('value')
@@ -270,18 +360,24 @@ class XMLGameLoader(object):
                                     else:
                                         i['attr'][char.get('key')] = None
                         
+                                elif char.tag == 'flag':
+                                    i['flags'].add(char.get('key'))
+                            
                             item_types.append(i)
                             
                 elif sub.tag == "variants":
                     for va in sub:
-                        v = { 'name': va.get('name'), 'id': va.get('id'), 'attr': {}, 'flags': set() }
+                        v = { 'name': va.get('name'), 'id': va.get('id'), 'attr': {}, 'flags': set(), 'default': {} }
                         
                         for a in va:
                             if a.tag == "attr":
-                                v['attr'][a.get('name')] = a.get('value')
+                                v['attr'][a.get('name')] = eval(a.get('value'))
                                 
                             elif a.tag == "flag":
                                 v['flags'].add(a.get('name'))
+
+                            elif a.tag == "default":
+                                v['default'][a.get('key')] = eval(a.get('value'))
                                 
                         variants[va.get('id')] = v
                         
