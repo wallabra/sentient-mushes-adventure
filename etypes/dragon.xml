@@ -31,8 +31,10 @@
                 i = 3
                 
                 while entity['destination'] != entity.place and i &gt; 0:
+                    if not entity.call('pathmove', entity['destination']):
+                        return False
+                        
                     i -= 1
-                    entity.call('pathmove', entity['destination'])
                     
                 return i &gt; 0
         </function> 
@@ -92,7 +94,7 @@
         
         <!-- kinetic (movement & combat) attributes -->
         <attr name="specialMoveFunc" value="'fly'" /> <!-- special movement is used when hunting, chasing or fleeing -->
-        <attr name="speed" value="0.3" /> <!-- likelihood to evade enemy attacks, from 0 to 1 -->
+        <attr name="speed" value="0.25" /> <!-- likelihood to evade enemy attacks, from 0 to 1 -->
         <attr name="moveSpeed" value="0.8" /> <!-- chance, from 0 to 1, for a succesful tile move -->
     </base>
     

@@ -2,13 +2,13 @@
 <world>
     <places>
         <place name="Mount Bayoku">
-            <flock type="dragon" amount="8-11" variant="small;medium" /> <!-- ';' separates random choices -->
-            <flock type="dragon" amount="3-9" variant="baby" />
-            <entity type="dragon" variant="large" />
+            <flock type="dragon" amount="8-12" variant="small;medium" /> <!-- ';' separates random choices -->
+            <flock type="dragon" amount="3-10" variant="baby"/>
+            <flock type="dragon" amount="1-4" variant="large" />
         </place>
         
         <place name="Yohantown's Prairies">
-            <flock type="sheep" amount="10-25" variant="*" /> <!-- "*" means random variant -->
+            <flock type="sheep" amount="10-35" variant="*" /> <!-- "*" means random variant -->
         </place>
     </places>
     

@@ -90,6 +90,10 @@
             if entity['destination'] and entity['destination'] != entity.place and not entity['target']:
                 entity.call('pathmove', entity['destination'])
                 
+            elif entity['target'] and entity['specialMoveFunc'] and (entity['dangerousness'] + entity['health']) * entity['courage'] &gt;= (entity.world.from_id(entity['target'])['dangerousness'] + entity.world.from_id(entity['target'])['health']) * entity.world.from_id(entity['target'])['courage'] and random.random() &lt;= 0.5:
+                entity['destination'] = entity.world.from_id(entity['target']).place
+                entity.call(entity['specialMoveFunc'])
+                
             else:
                 if not entity['target']:
                     # Hostility.
@@ -186,8 +190,8 @@
                     possib |= path
                     
             if place in possib and random.random() &lt;= entity['moveSpeed']:
-                entity.set_place(place)
                 entity.world.broadcast(0, entity, " has just moved to ", place, "!")
+                entity.set_place(place)
     </function>
     
     <function name="pathmove">
@@ -259,7 +263,7 @@
             if entity['dead'] or entity['place'] != other['place']:
                 return
         
-            if random.random() * 0.5 + entity['humor'] &lt;= other['speed']:
+            if random.random() * 0.8 + min(1, max(entity['humor'], 0)) &lt;= other['speed']:
                 entity.world.broadcast(2, entity, " tried to attack ", other, "! It missed!")
                 entity['humor'] -= 0.08
                 return
