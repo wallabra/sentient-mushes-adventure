@@ -13,7 +13,7 @@
     </places>
     
     <paths> 
-        <path ends="mountain;prairies" />
+        <path ends="Mount Bayoku;Yohantown's Prairies" />
     </paths>
     
     <etypes> <!-- entity dependencies -->

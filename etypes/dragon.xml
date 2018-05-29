@@ -7,7 +7,7 @@
             def tick(entity):
                 entity.call('creature_tick')
             
-                if random.random() &lt;= 0.1:
+                if random.random() &lt;= 0.1: 
                     # wander
                     possib = set()
                     
@@ -19,8 +19,8 @@
                             
                     if len(possib) &gt; 0:
                         p = random.choice(tuple(possib))
-                        entity.set_place(p)
-                        entity.world.broadcast(0, entity, " has wandered to ", p, ".")
+                        entity.world.broadcast(0, entity, " wanders to ", p, ".")
+                        entity.call('move', p)
         </function>
         
         <function name="fly">
@@ -42,10 +42,7 @@
                 if entity.attr['target'] is None:
                     return
                     
-                if entity.world.from_id(entity.attr['target']).size &lt; entity.variant['size']:
-                    return
-                    
-                entity.call('attack', world.from_id(entity['target']), __import__('random').uniform(30, 50))
+                entity.call('attack', entity.world.from_id(entity['target']), __import__('random').uniform(30, 50))
         </function>
         
         <function name="firebreath">
@@ -55,15 +52,26 @@
                 if entity.attr['target'] is None:
                     return
                     
-                if entity.world.from_id(entity.attr['target'])['size'] &gt;= entity['size']:
-                    return
+                # print(entity.id)
                     
-                for _ in range(6):
-                    entity.call('attack', world.from_id(entity['target']),  __import__('random').uniform(10, 25))
+                for _ in range(random.randint(3, 6)):
+                    entity.world.broadcast(2, entity, " sends a burst of flames towards ", entity.world.from_id(entity['target']), "!")
+                    entity.call('attack', entity.world.from_id(entity['target']),  __import__('random').uniform(10, 25))
                     
-                if world.from_id(entity['target'])['flammable'] and random.random() &lt;= 0.625:
-                    entity.world.broadcast(entity, " lit ", world.from_id(entity['target']), " on flames!")
-                    world.from_id(entity['target'])['burning'] = True
+                if entity.world.from_id(entity['target'])['flammable'] and random.random() &lt;= 0.625:
+                    entity.world.broadcast(2, entity, " lit ", entity.world.from_id(entity['target']), " on flames!")
+                    entity.world.from_id(entity['target'])['burning'] = True
+                    
+                collateral = random.randint(0, 2)
+                    
+                if collateral > 0:
+                    possib = tuple(filter(lambda e: e.place == entity.place and e['flammable'] and e.id != entity['target'].split('#')[0], entity.world.all_in_place(entity.place)))
+                    on_fire = random.sample(possib, collateral)
+                    
+                    for e in on_fire:
+                        entity.world.broadcast(2, entity, " accidentally lit ", e, " on flames!")
+                        e['burnInstigator'] = entity.id
+                        e['burning'] = True
         </function>
     </functions>
     
@@ -72,6 +80,8 @@
         <flag name="hasRanged" />
         <attr name="meleeAttackFunc" value="'slash'" /> <!-- function called when attacking a close enemy (larger enemies) -->
         <attr name="rangedAttackFunc" value="'firebreath'" /> <!-- function called when attacking a far enemy (smaller enemies) -->
+        
+        <attr name="obituary" value="'{killer} turned {victim} into a giant barbecue!'" />
         
         <!-- reactive and social traits, in a scale from 1 to 10 -->
         <attr name="hostility" value="2" /> <!-- negativity of reaction to living entities of other kinds --> 
@@ -105,7 +115,9 @@
             <attr name="size" value="1.2" />
             <attr name="health" value="160" />
             <attr name="weight" value="45" /> <!-- in kilograms -->
+            <attr name="dangerousness" value="90" />
             <flag name="baby" />
+            <attr name="obituary" value="'{killer} ripped {victim} with his small (but not tiny) claws!'" />
         </variant>
     
         <variant name="Small Dragon" id="small">
@@ -118,6 +130,7 @@
             <attr name="size" value="2.5" />
             <attr name="health" value="280" />
             <attr name="weight" value="78" /> <!-- in kilograms -->
+            <attr name="dangerousness" value="130" />
             <default key="mush" value="True" />
         </variant>
         

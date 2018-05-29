@@ -95,8 +95,10 @@ class LoadedEntity(object):
         self.world.set_with_id(self.id, "{}#{}#{}#{}#{}#{}".format(self.id, self.type.id, self.name, self.place, self.variant['id'], json.dumps(self.attr)))
         
     def __getitem__(self, key):
-        a = self.attr.get(key, None)
-        return a if a is not None else self.variant['attr'].get(key, None)
+        a = self.attr.get(key)
+        b = (a if a is not None else self.variant['attr'].get(key))
+            
+        return (b if b is not None else (True if key in self.variant['flags'] else None))
     
     def call(self, func, *args):
         return self.type.call(func, self, *args)
@@ -115,9 +117,6 @@ class LoadedEntity(object):
             
     def __str__(self):
         return "{} the {} from {}".format(self.name, self.variant['name'], self.place)
-        
-    def __format__(self):
-        return str(self)
         
 class GameWorld(object):
     def __init__(self, etypes=(), paths=(), places=(), entities=(), item_types=()):
@@ -182,7 +181,7 @@ class GameWorld(object):
         
     def from_id(self, uid):
         for i, e in enumerate(self.entities):
-            if e.split("#")[0] == uid:
+            if e.split("#")[0] == uid.split('#')[0]:
                 return LoadedEntity(self, i, e)
                 
         return None
@@ -199,13 +198,13 @@ class GameWorld(object):
         
         return False
         
-    def all_in_place(self, place):
+    def all_in_place(self, cplace):
         res = []
         
         for i, e in enumerate(self.entities):
             le = LoadedEntity(self, i, e)
         
-            if le.place == place:
+            if le.place == cplace:
                 res.append(le)
                 
         return res
@@ -288,6 +287,7 @@ class XMLGameLoader(object):
                     
                         world.places.append({
                             'name': p.get('name'),
+                            'id': p.get('id'),
                             'items': {}
                         })
                 
@@ -335,7 +335,7 @@ class XMLGameLoader(object):
                     elif a.tag == "flag":
                         base['flags'].add(a.get('name'))
                         
-                    elif a.tag == "static":
+                    elif a.tag == "static" and a.get('name') not in base['attr']:
                         base['attr'][a.get('name')] = eval(a.get('value'))
                         
                     elif a.tag == "function":

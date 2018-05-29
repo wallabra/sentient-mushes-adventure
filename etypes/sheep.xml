@@ -1,6 +1,21 @@
 <?xml version="1.0"?>
 <entitytype name="Sheep" id="sheep">
     <functions>
+        <function name="spit">
+            import random
+            
+            def spit(entity):
+                t = entity.world.from_id(entity['target'])
+                
+                if not t or entity['dead']:
+                    return
+                    
+                stress = random.uniform(.05, .25)
+                t['humor'] = t['humor'] - stress
+                
+                entity.world.broadcast(1, entity, " spat at ", t, ", lowering their humor by ", stress, " points!")
+        </function>
+    
         <function name="tick">
             import random
         
@@ -19,8 +34,8 @@
                             
                     if len(possib) &gt; 0:
                         p = random.choice(tuple(possib))
-                        entity.set_place(p)
-                        entity.world.broadcast(0, entity, " has wandered to ", p, ".")
+                        entity.world.broadcast(0, entity, " wanders to ", p, ".")
+                        entity.call('move', p)
                 
                 if entity['health'] &lt; entity['maxGrazeHealth'] and random.random() &lt;= 0.2:
                     # grazed
@@ -29,8 +44,12 @@
     </functions>
     
     <base>
+        <flag name="hasRanged" />
+        
+        <attr name="rangedAttackFunc" value="'spit'" />
+    
         <!-- reaction traits, in a scale from 1 to 10 -->
-        <attr name="hostility" value="0" /> <!-- negativity of reaction to living entities of other kinds --> 
+        <attr name="hostility" value="0.1" /> <!-- negativity of reaction to living entities of other kinds --> 
         <attr name="courage" value="2" /> <!-- likelihood to stay when underwhelmed or outnumbered -->
         <attr name="sociality" value="8.5" /> <!-- likelihood to form 'friends' (will tend to follow each other and share friends and enemies) -->
         <attr name="leadership" value="2" /> <!-- likelihood to become leader (least likely to follow friends, most likely to be followed) -->
