@@ -13,7 +13,7 @@
                 stress = random.uniform(.05, .25)
                 t['humor'] = t['humor'] - stress
                 
-                entity.world.broadcast(1, entity, " spat at ", t, ", lowering their humor by ", stress, " points!", place=entity.place)
+                entity.world.broadcast(2, entity, " spat at ", t, ", lowering their humor by ", stress, " points!", place=entity.place)
         </function>
     
         <function name="tick">

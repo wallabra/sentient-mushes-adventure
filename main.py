@@ -1,7 +1,9 @@
 import yaml
+import namegen
 import player
 import time
 import engine
+import traceback
 import logging
 import random
 import textwrap
@@ -70,14 +72,14 @@ def player_join(interface, connection, event, args):
     type = random.choice(tuple(types.keys()))
     variant = random.choice(types[type])
         
-    p = player.PlayerInterface.join([], world, event.source.nick, world.beginning, type, variant)
-    players[event.source.nick] = p
+    p = player.PlayerInterface.join([], world, event.source.nick, random.choice(world.beginning.split(';')), type, variant)
         
     def _channel(m, place):
         if place == world.from_id(p.entity.id).place:
             interface.send_message(last_chan[event.source.nick], m)
             
     p.channels.append(_channel)
+    players[event.source.nick] = p
     world.add_broadcast_channel(1, _channel)
         
     turnorder.append(event.source.nick)
@@ -105,6 +107,12 @@ def player_death_system(event, entity):
             
 world.global_systems.append(player_death_system)
     
+greek_items = ['Icarus wing', 'ambrosia', "Zeus staff", 'Achilles boots', "Pythagoras' Number Arché Orb", "Democrat's Atomic Arché Orb"]
+
+@command('ping')
+def ping(interface, connection, event, args):
+    interface.send_message(event.target, "{}: Pong! I got another score! You're too slow at this arcade game! I mean, have you ever truly played a Pong arcade? It's awesome.".format(event.source.nick))
+    
 @command('pickup')
 def pick_up(interface, connection, event, args):
     if event.source.nick not in players:
@@ -115,16 +123,28 @@ def pick_up(interface, connection, event, args):
         int(args[0])
         
     except ValueError:
-        interface.send_message('{}: Syntax: pickup [amount default=1] [item (defaults to random)]'.format(event.source.nick))
+        interface.send_message(event.target, '{}: Syntax: pickup [amount default=1] [item (defaults to random)]'.format(event.source.nick))
         return
         
-    amount = min(int(args[0] if len(args) > 0 else 1), 20)
-        
-    players[event.source.nick].pick_up(amount, (args[1] if len(args) > 1 else None))
+    item = (args[1] if len(args) > 1 else None)   
+    amount = min(int(args[0] if len(args) > 0 else 1), 20 - players[event.source.nick].entity['pickups'])
     
-    if amount == 20:
-        next_turn()
-       
+    if item and not world.find_item(item):
+        if amount > 1 and item.endswith('s'):
+            item = item.rstrip('s')
+        
+            if not world.find_item(item):
+                interface.send_message(event.target, "{}: No such item '{}'! Is that from some Greek myth? Like, {} doesn't really exist either.".format(event.source.nick, item, random.choice(greek_items)))
+                return
+        
+        else:    
+            interface.send_message(event.target, "{}: No such item '{}'! Is that from some Greek myth? Like, {} doesn't really exist either.".format(event.source.nick, item, random.choice(greek_items)))
+            return
+        
+    if players[event.source.nick].pick_up(amount, item):
+        if players[event.source.nick].entity['pickups'] >= 20:
+            next_turn()
+            
 @command('wield')
 def wield(interface, connection, event, args):
     if event.source.nick not in players:
@@ -134,7 +154,8 @@ def wield(interface, connection, event, args):
     if len(args) < 1:
         players[event.source.nick].wield() # exactly, nothing!
         
-    players[event.source.nick].wield(args[0])
+    if players[event.source.nick].wield(args[0]):
+        pass # for now, I guess?
     
 @command('craft')
 def craft(interface, connection, event, args):
@@ -147,7 +168,6 @@ def craft(interface, connection, event, args):
         return        
         
     players[event.source.nick].craft(' '.join(args[1:]), int(args[0]))
-   
    
 @command('gethealth')
 def gethealth(interface, connection, event, args):
@@ -164,14 +184,35 @@ def gethealth(interface, connection, event, args):
         return
    
     interface.send_message(event.target, "{}: {} has {} health!".format(event.source.nick, args[0], world.from_name(args[0])['health']))
+  
+def plural(name, amount=2):
+    if amount == 1:
+        return name
+    
+    elif name.endswith('us') or name.endswith('is'):
+        return name[:-2] + 'i'
+
+    elif name[-1] == 's':
+        return name + 'es'
+        
+    else:
+        return name + 's'
+   
+@command('inventory')
+def inventory(interface, connection, event, args):
+    if event.source.nick not in players:
+        interface.send_message(event.target, '{}: Join first!'.format(event.source.nick))
+        return
+        
+    interface.send_message(event.target, "{}: You have {}.".format(event.source.nick, ', '.join("{} {}".format(v, plural(k, v)) for k, v in players[event.source.nick].entity['inventory'].items())))
    
 @command('listitems')
 def listitems(interface, connection, event, args):
     if event.source.nick not in players:
-        interface.send_message('{}: Join first!'.format(event.source.nick))
+        interface.send_message(event.target, '{}: Join first!'.format(event.source.nick))
         return
         
-    interface.send_message(event.target, "{}: Here you can see: {}".format(event.source.nick, ', '.join("{} x{}".format(k, v) for k, v in world.find_place(players[event.source.nick].entity.place)['items'].items())))
+    interface.send_message(event.target, "{}: Here you can see {}.".format(event.source.nick, ', '.join("{} {}".format(v, plural(k, v)) for k, v in world.find_place(players[event.source.nick].entity.place)['items'].items())))
     
 @command('listobjects')
 def listobjects(interface, connection, event, args):
@@ -179,7 +220,7 @@ def listobjects(interface, connection, event, args):
         interface.send_message('{}: Join first!'.format(event.source.nick))
         return
         
-    interface.send_message(event.target, "{}: Here you can see: {}".format(event.source.nick, ', '.join("{} the {}".format(world.from_id(e).name, world.from_id(e).variant['name']) for e in world.entities if world.from_id(e).place == players[event.source.nick].entity.place)))
+    interface.send_message(event.target, "{}: Here you can see {}.".format(event.source.nick, ', '.join("{} the {}".format(world.from_id(e).name, world.from_id(e).variant['name']) for e in world.entities if world.from_id(e).place == players[event.source.nick].entity.place)))
     
 @command('infect')
 def infect(interface, connection, event, args):
@@ -202,10 +243,6 @@ def infect(interface, connection, event, args):
 def paths(interface, connection, event, args):
     if event.source.nick not in players:
         interface.send_message(event.target, '{}: Join first!'.format(event.source.nick))
-        return
-        
-    if event.source.nick != turnorder[turn]:
-        interface.send_message(event.target, "{}: It isn't your turn yet; it's {}'s turn right now!".format(event.source.nick, turnorder[turn]))
         return
         
     pl = set()
@@ -295,7 +332,12 @@ class IRCInterface(SingleServerIRCBot):
             cmd_args = cmd_full.split(' ')[1:]
             
             if cmd_name in commands:
-                commands[cmd_name](self, connection, event, cmd_args)
+                try:
+                    commands[cmd_name](self, connection, event, cmd_args)
+                    
+                except Exception as e:
+                    self.send_message(event.target, "[{}: {} processing the '{}' command! ({})]".format(event.source.nick, type(e).__name__, cmd_name, str(e)))
+                    traceback.print_exc()
         
     def on_endofmotd(self, connection, event):
         logging.debug("Joining channel")
@@ -304,7 +346,7 @@ class IRCInterface(SingleServerIRCBot):
             self.connection.privmsg('NickServ', 'IDENTIFY {} {}'.format(self.account['username'], self.account['password']))
         
         def _joinchan_postwait():
-            time.sleep(2)
+            time.sleep(2.5)
         
             for c in self.joinchans:
                 self.connection.join(c)
@@ -323,9 +365,13 @@ if __name__ == "__main__":
     logging.getLogger('').addHandler(console)
     
     conns = {}
-                
+    threads = []
+          
     for s in yaml.load(open("config/irc.yml").read()):
         conns[s['name']] = IRCInterface(s['nickname'], s['realname'], s['server'], s['port'], s.get('channels', ()), s.get('account', None))
-        Thread(target=conns[s['name']].start, name="Bot: {}".format(s['name'])).start()
+        t = Thread(target=conns[s['name']].start, name="Bot: {}".format(s['name']))
+        threads.append(t)
+        t.start()
         
-    # print(conns)
+    for t in threads:
+        t.join()

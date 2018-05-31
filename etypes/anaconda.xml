@@ -1,0 +1,155 @@
+<?xml version="1.0"?>
+<entitytype name="Anaconda" id="anaconda">
+    <functions>
+        <function name="on_kill">
+            def on_kill(entity, other):
+                if other.id == entity['target']:
+                    entity['constricting'] = False
+        </function>
+    
+        <function name="constrict">
+            import random
+            
+            def constrict(entity):
+                t = entity.world.from_id(entity['target']) 
+            
+                if not t or t['dead']:
+                    return
+                    
+                if random.random() &lt;= 0.6:
+                    entity.world.broadcast(2, entity, " leaps to constrict ", t, ", but misses!", place=entity.place)
+                    return # Missed constriction! (60% chance)
+                    
+                if not entity['constricting']:
+                    # fall damage
+                    t['instigator'] = entity
+                    t.call('takeDamage', 5)
+                    
+                    if not t['dead']:
+                        entity.world.broadcast(2, entity, " leaps and constricts ", t, "!", place=entity.place)
+                    
+                        entity['constricting'] = True
+                            
+                        t['speedModifier'] /= 25
+                        entity['_oldSpeedMod'] = entity['speedModifier']
+                        entity['_fullDmg'] = 0
+                        entity['speedModifier'] = 0
+                        
+                        entity['_constrictHealth'] = t['health']
+                
+                elif t.place != entity.place or t['dead']:
+                    entity['constricting'] = False
+                    entity['speedModifier'] = entity['_oldSpeedMod']
+                    
+                    if t.place == entity.place and random.random() &lt;= entity['vore']:
+                        entity.world.broadcast(2, entity, " devours what remained of ", t, "!", place=entity.place)
+                        entity['feeding'] += t['weight'] / 15
+                
+                elif random.random() &lt;= 0.8:
+                    dmg = random.uniform(15, 40) * entity['weight'] / t['weight']
+                    
+                    entity['_fullDmg'] += dmg
+                    entity.world.broadcast(2, entity, " smashes ", t, (' further' if entity['_fullDmg'] == dmg else ''), ", provoking ", 100 * dmg / entity['_constrictHealth'], "% vital damage, for a total of ", 100 * entity['_fullDmg'] / entity['_constrictHealth'], "%!", place=entity.place)
+                    
+                    t['instigator'] = entity
+                    t.call('takeDamage', dmg)   
+                    
+        </function>
+    
+        <function name="tick">
+            import random
+        
+            def tick(entity):
+                entity.call('creature_tick')
+            
+                if random.random() &lt;= 0.02:
+                    # wander
+                    possib = set()
+                    
+                    for p in entity.world.paths:
+                        if entity.place in p:
+                            possib |= p
+                            
+                    possib -= {entity.place}
+                            
+                    if len(possib) &gt; 0:
+                        p = random.choice(tuple(possib))
+                        entity.world.broadcast(2, entity, " wanders to ", p, "!", place=p) # important because, well, anacondas
+                        entity.call('move', p)
+                        
+                if entity['feeding'] &gt; 0:
+                    entity['feeding'] = entity['feeding'] - 1
+                    entity.call('heal', entity, entity['health'] + entity['feeding'] / 2)
+        </function>
+    </functions>
+    
+    <base>
+        <flag name="hasRanged" />
+        
+        <attr name="meleeAttackFunc" value="'constrict'" />
+        <attr name="rangedAttackFunc" value="'constrict'" /> <!-- technically, ranged applies for smaler entities.
+                                                                  If it doesn't have a melee attack, it runs from
+                                                                  larger entities. -->
+                                                                  
+        <!-- anaconda traits -->
+        <attr name="maxFoodHeal" value="20" />
+        <attr name="vore" value="0.8" /> <!-- chance to eat the target, from 0 to 1 -->
+        <attr name="obituary" value="'{killer} smashed {victim} into a creamy flesh! (yuck)'" />
+    
+        <!-- reaction traits, in a scale from 1 to 10 -->
+        <attr name="hostility" value="4" /> <!-- negativity of reaction to living entities of other kinds --> 
+        <attr name="courage" value="7" /> <!-- likelihood to stay when underwhelmed or outnumbered -->
+        <attr name="sociality" value="5" /> <!-- likelihood to form 'friends' (will tend to
+                                                 follow each other and share friends and enemies) -->
+        <attr name="leadership" value="4" /> <!-- likelihood to become leader (least
+                                                  likely to follow friends, most likely to be followed) -->
+        <attr name="dangerousness" value="90" /> <!-- apparent dangerousness, in a vague hitpoint scale -->
+        <!-- kinetic (movement & combat) attributes -->
+        <attr name="speed" value="0.16" /> <!-- likelihood to evade enemy attacks, from 0 to 1 -->
+        <attr name="moveSpeed" value="0.4" /> <!-- chance, from 0 to 1, for a succesful tile move -->
+    </base>
+    
+    <default>
+        <import name="creatureattr" href="attributes/creatureattr.xml" />
+        <attribute key="drops" value="{'raw steak': (0, 2), 'snake tooth': (2, 2)}" />
+        <attribute key="feeding" value="0" />
+    </default>
+    
+    <systems>
+        <system name="drops" href="systems/drops.py" />
+    </systems>
+    
+    <itemdefs>
+        <item name="snake tooth" />
+    </itemdefs>
+        
+    <variants>
+        <variant name="Striped Anaconda" id="striped">
+            <attr name="vore" value="0.5" />
+            <attr name="dangerousness" value="70" />
+            <attr name="hostility" value="1.5" />
+            
+            <attr name="size" value="60" />
+            <attr name="weight" value="50" />
+            <attr name="health" value="75" />
+        </variant>
+        
+        <variant name="Rock-Encrusted Anaconda" id="rock">
+            <attr name="vore" value="0.2" />
+            <attr name="dangerousness" value="100" />
+            <attr name="hostility" value="7" />
+            
+            <attr name="size" value="70" />
+            <attr name="weight" value="80" />
+            <attr name="health" value="100" />
+            
+            <default key="drops" value="{ 'raw steak': (0, 1), 'snake tooth': (2, 2), 'pebble': 1 }" />
+        </variant>
+        
+        <variant name="Beach Anaconda" id="beach">
+            <attr name="weight" value="60" />
+            <attr name="size" value="70" />
+            <attr name="health" value="80" />
+        </variant>
+    </variants>
+</entitytype>

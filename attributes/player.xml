@@ -1,5 +1,13 @@
 <?xml version="1.0"?>
 <default>
+    <function name="tick">
+        def tick(entity):
+            if entity['pickups'] &gt;= 20:
+                entity['pickups'] = 0
+                
+            entity.call('creature_tick')
+    </function>
+
     <function name="wield">
         def wield(entity, player, item=None):
             if entity['dead']:
@@ -27,6 +35,12 @@
                 return
     </function>
 
+    <function name="player_move">
+        def player_move(entity, player, place):
+            player.print_out(entity, ' is attempting to move to ', place, '!')
+            entity.call('pathmove', place)
+    </function>
+    
     <function name="craft">
         def craft(entity, player, desired, amount):
             if entity['dead']:
@@ -101,18 +115,34 @@
     
     <function name="pick_up">
         import random
+        import namegen
+        
+        def plural(name, amount=2):
+            if amount == 1:
+                return name
+            
+            elif name.endswith('us') or name.endswith('is'):
+                return name[:-2] + 'i'
+
+            elif name[-1] == 's':
+                return name + 'es'
+                
+            else:
+                return name + 's',
         
         def pick_up(entity, player, amount=1, item=None):
             if entity['dead']:
                 return False
         
             picked = {}
+            
+            a = 0
         
             while amount &gt;= 1:
                 _item = item
             
-                if not _item:
-                    p = tuple(filter(lambda k: entity.world.find_place(entity.place)['items'][k] &gt; 0, entity.world.find_place(entity.place)['items'].keys()))
+                if item is None or item == "":
+                    p = tuple(filter(lambda k: entity.world.find_place(entity.place)['items'][k] &gt; 0, tuple(entity.world.find_place(entity.place)['items'].keys())))
                 
                     if p:
                         _item = random.choice(p)
@@ -121,16 +151,22 @@
                         player.print_out("No more items left at {}!".format(player.place))
                         break
                     
-                elif _item not in entity.world.find_place(entity.place)['items'] or entity.world.find_place(entity.place)['items']['_item'] &lt;= 0:
+                elif _item not in entity.world.find_place(entity.place)['items'] or entity.world.find_place(entity.place)['items'][_item] &lt;= 0:
                     break
                     
-                if _item not in picked:
+                if _item in picked:
                     picked[_item] += 1
                     
                 else:
                     picked[_item] = 1
                     
-            player.print_out("Picked up: " + ['{} {} items'.format(v, k) for k, v in picked.items()].join(', '))
+                entity.world.find_place(entity.place)['items'][_item] -= 1
+                
+                if entity.world.find_place(entity.place)['items'][_item] &lt;= 0:
+                    entity.world.find_place(entity.place)['items'].pop(_item)
+                    
+                amount -= 1
+                a += 1
             
             inv = entity['inventory'] # __setitem__ isn't perfect, yo
             
@@ -142,7 +178,19 @@
                     inv[k] = v
             
             entity['inventory'] = inv
+            entity['pickups'] += a
             
-            return len(picked) > 0
+            if len(picked) > 0:
+                print(plural(k, v))
+                msg = "{} picks up {}!".format(entity.name, ', '.join("{} {}".format((('an' if k[0] in namegen.vowels else 'a') if v == 1 else v), plural(k, v)[0]) for k, v in picked.items()))
+            
+            if entity['pickups'] &gt;= 20:
+                msg += " The turn is spent picking up all of these items."
+                
+            player.print_out(msg)
+            
+            return len(picked) &gt; 0
     </function>
+    
+    <attribute key="pickups" value="0" />
 </default>

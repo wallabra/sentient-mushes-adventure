@@ -10,8 +10,11 @@ class PlayerInterface(object):
         if global_cast:
             entity.world.add_broadcast_channel(2, *self.channels)
         
-    def print_out(self, *message, place=None):
+    def print_out(self, *message, place=False): # False = automatic, None = none indeed
         m = ""
+    
+        if place is False:
+            place = self.entity.place
     
         for node in message:
             if isinstance(node, engine.LoadedEntity):
@@ -23,13 +26,15 @@ class PlayerInterface(object):
             else:
                 m += str(node)
             
+        #print(m)
+            
         # no need to check for levels.
         for c in self.channels:
             c(m, place)
         
     def move(self, place):
         self.entity = self.entity.now()
-        return self.entity.call('pathmove', place)
+        return self.entity.call('player_move', self, place)
         
     def attack_name(self, other_name):
         self.entity = self.entity.now()

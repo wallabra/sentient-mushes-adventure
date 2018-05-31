@@ -56,8 +56,8 @@
                     
                 # print(entity.id)
                     
+                entity.world.broadcast(2, entity, " breathes a burst of flames towards ", entity.world.from_id(entity['target']), "!", place=entity.place)
                 for _ in range(random.randint(3, 6)):
-                    entity.world.broadcast(2, entity, " breathes a burst of flames towards ", entity.world.from_id(entity['target']), "!", place=entity.place)
                     entity.call('attack', entity.world.from_id(entity['target']),  __import__('random').uniform(10, 25))
                     
                 if entity.world.from_id(entity['target'])['flammable'] and random.random() &lt;= 0.625:

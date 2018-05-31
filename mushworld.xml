@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<world beginning="Prairies of Yohantown">
+<world beginning="Prairies of Yohantown;Port Ludicrous">
     <places>
         <place name="Mount Bayoku">
             <flock type="dragon" amount="8-12" variant="small;medium" /> <!-- ';' separates random choices -->
@@ -11,6 +11,8 @@
             <items type="pebble" amount="30-50" />
             <items type="leaf" amount="20-30" />
             <items type="flint" amount="10-30" />
+            
+            <flock type="anaconda" amount="2-5" variant="striped;rock" />
         </place>
         
         <place name="Prairies of Yohantown">
@@ -36,6 +38,7 @@
         <place name="Port Ludicrous">
             <flock type="human" amount="5-15" variant="farmer" />
             <flock type="human" amount="2-4" variant="dagger" />
+            <flock type="anaconda" amount="0-2" variant="beach" />
             <entity type="sheep" variant="*" />
             
             <items type="pebble" amount="20-30" />
@@ -43,6 +46,7 @@
         
         <place name="Beach of Harmony">
             <flock type="human" amount="10-20" variant="peasant" />
+            <flock type="anaconda" amount="2-5" variant="beach;striped" />
         
             <items type="flint" amount="20-40" />
             <items type="pebble" amount="10-30" />
@@ -60,5 +64,6 @@
         <etype filename="etypes/sheep.xml" />
         <etype filename="etypes/player.xml" />
         <etype filename="etypes/human.xml" />
+        <etype filename="etypes/anaconda.xml" />
     </etypes>
 </world>

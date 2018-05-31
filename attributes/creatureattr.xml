@@ -203,7 +203,7 @@
                     possib |= path
                     
             if place in possib:
-                if random.random() &lt;= entity['moveSpeed']:
+                if random.random() &lt;= entity['moveSpeed'] * entity['speedModifier']:
                     if bPrint:
                         entity.world.broadcast(0, entity, " has just moved to ", place, "!", place=place)
                         
@@ -292,6 +292,11 @@
         def on_death(entity):
             pass
     </function>
+        
+    <function name="on_kill">
+        def on_kill(entity, other):
+            pass
+    </function>
     
     <function name="infect">
         import random
@@ -374,6 +379,7 @@
                     entity.world.broadcast(2, '* ', entity, " took ", damage, " damage and died!", place=entity.place)
                     
                 entity.call('on_death')
+                entity.world.from_id(entity['instigator']).call('on_death', entity)
                 entity['dead'] = True
                 entity.event('death')
             
@@ -383,7 +389,7 @@
                 if entity['instigator']:
                     entity['humor'] -= 7
                 
-                    entity.world.broadcast(1, entity, " took ", damage, " damage!", place=entity.place)
+                    entity.world.broadcast(2, entity, " took ", damage, " damage!", place=entity.place)
                     
                     if not entity['target'] or (entity.world.from_id(entity['instigator'])['dangerousness'] + entity.world.from_id(entity['instigator'])['health'] &gt; entity.world.from_id(entity['target'])['dangerousness'] + entity.world.from_id(entity['target'])['health']):
                         entity['target'] = entity['instigator']
@@ -391,7 +397,7 @@
                     entity['instigator'] = None
                     
                 else:
-                    entity.world.broadcast(0, entity, " took ", damage, " damage!", place=entity.place)
+                    entity.world.broadcast(2, entity, " took ", damage, " damage!", place=entity.place)
             
     </function>
     

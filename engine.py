@@ -194,7 +194,7 @@ class GameWorld(object):
                 [level, message, place] = self.message_queue.get_nowait()
             
             except Empty:
-                time.sleep(1.5)
+                time.sleep(1)
                 continue
                 
             m = ""
@@ -202,11 +202,15 @@ class GameWorld(object):
             for node in message:
                 m += str(node)
         
+            can_wait = False
+        
             for b in self.broadcast_channels:
-                if level >= b._level:
+                if not b._level or level >= b._level:
                     b(m, place)
-                    
-            time.sleep(0.3 + 0.1 * (level + 2))
+                    can_wait = True
+        
+            if can_wait:
+                time.sleep(0.65)
         
     def tick(self):
         for i, e in enumerate(self.entities):
@@ -572,7 +576,7 @@ class XMLGameLoader(object):
                                 
                         variants[va.get('id')] = v
                         
-        finally:
+        finally:                
             funcholder.deinit()
         
         return (EntityType(name, id, base, variants, functions, systems, default), item_types)
