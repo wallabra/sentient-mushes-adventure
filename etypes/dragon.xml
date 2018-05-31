@@ -103,6 +103,7 @@
     
     <default>
         <import name="creatureattr" href="attributes/creatureattr.xml" />
+        <import name="player" href="attributes/player.xml" />
         <attribute key="drops" value="{'scale': (1, 3)}" />
         <attribute key="immune" value="7" /> <!-- Rehermann scale :) -->
     </default>

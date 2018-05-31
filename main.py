@@ -1,5 +1,6 @@
 import yaml
 import player
+import time
 import engine
 import logging
 import random
@@ -44,6 +45,10 @@ world.add_broadcast_channel(-1, log_channel)
 @command('help')
 def help(interface, connection, event, args):
     interface.send_message(event.target, "Available commands: {}".format(', '.join(commands.keys())))
+    
+@command('turn')
+def help(interface, connection, event, args):
+    interface.send_message(event.target, "It's now {}'s turn!".format(turnorder[turn]))
     
 @command('join')
 def player_join(interface, connection, event, args):
@@ -106,7 +111,19 @@ def pick_up(interface, connection, event, args):
         interface.send_message('{}: Join first!'.format(event.source.nick))
         return
         
-    players[event.source.nick].pick_up(int(args[0] if len(args) > 0 else 1), (args[1] if len(args) > 1 else None))
+    try:
+        int(args[0])
+        
+    except ValueError:
+        interface.send_message('{}: Syntax: pickup [amount default=1] [item (defaults to random)]'.format(event.source.nick))
+        return
+        
+    amount = min(int(args[0] if len(args) > 0 else 1), 20)
+        
+    players[event.source.nick].pick_up(amount, (args[1] if len(args) > 1 else None))
+    
+    if amount == 20:
+        next_turn()
        
 @command('wield')
 def wield(interface, connection, event, args):
@@ -286,9 +303,13 @@ class IRCInterface(SingleServerIRCBot):
         if self.account:
             self.connection.privmsg('NickServ', 'IDENTIFY {} {}'.format(self.account['username'], self.account['password']))
         
-        for c in self.joinchans:
-            self.connection.join(c)
+        def _joinchan_postwait():
+            time.sleep(2)
+        
+            for c in self.joinchans:
+                self.connection.join(c)
 
+        Thread(target=_joinchan_postwait).start()
 
 if __name__ == "__main__":
     logging.basicConfig(filename="bot.log", level=logging.DEBUG)
