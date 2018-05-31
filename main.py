@@ -181,6 +181,26 @@ def infect(interface, connection, event, args):
     if players[event.source.nick].infect(world.from_name(args[0])):
         next_turn()
           
+@command('paths')
+def paths(interface, connection, event, args):
+    if event.source.nick not in players:
+        interface.send_message(event.target, '{}: Join first!'.format(event.source.nick))
+        return
+        
+    if event.source.nick != turnorder[turn]:
+        interface.send_message(event.target, "{}: It isn't your turn yet; it's {}'s turn right now!".format(event.source.nick, turnorder[turn]))
+        return
+        
+    pl = set()
+    
+    for p in world.paths:
+        if players[event.source.nick].entity.place in p:
+            pl |= p
+            
+    pl -= {players[event.source.nick].entity.place}
+    
+    interface.send_message(event.target, "{}: From here you can go to {}".format(event.source.nick, ', '.join(tuple(pl))))
+          
 @command('move')
 def move(interface, connection, event, args):
     if event.source.nick not in players:
@@ -195,7 +215,7 @@ def move(interface, connection, event, args):
         interface.send_message(event.target, '{}: Syntax: move <place name>'.format(event.source.nick))
         return
         
-    if players[event.source.nick].move(args[0]):
+    if players[event.source.nick].move(' '.join(args)):
         next_turn()
          
 @command('pass')
@@ -229,9 +249,10 @@ def attack(interface, connection, event, args):
         next_turn()
    
 class IRCInterface(SingleServerIRCBot):
-    def __init__(self, nick, realname, server, port, channels):
+    def __init__(self, nick, realname, server, port, channels, account):
         super().__init__([ServerSpec(server, port)], nick, realname)
         self.joinchans = channels
+        self.account = account
         
         def _channel(chan):
             def __wrapper__(m, place):
@@ -261,6 +282,9 @@ class IRCInterface(SingleServerIRCBot):
         
     def on_endofmotd(self, connection, event):
         logging.debug("Joining channel")
+       
+        if self.account:
+            self.connection.privmsg('NickServ', 'IDENTIFY {} {}'.format(self.account['username'], self.account['password']))
         
         for c in self.joinchans:
             self.connection.join(c)
@@ -280,7 +304,7 @@ if __name__ == "__main__":
     conns = {}
                 
     for s in yaml.load(open("config/irc.yml").read()):
-        conns[s['name']] = IRCInterface(s['nickname'], s['realname'], s['server'], s['port'], s['channels'])
+        conns[s['name']] = IRCInterface(s['nickname'], s['realname'], s['server'], s['port'], s.get('channels', ()), s.get('account', None))
         Thread(target=conns[s['name']].start, name="Bot: {}".format(s['name'])).start()
         
     # print(conns)
