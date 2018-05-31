@@ -1,0 +1,118 @@
+<?xml version="1.0"?>
+<default>
+    <function name="craft">
+        def craft(entity, player, desired, amount):
+            if not entity.world.find_item(desired):
+                player.print_out(entity, "That recipe does not seem to exist.")
+                return False
+            
+            if 'craftable' not in entity.world.find_item(desired)['flags']:
+                player.print_out(entity, "That recipe does not seem to be possible. This is Einsteinian stuff!")
+                return False
+                
+            for k, v in entity.world.find_item(desired)['recipe'].items():
+                if k not in entity['inventory'] or entity['inventory'][k] &lt; world.find_item(desired)['recipe'][k] * amount:
+                    player.print_out(entity, "You do not have enough {} to craft {} {} items ({}/{}).".format(k, amount, desired, entity['inventory'][k], world.find_item(desired)['recipe'][k] * amount))
+                    return False
+                    
+            for r in enity.world.find_item(desired)['prerequisites']:
+                if r not in entity['inventory'] or entity['inventory'][r] &lt;= 0:
+                    player.print_out(entity, "As a prerequisite, you must have a {} in your inventory in order to craft a {}.".format(r, desired))
+                    return False
+            
+            inv = entity['inventory']
+                
+            for k, v in entity.world.find_item(desired)['recipe'].items():
+                inv[k] -= v * amount
+                
+            if desired not in inv:
+                inv[desired] = amount
+                
+            else:
+                inv[desired] += amount
+                
+            entity['inventory'] = inv
+            player.print_out(entity, "{} {} items crafted successfully.".format(amount, desired))
+            
+            return True
+    </function>
+    
+    <function name="player_attack">
+        import random
+    
+        def player_attack(entity, other):
+            if entity['dead'] or not other:
+                return False
+        
+            entity.call('attack', other, (entity['punchDamage'] * random.uniform(0.7, 1.3) if (not entity['weapon'] or entity['inventory'].get(entity['weapon'], 0) &lt;= 0) else random.uniform(world.item_type(entity['weapon'])['attr']['minDamage'], world.item_type(entity['weapon'])['attr']['maxDamage'])))
+            
+            if entity['weapon'] and entity['inventory'].get(entity['weapon'], 0) > 0:
+                if entity['weapon'] in entity['weaponUses']:
+                    wu = entity['weaponUses']
+                    wu[entity['weapon']] -= 1
+                    entity['weaponUses'] = wu
+                    
+                else:
+                    wu = entity['weaponUses']
+                    wu[entity['weapon']] = world.item_type(entity['weapon'])['attr']['weaponUses'] - 1
+                    entity['weaponUses'] = wu
+                    
+                if entity['weaponUses'][entity['weapon']] &lt;= 0:
+                    entity['inventory'][entity['weapon']] = entity['inventory'][entity['weapon']] - 1
+                    wu = entity['weaponUses']
+                    wu[entity['weapon']] = world.item_type(entity['weapon'])['attr']['weaponUses']
+                    entity['weaponUses'] = wu
+                    
+                    if entity['inventory'][entity['weapon']] &lt;= 0:
+                        entity['weapon'] = None # back to bare hands, so don't forget to always wield a good weapon when one's available!
+                        
+            return True
+    </function>
+    
+    <function name="pick_up">
+        import random
+        
+        def pick_up(entity, player, amount=1, item=None):
+            if entity['dead']:
+                return False
+        
+            picked = {}
+        
+            while amount &gt;= 1:
+                _item = item
+            
+                if not _item:
+                    p = tuple(filter(lambda k: entity.world.find_place(entity.place)['items'][k] &gt; 0, entity.world.find_place(entity.place)['items'].keys()))
+                
+                    if p:
+                        _item = random.choice(p)
+                        
+                    else:
+                        player.print_out("No more items left at {}!".format(player.place))
+                        break
+                    
+                elif _item not in entity.world.find_place(entity.place)['items'] or entity.world.find_place(entity.place)['items']['_item'] &lt;= 0:
+                    break
+                    
+                if _item not in picked:
+                    picked[_item] += 1
+                    
+                else:
+                    picked[_item] = 1
+                    
+            player.print_out("Picked up: " + ['{} {} items'.format(v, k) for k, v in picked.items()].join(', '))
+            
+            inv = entity['inventory'] # __setitem__ isn't perfect, yo
+            
+            for k, v in picked.items():
+                if k in inv:
+                    inv[k] += v
+                    
+                else:
+                    inv[k] = v
+            
+            entity['inventory'] = inv
+            
+            return len(picked) > 0
+    </function>
+</default>

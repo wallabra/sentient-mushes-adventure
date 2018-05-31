@@ -2,13 +2,15 @@
     server: "irc.freenode.net"
     port: 6667
     nickname: "SMAdventure"
+    realname: "Sentient Mushes: Adventure"
     channels:
         - "#jongtest"
-        - "##lazy-valoran"
+        - "#SMAdventure"
         
 -   name: "mibbit"
     server: "irc.mibbit.net"
     port: 6667
     nickname: "SMAdventure"
+    realname: "Sentient Mushes: Adventure"
     channels:
         - "#sentientmushes"

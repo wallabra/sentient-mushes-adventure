@@ -13,7 +13,7 @@
                 stress = random.uniform(.05, .25)
                 t['humor'] = t['humor'] - stress
                 
-                entity.world.broadcast(1, entity, " spat at ", t, ", lowering their humor by ", stress, " points!")
+                entity.world.broadcast(1, entity, " spat at ", t, ", lowering their humor by ", stress, " points!", place=entity.place)
         </function>
     
         <function name="tick">
@@ -34,7 +34,7 @@
                             
                     if len(possib) &gt; 0:
                         p = random.choice(tuple(possib))
-                        entity.world.broadcast(0, entity, " wanders to ", p, ".")
+                        entity.world.broadcast(0, entity, " wanders to ", p, ".", place=p)
                         entity.call('move', p)
                 
                 if entity['health'] &lt; entity['maxGrazeHealth'] and random.random() &lt;= 0.2:
@@ -46,14 +46,15 @@
     <base>
         <flag name="hasRanged" />
         
-        <attr name="rangedAttackFunc" value="'spit'" />
+        <attr name="rangedAttackFunc" value="'spit'" /> <!-- Poor sheep... I wonder if we should give them some attack. Old Sentient Mushes IRCRPG (MushyBot/SMBot) used to let animals fight back as well. -->
+
     
         <!-- reaction traits, in a scale from 1 to 10 -->
         <attr name="hostility" value="0.1" /> <!-- negativity of reaction to living entities of other kinds --> 
         <attr name="courage" value="3.5" /> <!-- likelihood to stay when underwhelmed or outnumbered -->
         <attr name="sociality" value="8.5" /> <!-- likelihood to form 'friends' (will tend to follow each other and share friends and enemies) -->
         <attr name="leadership" value="2" /> <!-- likelihood to become leader (least likely to follow friends, most likely to be followed) -->
-        <attr name="dangerousness" value="0" /> <!-- Poor sheep... I wonder if we should give them some attack. Old Sentient Mushes IRCRPG (MushyBot/SMBot) used to let animals fight back as well. -->
+        <attr name="dangerousness" value="0" /> <!-- apparent dangerousness, in a vague hitpoint scale -->
         <!-- kinetic (movement & combat) attributes -->
         <attr name="speed" value="0.6" /> <!-- likelihood to evade enemy attacks, from 0 to 1 -->
         <attr name="moveSpeed" value="0.85" /> <!-- chance, from 0 to 1, for a succesful tile move -->
@@ -65,7 +66,6 @@
     </default>
     
     <systems>
-        <system name="creature" href="systems/creature.py" />
         <system name="drops" href="systems/drops.py" />    
     </systems>
     

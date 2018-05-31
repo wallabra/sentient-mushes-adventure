@@ -1,23 +1,64 @@
 <?xml version="1.0"?>
-<world>
+<world beginning="Prairies of Yohantown">
     <places>
         <place name="Mount Bayoku">
             <flock type="dragon" amount="8-12" variant="small;medium" /> <!-- ';' separates random choices -->
             <flock type="dragon" amount="3-10" variant="baby"/>
             <flock type="dragon" amount="1-4" variant="large" />
+            
+            <items type="leaf" amount="20-30" />
+            <items type="stick" amount="10-18" />
+            <items type="pebble" amount="30-50" />
+            <items type="leaf" amount="20-30" />
+            <items type="flint" amount="10-30" />
         </place>
         
-        <place name="Yohantown's Prairies">
+        <place name="Prairies of Yohantown">
             <flock type="sheep" amount="10-35" variant="*" /> <!-- "*" means random variant -->
+            
+            <items type="stick" amount="4-8" />
+            <items type="pebble" amount="20-40" />
+            <items type="straw" amount="30-55" />
+        </place>
+        
+        <place name="Yohantown">
+            <flock type="human" amount="25-60" variant="peasant;farmer;miner" />
+            <flock type="human" amount="5-20" variant="dagger" />
+            <flock type="human" amount="3-8" variant="knight" />
+            
+            <items type="leaf" amount="12-30" />
+            <items type="stick" amount="20-40" />
+            <items type="pebble" amount="12-30" />
+            <items type="leaf" amount="18-30" />
+            <items type="straw" amount="15-35" />
+        </place>
+        
+        <place name="Port Ludicrous">
+            <flock type="human" amount="5-15" variant="farmer" />
+            <flock type="human" amount="2-4" variant="dagger" />
+            <entity type="sheep" variant="*" />
+            
+            <items type="pebble" amount="20-30" />
+        </place>
+        
+        <place name="Beach of Harmony">
+            <flock type="human" amount="10-20" variant="peasant" />
+        
+            <items type="flint" amount="20-40" />
+            <items type="pebble" amount="10-30" />
         </place>
     </places>
     
     <paths> 
-        <path ends="Mount Bayoku;Yohantown's Prairies" />
+        <path ends="Mount Bayoku;Prairies of Yohantown" />
+        <path ends="Yohantown;Prairies of Yohantown;Port Ludicrous" />
+        <path ends="Port Ludicrous;Beach of Harmony" />
     </paths>
     
     <etypes> <!-- entity dependencies -->
         <etype filename="etypes/dragon.xml" />
         <etype filename="etypes/sheep.xml" />
+        <etype filename="etypes/player.xml" />
+        <etype filename="etypes/human.xml" />
     </etypes>
 </world>

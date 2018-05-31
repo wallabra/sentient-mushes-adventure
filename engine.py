@@ -1,12 +1,16 @@
 import json
 import lxml
 import embedcode
+import time
 import namegen
 import importlib
 import random
 import atexit
+import yaml
+import threading
 
 from lxml import etree
+from queue import Queue, Empty
 
 
 idnum = 0 # The default ID counter.
@@ -59,6 +63,9 @@ class EntityType(object):
         if not id:
             idnum += 1
         
+    def __str__(self):
+        return self.name
+        
     def instantiate(self, world, place, variant):
         """Creates a default entity string and returns it."""
         attr = self.default_attr
@@ -90,9 +97,16 @@ class LoadedEntity(object):
     def __setitem__(self, key, val):
         self.attr[key] = val
         self.update()
+     
+    def set_name(self, name):
+        self.name = name
+        self.update()
         
     def update(self):
         self.world.set_with_id(self.id, "{}#{}#{}#{}#{}#{}".format(self.id, self.type.id, self.name, self.place, self.variant['id'], json.dumps(self.attr)))
+        
+    def now(self):
+        return self.world.from_id(self.id)
         
     def __getitem__(self, key):
         a = self.attr.get(key)
@@ -103,9 +117,15 @@ class LoadedEntity(object):
     def call(self, func, *args):
         return self.type.call(func, self, *args)
         
-    def event(self, evt):
+    def event(self, evt, *args):
         for s in self.type.systems:
-            s(evt, self)
+            s(evt, self, *args)
+            
+        for s in self.variant['systems']:
+            s(evt, self, *args)
+            
+        for s in self.world.global_systems:
+            s(evt, self, *args)
     
     def set_place(self, p):
         self.place = p
@@ -119,14 +139,41 @@ class LoadedEntity(object):
         return "{} the {} from {}".format(self.name, self.variant['name'], self.place)
         
 class GameWorld(object):
-    def __init__(self, etypes=(), paths=(), places=(), entities=(), item_types=()):
+    def __init__(self, etypes=(), paths=(), places=(), entities=(), item_types=(), beginning=None):
         self.etypes = dict(etypes)
         self.paths = list(paths)
         self.places = list(places)
         self.entities = list(entities)
         self.item_types = list(item_types)
+        self.beginning = beginning
         
+        self.message_queue = Queue()
         self.broadcast_channels = []
+        self.global_systems = []
+        
+        t = threading.Thread(name="Game Broadcast Loop", target=self._broadcast_loop)
+        t.start()
+    
+    def dumps(self, yaml=True):
+        save = {
+            'entities': self.entities,
+            'places': self.places
+        }
+        
+        if yaml:
+            return yaml.dump(save)
+            
+        return json.dumps(save)
+        
+    def loads(self, data, yaml=True):
+        if yaml:
+            data = yaml.load(data)
+            
+        else:
+            data = json.loads(data)
+            
+        self.entities = data['entities']
+        self.places = data['places']
         
     def add_broadcast_channel(self, level, *channels):
         for c in channels:
@@ -138,22 +185,28 @@ class GameWorld(object):
     
         self.broadcast_channels.extend(channels)
         
-    def broadcast(self, level, *message):
-        m = ""
-        
-        for node in message:
-            if isinstance(node, LoadedEntity):
-                m += "{} the {} from {}".format(node.name, node.variant['name'], node.place)
-                
-            elif isinstance(node, EntityType):
-                m += node.name
-                
-            else:
-                m += str(node)
+    def broadcast(self, level, *message, place=None):
+        self.message_queue.put((level, message, place))
     
-        for b in self.broadcast_channels:
-            if level >= b._level:
-                b(m)
+    def _broadcast_loop(self):
+        while True:
+            try:
+                [level, message, place] = self.message_queue.get_nowait()
+            
+            except Empty:
+                time.sleep(1.5)
+                continue
+                
+            m = ""
+            
+            for node in message:
+                m += str(node)
+        
+            for b in self.broadcast_channels:
+                if level >= b._level:
+                    b(m, place)
+                    
+            time.sleep(0.3 + 0.1 * (level + 2))
         
     def tick(self):
         for i, e in enumerate(self.entities):
@@ -176,6 +229,15 @@ class GameWorld(object):
         for p in self.places:
             if p['name'] == name:
                 return p
+                
+        return None
+        
+        
+        
+    def from_name(self, name):
+        for i, e in enumerate(self.entities):
+            if e.split("#")[2] == name:
+                return LoadedEntity(self, i, e)
                 
         return None
         
@@ -253,7 +315,7 @@ class XMLGameLoader(object):
         the game world."""
         xworld = etree.parse(open(filename))
         
-        world = GameWorld()
+        world = GameWorld(beginning=xworld.getroot().get('beginning'))
         
         for el in xworld.getroot():
             if el.tag == 'etypes':
@@ -267,6 +329,8 @@ class XMLGameLoader(object):
             if el.tag == "places":
                 for p in el:
                     if p.tag == "place":
+                        i = {}
+                    
                         for sub in p:
                             if sub.tag == "flock":
                                 if sub.get('type') in world.etypes:
@@ -281,14 +345,36 @@ class XMLGameLoader(object):
                                     for _ in range(amount):
                                         world.entities.append(world.etypes[sub.get('type')].instantiate(world, p.get('name'), (random.choice(sub.get('variant').split(';')) if sub.get('variant') != '*' else random.choice(tuple(world.etypes[sub.get('type')].variants.keys())))))
                                         
+                                    # print('  * Adding {} {} entities.'.format(amount, world.etypes[sub.get('type')].name))
+                                        
                             elif sub.tag == "entity":
                                 if sub.get('type') in world.etypes:
                                     world.entities.append(world.etypes[sub.get('type')].instantiate(world, p.get('name'), (random.choice(sub.get('variant').split(';')) if sub.get('variant') != '*' else random.choice(tuple(world.etypes[sub.get('type')].variants.keys())))))
+                                    
+                            elif sub.tag == "items":
+                                if world.find_item(sub.get('type')):
+                                    amount = sub.get('amount')
+                                    
+                                    if amount:
+                                        if '-' in amount:
+                                            amount = random.randint(int(amount.split('-')[0]), int(amount.split('-')[1]))
+                                            
+                                        else:
+                                            amount = int(amount)
+                                
+                                    else:
+                                        amount = 1
+                                
+                                    if sub.get('type') in i:
+                                        i[sub.get('type')] += amount
+                                    
+                                    else:
+                                        i[sub.get('type')] = amount
                     
                         world.places.append({
                             'name': p.get('name'),
                             'id': p.get('id'),
-                            'items': {}
+                            'items': i
                         })
                 
             elif el.tag == "paths":
@@ -296,6 +382,7 @@ class XMLGameLoader(object):
                     if p.tag == "path":
                         world.paths.append(set(p.get('ends').split(';')))
                         
+        world.entities = random.sample(world.entities, len(world.entities))
         return world
         
     def load_entity_type(self, world, filename):
@@ -411,7 +498,7 @@ class XMLGameLoader(object):
                                 systems.append(tuple(fncs)[-1])
                                 
                             except IndexError:
-                                print("No matching function for '{}'!".format(sys.get('name')))
+                                print("No matching function for '{}' while parsing Entity Type '{}'!".format(sys.get('name'), id))
                                 raise
                             
                 elif sub.tag == "default":
@@ -455,7 +542,7 @@ class XMLGameLoader(object):
                             
                 elif sub.tag == "variants":
                     for va in sub:
-                        v = { 'name': va.get('name'), 'id': va.get('id'), 'attr': {}, 'flags': set(), 'default': {} }
+                        v = { 'name': va.get('name'), 'id': va.get('id'), 'attr': {}, 'flags': set(), 'default': {}, 'systems': [] }
                         
                         for a in va:
                             if a.tag == "attr":
@@ -466,6 +553,16 @@ class XMLGameLoader(object):
 
                             elif a.tag == "default":
                                 v['default'][a.get('key')] = eval(a.get('value'))
+                                
+                            elif a.tag == "system":
+                                fncs = filter(lambda f: f.__name__ == sys.get('name'), list(funcholder.quick("{}-{}".format(id, sys.get('name')), open(sys.get('href')).read()).values()))
+                            
+                                try:
+                                    v.systems.append(tuple(fncs)[-1])
+                                    
+                                except IndexError:
+                                    print("No matching function for '{}'!".format(sys.get('name')))
+                                    raise
                                 
                         variants[va.get('id')] = v
                         

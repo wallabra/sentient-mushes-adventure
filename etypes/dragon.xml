@@ -19,7 +19,7 @@
                             
                     if len(possib) &gt; 0:
                         p = random.choice(tuple(possib))
-                        entity.world.broadcast(0, entity, " wanders to ", p, ".")
+                        entity.world.broadcast(0, entity, " wanders to ", p, ".", place=p)
                         entity.call('move', p)
         </function>
         
@@ -57,21 +57,21 @@
                 # print(entity.id)
                     
                 for _ in range(random.randint(3, 6)):
-                    entity.world.broadcast(2, entity, " sends a burst of flames towards ", entity.world.from_id(entity['target']), "!")
+                    entity.world.broadcast(2, entity, " breathes a burst of flames towards ", entity.world.from_id(entity['target']), "!", place=entity.place)
                     entity.call('attack', entity.world.from_id(entity['target']),  __import__('random').uniform(10, 25))
                     
                 if entity.world.from_id(entity['target'])['flammable'] and random.random() &lt;= 0.625:
-                    entity.world.broadcast(2, entity, " lit ", entity.world.from_id(entity['target']), " on flames!")
+                    entity.world.broadcast(2, entity, " lit ", entity.world.from_id(entity['target']), " on flames!", place=entity.place)
                     entity.world.from_id(entity['target'])['burning'] = True
                     
-                collateral = random.randint(0, 2)
+                possib = tuple(filter(lambda e: e.place == entity.place and e['flammable'] and e.id != entity['target'].split('#')[0], entity.world.all_in_place(entity.place)))
+                collateral = min(random.randint(0, 2), len(possib))
                     
                 if collateral > 0:
-                    possib = tuple(filter(lambda e: e.place == entity.place and e['flammable'] and e.id != entity['target'].split('#')[0], entity.world.all_in_place(entity.place)))
                     on_fire = random.sample(possib, collateral)
                     
                     for e in on_fire:
-                        entity.world.broadcast(2, entity, " accidentally lit ", e, " on flames!")
+                        entity.world.broadcast(2, entity, " accidentally lit ", e, " on flames!", place=entity.place)
                         e['burnInstigator'] = entity.id
                         e['burning'] = True
         </function>
@@ -90,21 +90,24 @@
         <attr name="courage" value="8" /> <!-- likelihood to stay when underwhelmed or outnumbered -->
         <attr name="sociality" value="6" /> <!-- likelihood to form 'friends' (will tend to follow each other and share friends and enemies) -->
         <attr name="leadership" value="7.75" /> <!-- likelihood to become leader (most likely to be followed by friends) -->
-        <attr name="dangerousness" value="100" /> <!-- Poor sheep... I wonder if we should give them some attack. Old Sentient Mushes IRCRPG (MushyBot/SMBot) used to let animals fight back as well. -->
+        <attr name="dangerousness" value="100" /> <!-- apparent dangerousness, in a vague hitpoint scale -->
         
         <!-- kinetic (movement & combat) attributes -->
         <attr name="specialMoveFunc" value="'fly'" /> <!-- special movement is used when hunting, chasing or fleeing -->
         <attr name="speed" value="0.25" /> <!-- likelihood to evade enemy attacks, from 0 to 1 -->
         <attr name="moveSpeed" value="0.8" /> <!-- chance, from 0 to 1, for a succesful tile move -->
+        
+        <!-- physic characteristics -->
+        <attr name="flammable" value="False" />
     </base>
     
     <default>
         <import name="creatureattr" href="attributes/creatureattr.xml" />
         <attribute key="drops" value="{'scale': (1, 3)}" />
+        <attribute key="immune" value="7" /> <!-- Rehermann scale :) -->
     </default>
     
     <systems>
-        <system name="creature" href="systems/creature.py" />
         <system name="drops" href="systems/drops.py" />
     </systems>
     
@@ -119,7 +122,17 @@
             <attr name="weight" value="45" /> <!-- in kilograms -->
             <attr name="dangerousness" value="90" />
             <flag name="baby" />
-            <attr name="obituary" value="'{killer} ripped {victim} with his small (but not tiny) claws!'" />
+            <attr name="obituary" value="'{killer} ripped {victim} with its small (but not tiny) claws!'" />
+        </variant>
+        
+        <variant name="Small Dragon Player" id="p_sdragon">
+            <attr name="isPlayer" value="True" />
+            
+            <attr name="size" value="1.2" />
+            <attr name="health" value="140" />
+            <attr name="weight" value="82" /> <!-- in kilograms -->
+            <attr name="dangerousness" value="50" />
+            <attr name="punchDamage" value="15" /> <!-- would've been called lacerateDamage or slashDamage -->
         </variant>
     
         <variant name="Small Dragon" id="small">
