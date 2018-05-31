@@ -18,6 +18,7 @@ players = {}
 turnorder = []
 turn = 0
 last_chan = {}
+last_interface = {}
 
 
 def command(name):
@@ -198,6 +199,22 @@ def plural(name, amount=2):
     else:
         return name + 's'
    
+@command('msg')
+def inventory(interface, connection, event, args):
+    if len(args) <= 1:
+        interface.send_message(event.target, "{}: Syntax: msg <recipient name, e.g. '{}' (random example)> <message>".format(event.source.nick, random.choice(tuple(players.keys()))))
+        return
+
+    recipient = args[0].rstrip(':') # QUESTIONABLE: is it possible for an IRC nick to have ':' ?
+    message = ' '.join(args[1:])
+        
+    if recipient not in last_chan:
+        interface.send_message(event.target, '{}: Recipient is unknown!'.format(event.source.nick))
+        return
+        
+    last_interface[recipient].send_message(last_chan[recipient], '[{}] <{}> {}: {}'.format(event.target, event.source.nick, recipient, message))
+    interface.send_message(event.target, 'Message sent to {} @ {} ({}) succesfully!'.format(recipient, last_chan[recipient], last_interface[recipient].name))
+   
 @command('inventory')
 def inventory(interface, connection, event, args):
     if event.source.nick not in players:
@@ -303,8 +320,9 @@ def attack(interface, connection, event, args):
         next_turn()
    
 class IRCInterface(SingleServerIRCBot):
-    def __init__(self, nick, realname, server, port, channels, account):
+    def __init__(self, name, nick, realname, server, port, channels, account):
         super().__init__([ServerSpec(server, port)], nick, realname)
+        self.name = name
         self.joinchans = channels
         self.account = account
         
@@ -326,6 +344,7 @@ class IRCInterface(SingleServerIRCBot):
     def on_pubmsg(self, connection, event):
         if event.arguments[0].startswith('}}'):
             last_chan[event.source.nick] = event.target
+            last_interface[event.source.nick] = self
         
             cmd_full = event.arguments[0][2:]
             cmd_name = cmd_full.split(' ')[0]
@@ -368,7 +387,7 @@ if __name__ == "__main__":
     threads = []
           
     for s in yaml.load(open("config/irc.yml").read()):
-        conns[s['name']] = IRCInterface(s['nickname'], s['realname'], s['server'], s['port'], s.get('channels', ()), s.get('account', None))
+        conns[s['name']] = IRCInterface(s['name'],s['nickname'], s['realname'], s['server'], s['port'], s.get('channels', ()), s.get('account', None))
         t = Thread(target=conns[s['name']].start, name="Bot: {}".format(s['name']))
         threads.append(t)
         t.start()

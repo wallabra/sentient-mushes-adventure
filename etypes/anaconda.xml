@@ -22,7 +22,7 @@
                     
                 if not entity['constricting']:
                     # fall damage
-                    t['instigator'] = entity
+                    t['instigator'] = entity.id
                     t.call('takeDamage', 5)
                     
                     if not t['dead']:
@@ -51,7 +51,7 @@
                     entity['_fullDmg'] += dmg
                     entity.world.broadcast(2, entity, " smashes ", t, (' further' if entity['_fullDmg'] == dmg else ''), ", provoking ", 100 * dmg / entity['_constrictHealth'], "% vital damage, for a total of ", 100 * entity['_fullDmg'] / entity['_constrictHealth'], "%!", place=entity.place)
                     
-                    t['instigator'] = entity
+                    t['instigator'] = entity.id
                     t.call('takeDamage', dmg)   
                     
         </function>

@@ -11,28 +11,28 @@
     <function name="wield">
         def wield(entity, player, item=None):
             if entity['dead']:
-                return
+                return False
             
             if item is None:
                 entity['weapon'] = None
                 entity.world.broadcast(2, entity, ' is now fighting with their own body instead of a weapon!', entity.place)
-                return
+                return False
             
             else:
                 i = entity.world.find_item(item)
                    
                 if 'weapon' not in i['flags']:
                     player.print_out("{}: That is not a weapon, that's... another kind of item!".format(entity.name))
-                    return
+                    return False
                 
                 if item not in entity['inventory'] or entity['inventory'][item] &lt;= 0:
                     player.print_out("{}: Imaginary weapons don't do real damage! You don't have that!".format(entity.name))
-                    return
+                    return False
                     
                 entity['weapon'] = item
                 entity.world.broadcast(2, entity, ' is now wielding a {}!'.format(item), entity.place)
                 
-                return
+                return True
     </function>
 
     <function name="player_move">
@@ -180,7 +180,7 @@
             entity['inventory'] = inv
             entity['pickups'] += a
             
-            if len(picked) > 0:
+            if len(tuple(picked.keys())) > 0:
                 print(plural(k, v))
                 msg = "{} picks up {}!".format(entity.name, ', '.join("{} {}".format((('an' if k[0] in namegen.vowels else 'a') if v == 1 else v), plural(k, v)[0]) for k, v in picked.items()))
             

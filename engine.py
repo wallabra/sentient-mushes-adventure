@@ -77,7 +77,7 @@ class EntityType(object):
         
         while world.from_id(id):
             id = ''.join([random.choice('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789') for _ in range(24)])
-        
+
         return "{}#{}#{}#{}#{}#{}".format(id, self.id, namegen.generate_name(random.randint(4, 9)), place, variant, json.dumps(attr))
         
     def call(self, func, entity, *args):

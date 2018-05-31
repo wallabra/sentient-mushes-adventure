@@ -305,7 +305,7 @@
             if entity['dead'] or not target or not entity['mush'] or target['mush'] or entity.place != target.place:
                 return False
                 
-            dmg = random.uniform(0.5, 3.25)
+            dmg = random.uniform(0.5, 3.25) * target['spawnHealth'] / target['health'] # wounds ease it
             target['immune'] -= dmg
             
             if target['immune'] &lt;= 0:
@@ -379,7 +379,7 @@
                     entity.world.broadcast(2, '* ', entity, " took ", damage, " damage and died!", place=entity.place)
                     
                 entity.call('on_death')
-                entity.world.from_id(entity['instigator']).call('on_death', entity)
+                entity.world.from_id(entity['instigator']).call('on_kill', entity)
                 entity['dead'] = True
                 entity.event('death')
             
