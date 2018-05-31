@@ -47,6 +47,7 @@
             <attr key="uses" value="70" />
             <attr key="minDamage" value="25" />
             <attr key="maxDamage" value="60" />
+            <attr key="recipe" value="{ 'stick': 2, 'flint': 1, 'straw': 3 }" />
         </item>
         
         <item name="steel sword">

@@ -51,6 +51,10 @@ class PlayerInterface(object):
         self.entity = self.entity.now()
         return self.entity.call('infect', self, other)
         
+    def wield(self, item=None):
+        self.entity = self.entity.now()
+        return self.entity.call('wield', self, item)
+        
     @classmethod
     def join(self, channels, world, name, place, type, variant):
         entity = world.etypes[type].instantiate(world, place, variant)

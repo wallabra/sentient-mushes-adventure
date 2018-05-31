@@ -108,6 +108,17 @@ def pick_up(interface, connection, event, args):
         
     players[event.source.nick].pick_up(int(args[0] if len(args) > 0 else 1), (args[1] if len(args) > 1 else None))
        
+@command('wield')
+def wield(interface, connection, event, args):
+    if event.source.nick not in players:
+        interface.send_message('{}: Join first!'.format(event.source.nick))
+        return
+        
+    if len(args) < 1:
+        players[event.source.nick].wield() # exactly, nothing!
+        
+    players[event.source.nick].wield(args[0])
+    
 @command('craft')
 def craft(interface, connection, event, args):
     if event.source.nick not in players:

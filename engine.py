@@ -218,6 +218,14 @@ class GameWorld(object):
             for s in en.type.systems:
                 s('tick', en)
         
+    def add_entity(self, e):
+        self.entities.append(e)
+        
+        funcs = self.etypes[e.split('#')[1]].functions
+        
+        if 'init' in funcs:
+            funcs['init'](self.from_id(e))
+        
     def find_item(self, name):
         for i in self.item_types:
             if i['name'] == name:
@@ -231,8 +239,6 @@ class GameWorld(object):
                 return p
                 
         return None
-        
-        
         
     def from_name(self, name):
         for i, e in enumerate(self.entities):
@@ -343,13 +349,13 @@ class XMLGameLoader(object):
                                         amount = int(amount)
                                 
                                     for _ in range(amount):
-                                        world.entities.append(world.etypes[sub.get('type')].instantiate(world, p.get('name'), (random.choice(sub.get('variant').split(';')) if sub.get('variant') != '*' else random.choice(tuple(world.etypes[sub.get('type')].variants.keys())))))
+                                        world.add_entity(world.etypes[sub.get('type')].instantiate(world, p.get('name'), (random.choice(sub.get('variant').split(';')) if sub.get('variant') != '*' else random.choice(tuple(world.etypes[sub.get('type')].variants.keys())))))
                                         
                                     # print('  * Adding {} {} entities.'.format(amount, world.etypes[sub.get('type')].name))
                                         
                             elif sub.tag == "entity":
                                 if sub.get('type') in world.etypes:
-                                    world.entities.append(world.etypes[sub.get('type')].instantiate(world, p.get('name'), (random.choice(sub.get('variant').split(';')) if sub.get('variant') != '*' else random.choice(tuple(world.etypes[sub.get('type')].variants.keys())))))
+                                    world.add_entity(world.etypes[sub.get('type')].instantiate(world, p.get('name'), (random.choice(sub.get('variant').split(';')) if sub.get('variant') != '*' else random.choice(tuple(world.etypes[sub.get('type')].variants.keys())))))
                                     
                             elif sub.tag == "items":
                                 if world.find_item(sub.get('type')):
