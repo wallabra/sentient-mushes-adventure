@@ -373,7 +373,7 @@
                 else:
                     entity.world.broadcast(2, '* ', entity, " took ", damage, " damage and died!", place=entity.place)
                     
-                entity.call('   on_death')
+                entity.call('on_death')
                 entity['dead'] = True
                 entity.event('death')
             

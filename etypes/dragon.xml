@@ -129,7 +129,7 @@
             <attr name="isPlayer" value="True" />
             
             <attr name="size" value="1.2" />
-            <attr name="health" value="140" />
+            <attr name="health" value="250" />
             <attr name="weight" value="82" /> <!-- in kilograms -->
             <attr name="dangerousness" value="50" />
             <attr name="punchDamage" value="15" /> <!-- would've been called lacerateDamage or slashDamage -->
