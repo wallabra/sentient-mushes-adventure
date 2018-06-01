@@ -103,10 +103,11 @@ def player_join(interface, connection, event, args):
         turn -= 1
         next_turn()
     
+    turnorder.append(event.source.nick)
     setattr(p.entity, '__handle_dead_player', __handle_dead_player)
         
-    turnorder.append(event.source.nick)
-    world.broadcast(3, "A new player joined: ", p.entity, "!")
+    world.broadcast(4, "A new player joined: ", p.entity, "!")
+    p.print_out("Welcome, {}. You have now joined the Mush, an infectious alien fungus race that controls brains. Your goal is to infect or kill enemies, make new friends, craft new items, discover new paths, solve puzzles... and in the end, save the world from yet another alien race...I shouldn't spoil this to you, so you'll discover it all yourself. Best of luck in your journey!".format(p.entity.name))
     
 @command('special')
 def special(interface, connection, event, args):
