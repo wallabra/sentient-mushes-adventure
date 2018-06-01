@@ -377,7 +377,7 @@
                 return False
                 
             if not target:
-                return False:
+                return False
                 
             if not entity['mush']:
                 player.print_out("You're not mush!", place=entity.place)
