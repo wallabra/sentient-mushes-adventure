@@ -252,7 +252,7 @@ def send_msg(interface, connection, event, args):
         interface.send_message(event.target, '{}: Recipient is unknown!'.format(event.source.nick))
         return
         
-    last_interface[recipient].send_message(last_chan[recipient], '[{}] <{}> {}: {}'.format(event.target, event.source.nick, recipient, message))
+    last_interface[recipient].send_message(last_chan[recipient], '[{} @ {}] <{}> {}: {}'.format(event.target, last_interface[recipient].name, event.source.nick, recipient, message))
     interface.send_message(event.target, 'Message sent to {} @ {} ({}) succesfully!'.format(recipient, last_chan[recipient], last_interface[recipient].name))
    
 @command('inventory')
