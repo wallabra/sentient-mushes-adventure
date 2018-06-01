@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<world beginning="Prairies of Yohantown;Port Ludicrous">
+<world beginning="Prairies of Yohantown;Port Ludicrous;Yohantown">
     <places>
         <place name="Mount Bayoku">
             <flock type="dragon" amount="8-12" variant="small;medium" /> <!-- ';' separates random choices -->
@@ -56,7 +56,7 @@
     <paths> 
         <path ends="Mount Bayoku;Prairies of Yohantown" />
         <path ends="Yohantown;Prairies of Yohantown;Port Ludicrous" />
-        <path ends="Port Ludicrous;Beach of Harmony" />
+        <path ends="Port Ludicrous;Beach of Harmony;Yohantown" />
     </paths>
     
     <etypes> <!-- entity dependencies -->

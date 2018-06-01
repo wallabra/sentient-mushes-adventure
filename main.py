@@ -40,7 +40,7 @@ def next_turn():
     
 log_file = open('event.log', 'w')
     
-def log_channel(m, place):
+def log_channel(m, place, level):
     log_file.write(m)
     
 world.add_broadcast_channel(-1, log_channel)
@@ -56,7 +56,12 @@ def help(interface, connection, event, args):
 @command('join')
 def player_join(interface, connection, event, args):
     if event.source.nick in players:
-        interface.send_message(event.target, '{}: You are already playing!'.format(event.source.nick))
+        if players[event.source.nick].entity['dead']:
+            interface.send_message(event.target, '{}: You can only rejoin after a game tick, once your body has fully rot.'.format(event.source.nick))
+    
+        else:
+            interface.send_message(event.target, '{}: You are already playing!'.format(event.source.nick))
+           
         return
         
     types = {}
@@ -75,8 +80,8 @@ def player_join(interface, connection, event, args):
         
     p = player.PlayerInterface.join([], world, event.source.nick, random.choice(world.beginning.split(';')), type, variant)
         
-    def _channel(m, place):
-        if place == world.from_id(p.entity.id).place:
+    def _channel(m, place, level):
+        if place == world.from_id(p.entity.id).place and level < 3:
             interface.send_message(last_chan[event.source.nick], m)
             
     p.channels.append(_channel)
@@ -85,6 +90,21 @@ def player_join(interface, connection, event, args):
         
     turnorder.append(event.source.nick)
     world.broadcast(3, "A new player joined: ", p.entity, "!")
+    
+@command('special')
+def player_special(interface, connection, event, args):
+    if event.source.nick not in players:
+        interface.send_message(event.target, '{}: Join first!'.format(event.source.nick))
+        return
+        
+    p = players[event.source.nick]
+    e = p.entity
+
+    if e['dead']:
+        interface.send_message(event.target, "{}: You're dead! Join back after a tick, ie, after the AI creatures' turn.".format(event.source.nick))
+        return
+        
+    e.call('player_special', p, args)
     
 @command('leave')
 def player_leave(interface, connection, event, args):
@@ -97,16 +117,6 @@ def player_leave(interface, connection, event, args):
     world.broadcast(3, '{} left the game!'.format(e))
     e['leaving'] = True
     e.call('take_damage', e['health'])
-   
-def player_death_system(event, entity):
-    if event == 'death' and entity.name in turnorder and entity['isPlayer']:
-        entity['interface'].turnorder.remove(entity.name)
-        players.pop(entity.name)
-        
-        if entity['leaving']:
-            world.broadcast(3, "It's now ", turnorder[turn], "'s turn!")
-            
-world.global_systems.append(player_death_system)
     
 greek_items = ['Icarus wing', 'ambrosia', "Zeus staff", 'Achilles boots', "Pythagoras' Number Arché Orb", "Democrat's Atomic Arché Orb"]
 
@@ -164,8 +174,15 @@ def craft(interface, connection, event, args):
         interface.send_message('{}: Join first!'.format(event.source.nick))
         return
         
+    try:
+        int(args[0])
+        
+    except ValueError:
+        interface.send_message(event.target, '{}: Syntax: craft <amount> <item name>'.format(event.source.nick))
+        return        
+        
     if len(args) < 1:
-        interface.send_message(event.target, '{}: Syntax: craft <item name> [amount]'.format(event.source.nick))
+        interface.send_message(event.target, '{}: Syntax: craft <amount> <item name>'.format(event.source.nick))
         return        
         
     players[event.source.nick].craft(' '.join(args[1:]), int(args[0]))
@@ -286,7 +303,20 @@ def move(interface, connection, event, args):
         interface.send_message(event.target, '{}: Syntax: move <place name>'.format(event.source.nick))
         return
         
-    if players[event.source.nick].move(' '.join(args)):
+    if not world.find_place(''.join(args)):
+        interface.send_message(event.target, '{}: No such place'.format(event.source.nick))
+        return
+        
+        
+    e = players[event.source.nick].entity
+    res = players[event.source.nick].move(' '.join(args))
+    rnames = ['WARNING', 'FAILED', 'SUCCESS']
+    # print(rnames[res])
+    
+    if res == 2:
+        interface.send_message(event.target, "{} has moved with success to {}{}!".format(event.source.nick, ''.join(args), ('through {}'.format(e.place) if ''.join(args) != e.place else '')))
+    
+    if res:
         next_turn()
          
 @command('pass')
@@ -327,8 +357,8 @@ class IRCInterface(SingleServerIRCBot):
         self.account = account
         
         def _channel(chan):
-            def __wrapper__(m, place):
-                if place is None:
+            def __wrapper__(m, place, level):
+                if place is None or level >= 3:
                     self.send_message(chan, m)
                 
             return __wrapper__
@@ -342,10 +372,10 @@ class IRCInterface(SingleServerIRCBot):
             self.connection.privmsg(channel, line)
         
     def on_pubmsg(self, connection, event):
+        last_chan[event.source.nick] = event.target
+        last_interface[event.source.nick] = self
+    
         if event.arguments[0].startswith('}}'):
-            last_chan[event.source.nick] = event.target
-            last_interface[event.source.nick] = self
-        
             cmd_full = event.arguments[0][2:]
             cmd_name = cmd_full.split(' ')[0]
             cmd_args = cmd_full.split(' ')[1:]

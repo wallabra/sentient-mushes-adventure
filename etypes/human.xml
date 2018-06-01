@@ -1,6 +1,17 @@
 <?xml version="1.0"?>
 <entitytype name="Human" id="human">
     <functions>
+        <function name="player_special">
+            def player_special(entity, player, args):
+                player.print_out("{}: Performing the Human's weapon sharpening.".format(entity), place=entity.place)
+                
+                if entity['weapon'] in entity['sharpening']:
+                    entity['sharpening'][entity['weapon']] += 1
+                
+                else:
+                    entity['sharpening'][entity['weapon']] = 1
+        </function>
+    
         <function name="tick">
             import random
         
@@ -25,6 +36,44 @@
                         entity.world.broadcast(0, entity, " fearlessly went to ", p, ".")
                         entity.call('move', p)
         </function>
+        
+    <function name="player_attack">
+        import random
+    
+        def player_attack(entity, player, other):
+            if entity['dead'] or not other:
+                return False
+        
+            entity.call('attack', other, (entity['punchDamage'] * random.uniform(0.7, 1.3) if (not entity['weapon'] or entity['inventory'].get(entity['weapon'], 0) &lt;= 0) else random.uniform(world.item_type(entity['weapon'])['attr']['minDamage'], world.item_type(entity['weapon'])['attr']['maxDamage']) + (random.uniform(5, 20) * entity['sharpening'].get(entity['weapon'], 0))))
+            
+            if entity['weapon'] and entity['inventory'].get(entity['weapon'], 0) > 0:
+                if entity['weapon'] in entity['weaponUses']:
+                    wu = entity['weaponUses']
+                    wu[entity['weapon']] -= 1
+                    entity['weaponUses'] = wu
+                    
+                else:
+                    wu = entity['weaponUses']
+                    wu[entity['weapon']] = world.item_type(entity['weapon'])['attr']['weaponUses'] - 1
+                    entity['weaponUses'] = wu
+                    
+                if entity['weaponUses'][entity['weapon']] &lt;= 0:
+                    player.print_out("Your weapon has broken!")
+                
+                    if entity['weapon'] in entity['sharpening']:
+                        entity['sharpening'].pop(entity['weapon'])
+                        
+                    entity['inventory'][entity['weapon']] = entity['inventory'][entity['weapon']] - 1
+                    wu = entity['weaponUses']
+                    wu[entity['weapon']] = world.item_type(entity['weapon'])['attr']['weaponUses']
+                    entity['weaponUses'] = wu
+                    
+                    if entity['inventory'][entity['weapon']] &lt;= 0:
+                        entity['inventory'].pop(entity['weapon'])
+                        entity['weapon'] = None # back to bare hands, so don't forget to always wield a good weapon when one's available!
+                        
+            return True
+    </function>
         
         <function name="hoe_attack">
             import random
@@ -74,6 +123,7 @@
         <import name="player" href="attributes/player.xml" />
         
         <attribute key="drops" value="{'coin': (0, 20)}" />
+        <attribute key="sharpening" value="{}" />
     </default>
     
     <systems>

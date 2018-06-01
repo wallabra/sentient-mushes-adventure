@@ -1,5 +1,24 @@
 <?xml version="1.0"?>
 <entitytype name="Player" id="player">
+    <functions>
+        <function name="player_special">
+            def player_special(entity, player, args):
+                place = args[0]
+                
+                if not entity.world.place(place):
+                    player.print_out("{}: No such place!".format(entity), place=entity.place)
+                    return
+                    
+                player.print_out("{}: Performing the Velociraptor's run.".format(entity), place=entity.place)
+                    
+                for _ in range(3):
+                    if player.place == place:
+                        break
+                        
+                    player.call('pathmove', place, 0)
+        </function>
+    </functions>
+
     <base>
         <attr name="obituary" value="'{killer} dug a couple holes out of {victim} with his bare hands!'" />
         

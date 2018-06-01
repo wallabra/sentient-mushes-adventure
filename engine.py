@@ -206,7 +206,7 @@ class GameWorld(object):
         
             for b in self.broadcast_channels:
                 if not b._level or level >= b._level:
-                    b(m, place)
+                    b(m, place, level)
                     can_wait = True
         
             if can_wait:

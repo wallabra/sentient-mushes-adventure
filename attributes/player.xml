@@ -8,6 +8,18 @@
             entity.call('creature_tick')
     </function>
 
+    <function name="on_death">
+        import main
+    
+        def on_death(entity):
+            main.players.pop(entity.name)
+            main.turnorder.remove(entity.name)
+            
+            if main.turn &gt;= len(main.turnorder):
+                entity.world.tick()
+                main.turn = 0
+    </function>
+    
     <function name="wield">
         def wield(entity, player, item=None):
             if entity['dead']:
@@ -37,8 +49,7 @@
 
     <function name="player_move">
         def player_move(entity, player, place):
-            player.print_out(entity, ' is attempting to move to ', place, '!')
-            entity.call('pathmove', place)
+            return entity.call('pathmove', place, True)
     </function>
     
     <function name="craft">

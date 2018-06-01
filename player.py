@@ -30,7 +30,7 @@ class PlayerInterface(object):
             
         # no need to check for levels.
         for c in self.channels:
-            c(m, place)
+            c(m, place, 200)
         
     def move(self, place):
         self.entity = self.entity.now()
@@ -42,7 +42,7 @@ class PlayerInterface(object):
         
     def attack(self, other):
         self.entity = self.entity.now()
-        return self.entity.call('player_attack', other)
+        return self.entity.call('player_attack', self, other)
         
     def craft(self, item, amount):
         self.entity = self.entity.now()

@@ -1,6 +1,21 @@
 <?xml version="1.0"?>
 <entitytype name="Dragon" id="dragon">
     <functions>
+        <function name="player_special">
+            def player_special(entity, player, args):
+                target = args[0]
+                
+                if not entity.world.from_name(target):
+                    player.print_out("{}: No such entity to target!".format(entity), place=entity.place)
+                    return
+                    
+                target = entity.world.from_name(target)
+                    
+                player.print_out("{}: Performing the Dragon's firebreath.".format(entity), place=entity.place)
+                entity['target'] = target
+                entity.call('firebreath')
+        </function>
+    
         <function name="tick">
             import random
         
