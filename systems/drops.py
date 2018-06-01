@@ -52,5 +52,5 @@ def drops(event, entity):
                     entity.variant['name']
                 ))
                 
-        if entity['instigator']:
+        if entity['instigator'] and entity.world.from_id(entity['instigator'])['isPlayer']:
             entity.world.from_id(entity['instigator'])['inventory'] = inv

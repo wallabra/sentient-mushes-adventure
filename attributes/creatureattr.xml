@@ -107,7 +107,7 @@
                 if not entity['target']:
                     strangers = tuple(filter(lambda e: ((e.type.id != entity.type.id) or (e['mush'] != entity['mush'] and entity['mush']) and ((entity['dangerousness'] + entity['health']) * entity['courage'] / 10.0 &gt;= (e['dangerousness'] + e['health']) * e['courage'] / 10.0)) and e.place == entity.place, entity.world.all_in_place(entity.place)))
                     
-                    if random.random() * 20 &lt;= entity['hostility'] + 10 - entity['humor'] * 10 and len(strangers) > 0:
+                    if random.random() * 20 &lt;= entity['hostility'] / 2.5 + 10 - entity['humor'] * 10 and len(strangers) > 0:
                         entity['target'] = random.choice(strangers).id
                         entity.world.broadcast((2.5 if entity.world.from_id(entity['target'])['isPlayer'] else 1), entity, ' suddenly turns to attack ', entity.world.from_id(entity['target']), '!', place=entity.place)
                         entity.call('pick_attack')
