@@ -32,7 +32,7 @@ def next_turn():
     global turn
     turn += 1
 
-    if turn >= len(turnorder):
+    if turn >= len(turnorder) or len(turnorder) == 0:
         turn = 0
         world.tick()
     
@@ -55,14 +55,22 @@ def help(interface, connection, event, args):
     
 @command('join')
 def player_join(interface, connection, event, args):
-    if event.source.nick in players:
-        if players[event.source.nick].entity['dead']:
-            interface.send_message(event.target, '{}: You can only rejoin after a game tick, once your body has fully rot.'.format(event.source.nick))
-    
-        else:
-            interface.send_message(event.target, '{}: You are already playing!'.format(event.source.nick))
-           
-        return
+    while True:
+        if event.source.nick in players:
+            if players[event.source.nick].entity['dead']:
+                if len(turnorder) > 0:
+                    interface.send_message(event.target, '{}: You can only rejoin after a game tick, once your body has fully rot.'.format(event.source.nick))
+                    
+                else:
+                    world.entities.pop(players[event.source.nick].entity.index)
+                    break
+        
+            else:
+                interface.send_message(event.target, '{}: You are already playing!'.format(event.source.nick))
+               
+            return
+        
+        break
         
     types = {}
     
@@ -92,7 +100,7 @@ def player_join(interface, connection, event, args):
     world.broadcast(3, "A new player joined: ", p.entity, "!")
     
 @command('special')
-def player_special(interface, connection, event, args):
+def special(interface, connection, event, args):
     if event.source.nick not in players:
         interface.send_message(event.target, '{}: Join first!'.format(event.source.nick))
         return
@@ -104,7 +112,9 @@ def player_special(interface, connection, event, args):
         interface.send_message(event.target, "{}: You're dead! Join back after a tick, ie, after the AI creatures' turn.".format(event.source.nick))
         return
         
-    e.call('player_special', p, args)
+    if e.call('player_special', p, args):
+        interface.send_message(event.target, "Special performed.")
+        next_turn()
     
 @command('leave')
 def player_leave(interface, connection, event, args):
@@ -217,9 +227,13 @@ def plural(name, amount=2):
         return name + 's'
    
 @command('msg')
-def inventory(interface, connection, event, args):
+def send_msg(interface, connection, event, args):
     if len(args) <= 1:
-        interface.send_message(event.target, "{}: Syntax: msg <recipient name, e.g. '{}' (random example)> <message>".format(event.source.nick, random.choice(tuple(players.keys()))))
+        interface.send_message(event.target, "{}: Syntax: msg <recipient name, e.g. '{}' (random example)> <message>".format(event.source.nick, random.choice(tuple(last_chan.keys())) if len(last_chan) > 0 else 'Somebody'))
+        return
+        
+    if args[0] == event.source.nick:
+        interface.send_message(event.target, "{}: Nice syntax.... but I'm not a mirror!".format(event.source.nick))
         return
 
     recipient = args[0].rstrip(':') # QUESTIONABLE: is it possible for an IRC nick to have ':' ?
@@ -311,10 +325,9 @@ def move(interface, connection, event, args):
     e = players[event.source.nick].entity
     res = players[event.source.nick].move(' '.join(args))
     rnames = ['WARNING', 'FAILED', 'SUCCESS']
-    # print(rnames[res])
     
-    if res == 2:
-        interface.send_message(event.target, "{} has moved with success to {}{}!".format(event.source.nick, e.place, (', heading toward {}'.format(e.place) if ''.join(args) != e.place else '')))
+    # if res == 2:
+    #    interface.send_message(event.target, "{} has moved with success to {}{}!".format(event.source.nick, e.place, (', heading toward {}'.format(' '.join(args)) if ''.join(args) != e.place else '')))
     
     if res:
         next_turn()
@@ -382,6 +395,7 @@ class IRCInterface(SingleServerIRCBot):
             
             if cmd_name in commands:
                 try:
+                    print("Executing command: " + cmd_name)
                     commands[cmd_name](self, connection, event, cmd_args)
                     
                 except Exception as e:

@@ -113,12 +113,12 @@
         <attr name="speed" value="0.25" /> <!-- likelihood to evade enemy attacks, from 0 to 1 -->
         <attr name="moveSpeed" value="0.8" /> <!-- chance, from 0 to 1, for a succesful tile move -->
         
-        <!-- physic characteristics -->
+        <!-- physical characteristics -->
         <attr name="flammable" value="False" />
+        <attr name="postTransfer" value="'small'" />
     </base>
     
     <default>
-        <import name="creatureattr" href="attributes/creatureattr.xml" />
         <import name="player" href="attributes/player.xml" />
         <attribute key="drops" value="{'scale': (1, 3)}" />
         <attribute key="immune" value="7" /> <!-- Rehermann scale :) -->
@@ -144,6 +144,7 @@
         
         <variant name="Small Dragon Player" id="p_sdragon">
             <attr name="isPlayer" value="True" />
+            <default key="mush" value="True" />
             
             <attr name="size" value="1.2" />
             <attr name="health" value="250" />

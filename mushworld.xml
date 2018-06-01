@@ -17,6 +17,7 @@
         
         <place name="Prairies of Yohantown">
             <flock type="sheep" amount="10-35" variant="*" /> <!-- "*" means random variant -->
+            <flock type="kangaroo" amount="5-25" variant="brown;yellow;kbaby" />
             
             <items type="stick" amount="4-8" />
             <items type="pebble" amount="20-40" />

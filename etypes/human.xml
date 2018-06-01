@@ -118,6 +118,7 @@
         <attr name="sociality" value="8" /> <!-- likelihood to form 'friends' (will tend to follow each other and share friends and enemies) -->
         <attr name="leadership" value="5" /> <!-- likelihood to become leader (most likely to be followed by friends) -->
         <attr name="dangerousness" value="90" /> <!-- apparent dangerousness, in a vague hitpoint scale -->
+        <attr name="postTransfer" value="'farmer'" />
     
         <!-- kinetic (movement & combat) attributes -->
         <attr name="speed" value="0.4" /> <!-- likelihood to evade enemy attacks, from 0 to 1 -->
@@ -125,7 +126,6 @@
     </base>
     
     <default>
-        <import name="creatureattr" href="attributes/creatureattr.xml" />
         <import name="player" href="attributes/player.xml" />
         
         <attribute key="drops" value="{'coin': (0, 20)}" />

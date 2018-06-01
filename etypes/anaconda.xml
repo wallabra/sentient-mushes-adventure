@@ -1,6 +1,22 @@
 <?xml version="1.0"?>
 <entitytype name="Anaconda" id="anaconda">
     <functions>
+        <function name="player_special">
+            def player_special(entity, player, args):
+                target = args[0]
+                
+                if not entity.world.from_name(target):
+                    player.print_out("{}: No such entity to target!".format(entity), place=entity.place)
+                    return False
+                    
+                target = entity.world.from_name(target)
+                    
+                player.print_out("{}: Performing the Anaconda's constriction.".format(entity), place=entity.place)
+                entity['target'] = target
+                entity.call('constrict')
+                return True
+        </function>
+    
         <function name="on_kill">
             def on_kill(entity, other):
                 if other.id == entity['target']:
@@ -107,10 +123,12 @@
         <!-- kinetic (movement & combat) attributes -->
         <attr name="speed" value="0.16" /> <!-- likelihood to evade enemy attacks, from 0 to 1 -->
         <attr name="moveSpeed" value="0.4" /> <!-- chance, from 0 to 1, for a succesful tile move -->
+        
+        <attr name="postTransfer" value="'striped'" />
     </base>
     
     <default>
-        <import name="creatureattr" href="attributes/creatureattr.xml" />
+        <import name="player" href="attributes/player.xml" />
         <attribute key="drops" value="{'raw steak': (0, 2), 'snake tooth': (2, 2)}" />
         <attribute key="feeding" value="0" />
     </default>
@@ -150,6 +168,20 @@
             <attr name="weight" value="60" />
             <attr name="size" value="70" />
             <attr name="health" value="80" />
+        </variant>
+        
+        <variant name="Striped Anaconda Player" id="player_snek">
+            <attr name="isPlayer" value="True" />
+            <attr name="vore" value="1.0" />
+            <attr name="dangerousness" value="70" />
+            <attr name="hostility" value="1.5" />
+            <attr name="punchDamage" value="35" /> <!-- would've been called biteDamage -->
+            
+            <attr name="size" value="60" />
+            <attr name="weight" value="50" />
+            <attr name="health" value="75" />
+            
+            <default key="mush" value="True" />
         </variant>
     </variants>
 </entitytype>

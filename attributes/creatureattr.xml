@@ -208,14 +208,14 @@
             if place in possib:
                 if random.random() &lt;= entity['moveSpeed'] * entity['speedModifier']:
                     if bPrint:
-                        entity.world.broadcast((2 if entity['isPlayer'] else 0), entity, " has just moved to ", place, "!", place=place)
+                        entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " has just moved to ", place, "!", place=place)
                         return 2
                         
                     entity.set_place(place)
                     entity.event('movement')
                     
                 elif bPrint:
-                    entity.world.broadcast((2 if entity['isPlayer'] else 0), entity, " failed to move to ", place, " in one turn!", place=entity.place)
+                    entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " failed to move to ", place, " in one turn!", place=entity.place)
                     return 1
                     
     </function>
@@ -266,7 +266,7 @@
                 closed.add(cur)
                     
             if p is None:
-                entity.world.broadcast((2 if entity['isPlayer'] else 0), entity, " can't find a path to ", navdest, "!", place=entity.place)
+                entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " can't find a path to ", navdest, "!", place=entity.place)
                 return 0
                 
             path = []
@@ -277,13 +277,23 @@
                 path.append(c)
                 
                 if c not in come_from:
-                    entity.world.broadcast((2 if entity['isPlayer'] else 0), entity, " can't find a path to ", navdest, "!", place=entity.place)
+                    entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " can't find a path to ", navdest, "!", place=entity.place)
                     return 0
                     
                 c = come_from[c]
                 
-            entity.world.broadcast((2 if entity['isPlayer'] else 0), entity, " moves toward ", navdest, (" going through {}!".format(path[0]) if path[0] != navdest else "!"), place=path[0])
-            return entity.call('move', path[0], print)
+            res = entity.call('move', path[0], print)
+                
+            if res:
+                entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " heads off to ", navdest, ("; just went through {}!".format(path[0]) if path[0] != navdest else "!"), place=path[0])
+                
+            elif path[0] == navdest:
+                entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " failed to move to ", path[0], "!", place=path[0])
+             
+            else:
+                entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " failed to move to ", path[0], " while trying to reach", navdest, "!", place=path[0])
+                
+            return res
     </function>
     
     <function name="tick">
@@ -293,7 +303,7 @@
     
     <function name="on_death">
         def on_death(entity):
-            pass
+            print("Something died!")
     </function>
         
     <function name="on_kill">
@@ -305,7 +315,7 @@
         import random
     
         def infect(entity, player, target):
-            if entity['dead'] or not target or not entity['mush'] or target['mush'] or entity.place != target.place:
+            if entity['dead'] or not target or not entity['mush'] or target['mush'] or entity.place != target.place or target['brainless']:
                 return False
                 
             dmg = random.uniform(0.5, 3.25) * target['spawnHealth'] / target['health'] # wounds ease it
@@ -377,12 +387,13 @@
                         
                     else:
                          entity.world.broadcast(2, '* ', entity, " took ", damage, " damage from ", entity.world.from_id(entity['instigator']), " and died!", place=entity.place)
+                         
+                    entity.world.from_id(entity['instigator']).call('on_kill', entity)
             
                 else:
                     entity.world.broadcast(2, '* ', entity, " took ", damage, " damage and died!", place=entity.place)
                     
                 entity.call('on_death')
-                entity.world.from_id(entity['instigator']).call('on_kill', entity)
                 entity['dead'] = True
                 entity.event('death')
             

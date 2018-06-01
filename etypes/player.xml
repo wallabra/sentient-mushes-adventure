@@ -3,7 +3,7 @@
     <functions>
         <function name="player_special">
             def player_special(entity, player, args):
-                place = args[0]
+                place = ' '.join(args)
                 
                 if not entity.world.find_place(place):
                     player.print_out("{}: No such place!".format(entity), place=entity.place)
@@ -35,7 +35,6 @@
         <attribute name="weaponUses" value="{}" />
         <attr name="mush" value="True" />
         
-        <import name="creatureattr" href="attributes/creatureattr.xml" />
         <import name="player" href="attributes/player.xml" />
     </default>
     

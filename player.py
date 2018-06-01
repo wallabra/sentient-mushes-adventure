@@ -30,7 +30,7 @@ class PlayerInterface(object):
             
         # no need to check for levels.
         for c in self.channels:
-            c(m, place, 200)
+            c(m, place, 5000)
         
     def move(self, place):
         self.entity = self.entity.now()

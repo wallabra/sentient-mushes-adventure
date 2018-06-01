@@ -1,5 +1,7 @@
 <?xml version="1.0"?>
-<default>
+<default name="player">
+    <import name="creatureattr" href="attributes/creatureattr.xml" />
+    
     <function name="tick">
         def tick(entity):
             if entity['pickups'] &gt;= 20:
@@ -12,12 +14,11 @@
         import main
     
         def on_death(entity):
+            print("Removing player: " + str(entity))
             main.players.pop(entity.name)
             main.turnorder.remove(entity.name)
-            
-            if main.turn &gt;= len(main.turnorder):
-                entity.world.tick()
-                main.turn = 0
+            main.turn -= 1
+            main.next_turn()
     </function>
     
     <function name="wield">

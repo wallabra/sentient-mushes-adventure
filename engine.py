@@ -416,7 +416,7 @@ class XMLGameLoader(object):
             systems = []
             default = {}
             
-            def import_attr(el):
+            def import_attr(el, level=1):
                 imported = etree.parse(open(el.get('href')))
                                 
                 for a in imported.getroot():
@@ -427,7 +427,8 @@ class XMLGameLoader(object):
                         default[a.get('key')] = None
                         
                     elif a.tag == "import":
-                        import_attr(el)
+                        # print("Importing attribute library '{}' from '{}'".format(a.get('name'), imported.getroot().get('name')))
+                        import_attr(a, level + 1)
                 
                     elif a.tag == "flag":
                         base['flags'].add(a.get('name'))
@@ -436,15 +437,18 @@ class XMLGameLoader(object):
                         base['attr'][a.get('name')] = eval(a.get('value'))
                         
                     elif a.tag == "function":
-                        allfunc = tuple(funcholder.quick("{}-{}".format(id, a.get('name')), a.text).values())
-                        fncs = filter(lambda f: f.__name__ == a.get('name'), allfunc)
-                        
-                        try:
-                            functions[a.get('name')] = tuple(fncs)[-1]
+                        if hasattr(functions[a.get('name')], '__priority') and getattr(functions[a.get('name')], '__priority') > level:
+                            allfunc = tuple(funcholder.quick("{}-{}".format(id, a.get('name')), a.text).values())
+                            fncs = filter(lambda f: f.__name__ == a.get('name'), allfunc)
                             
-                        except IndexError:
-                            print("No matching function for '{}'!".format(a.get('name')))
-                            raise
+                            try:
+                                f = tuple(fncs)[-1]
+                                setattr(f, '__priority', level)
+                                functions[a.get('name')] = f
+                                
+                            except IndexError:
+                                print("No matching function for '{}'!".format(a.get('name')))
+                                raise
                         
                     elif a.tag == 'item':
                         name = a.get('name')
@@ -482,14 +486,20 @@ class XMLGameLoader(object):
             for sub in etype.getroot():
                 if sub.tag == "functions":
                     for f in sub:
-                        fncs = filter(lambda g: g.__name__ == f.get('name'), list(funcholder.quick("{}-{}".format(id, f.get('name')), f.text).values()))
-                        
-                        try:
-                            functions[f.get('name')] = tuple(fncs)[-1]
+                        if f.tag == "function":
+                            functions[f.get('name')] = None # guarantee inoverrideability
+            
+            for sub in etype.getroot():
+                if sub.tag == "functions":
+                        if f.tag == "function":
+                            fncs = filter(lambda g: g.__name__ == f.get('name'), list(funcholder.quick("{}-{}".format(id, f.get('name')), f.text).values()))
                             
-                        except IndexError:
-                            print("No matching function for '{}'!".format(f.get('name')))
-                            raise
+                            try:
+                                functions[f.get('name')] = tuple(fncs)[-1]
+                                
+                            except IndexError:
+                                print("No matching function for '{}'!".format(f.get('name')))
+                                raise
                         
                 elif sub.tag == "base":
                     for a in sub:
@@ -514,6 +524,7 @@ class XMLGameLoader(object):
                 elif sub.tag == "default":
                     for att in sub:
                         if att.tag == "import":
+                            # print("Importing attribute library: {}".format(a.get('name')))
                             import_attr(att)
                            
                         elif a.tag == "declare":
