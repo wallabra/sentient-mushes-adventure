@@ -218,6 +218,7 @@
                     entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " failed to move to ", place, " in one turn!", place=entity.place)
                     return 1
                     
+            return 0
     </function>
     
     <function name="init">
@@ -243,6 +244,7 @@
             if (entity['dead']) or (entity.place == navdest):
                 return 0
         
+            # Super basic pathfinder.
             open = [entity.place]
             closed = set()
             come_from = { entity.place: None }
@@ -284,14 +286,15 @@
                 
             res = entity.call('move', path[0], print)
                 
-            if res:
-                entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " heads off to ", navdest, ("; just went through {}!".format(path[0]) if path[0] != navdest else "!"), place=path[0])
+            # if res:
+            #     entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " wants to go to ", navdest, ("; just went through {}!".format(path[0]) if path[0] != navdest else "!"), place=path[0])
                 
-            elif path[0] == navdest:
-                entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " failed to move to ", path[0], "!", place=path[0])
-             
-            else:
-                entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " failed to move to ", path[0], " while trying to reach", navdest, "!", place=path[0])
+            if res == 1:
+                if path[0] == navdest:
+                    entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " failed to move to ", path[0], "!", place=path[0])
+                
+                else:
+                    entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " failed to move to ", path[0], " while trying to reach ", navdest, "!", place=path[0])
                 
             return res
     </function>
@@ -303,7 +306,7 @@
     
     <function name="on_death">
         def on_death(entity):
-            print("Something died!")
+            print("Something died!")]
     </function>
         
     <function name="on_kill">

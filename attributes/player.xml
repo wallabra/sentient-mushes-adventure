@@ -46,7 +46,7 @@
 
     <function name="player_move">
         def player_move(entity, player, place):
-            return entity.call('pathmove', place, True)
+            return entity.call('pathmove', place)
     </function>
     
     <function name="craft">
@@ -192,10 +192,10 @@
                 print(plural(k, v))
                 msg = "{} picks up {}!".format(entity.name, ', '.join("{} {}".format((('an' if k[0] in namegen.vowels else 'a') if v == 1 else v), plural(k, v)[0]) for k, v in picked.items()))
             
-            if entity['pickups'] &gt;= 20:
-                msg += " The turn is spent picking up all of these items."
-                
-            player.print_out(msg)
+                if entity['pickups'] &gt;= 20:
+                    msg += " The turn is spent picking up all of these items."
+                    
+                player.print_out(msg)
             
             return len(picked) &gt; 0
     </function>

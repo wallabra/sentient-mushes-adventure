@@ -94,6 +94,8 @@ class LoadedEntity(object):
         self.variant = self.type.variants[s.split("#")[4]]
         self.attr = json.loads(s.split("#")[5])
         
+        world.all_loaded_entities.append(self)
+        
     def __setitem__(self, key, val):
         self.attr[key] = val
         self.update()
@@ -104,9 +106,23 @@ class LoadedEntity(object):
         
     def update(self):
         self.world.set_with_id(self.id, "{}#{}#{}#{}#{}#{}".format(self.id, self.type.id, self.name, self.place, self.variant['id'], json.dumps(self.attr)))
+        self.world.update_loaded_entities()
+        
+    def __worldlist_unload(self):
+        for i, e in enumerate(self.world.all_loaded_entities):
+            if e is self:
+                self.world.all_loaded_entities.pop(i)
         
     def now(self):
-        return self.world.from_id(self.id)
+        n = self.world.from_id(self.id)
+        self.index = n.index
+        self.id = n.id
+        self.type = n.type
+        self.name = n.name
+        self.place = n.place
+        self.variant = n.variant
+        self.attr = n.attr
+        n.__worldlist_unload()
         
     def __getitem__(self, key):
         a = self.attr.get(key)
@@ -151,8 +167,14 @@ class GameWorld(object):
         self.broadcast_channels = []
         self.global_systems = []
         
+        self.all_loaded_entities = []
+        
         t = threading.Thread(name="Game Broadcast Loop", target=self._broadcast_loop)
         t.start()
+    
+    def update_loaded_entities(self):
+        for l in self.all_loaded_entities:
+            l.now()
     
     def dumps(self, yaml=True):
         save = {

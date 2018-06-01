@@ -33,31 +33,24 @@ class PlayerInterface(object):
             c(m, place, 5000)
         
     def move(self, place):
-        self.entity = self.entity.now()
         return self.entity.call('player_move', self, place)
         
     def attack_name(self, other_name):
-        self.entity = self.entity.now()
         return self.entity.call('player_attack', self.entity.world.from_name(other_name))
         
     def attack(self, other):
-        self.entity = self.entity.now()
         return self.entity.call('player_attack', self, other)
         
     def craft(self, item, amount):
-        self.entity = self.entity.now()
         return self.entity.call('craft', self, item, amount)
         
     def pick_up(self, amount=1, item=None):
-        self.entity = self.entity.now()
         return self.entity.call('pick_up', self, amount, item)
         
     def infect(self, other):
-        self.entity = self.entity.now()
         return self.entity.call('infect', self, other)
         
     def wield(self, item=None):
-        self.entity = self.entity.now()
         return self.entity.call('wield', self, item)
         
     @classmethod

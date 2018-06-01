@@ -161,7 +161,7 @@ def pick_up(interface, connection, event, args):
     
     if item and not world.find_item(item):
         if amount > 1 and item.endswith('s'):
-            item = item.rstrip('s')
+            item = item.rstrip
         
             if not world.find_item(item):
                 interface.send_message(event.target, "{}: No such item '{}'! Is that from some Greek myth? Like, {} doesn't really exist either.".format(event.source.nick, item, random.choice(greek_items)))
