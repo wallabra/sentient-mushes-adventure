@@ -330,7 +330,6 @@ def move(interface, connection, event, args):
         interface.send_message(event.target, '{}: No such place!'.format(event.source.nick))
         return
         
-        
     e = players[event.source.nick].entity
     res = players[event.source.nick].move(' '.join(args))
     rnames = ['WARNING', 'FAILED', 'SUCCESS']

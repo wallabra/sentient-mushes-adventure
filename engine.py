@@ -235,6 +235,8 @@ class GameWorld(object):
                 time.sleep(0.65)
         
     def tick(self):
+        self.all_loaded_entities = []
+        
         for i, e in enumerate(self.entities):
             en = LoadedEntity(self, i, e)
 
@@ -243,6 +245,8 @@ class GameWorld(object):
                 
             for s in en.type.systems:
                 s('tick', en)
+                
+            self.all_loaded_entities = []
         
     def add_entity(self, e):
         self.entities.append(e)

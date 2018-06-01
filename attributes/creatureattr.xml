@@ -218,6 +218,9 @@
                     entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " failed to move to ", place, " in one turn!", place=entity.place)
                     return 1
                     
+            else:
+                print("Place not in possible paths!")
+                    
             return 0
     </function>
     
@@ -283,6 +286,9 @@
                     return 0
                     
                 c = come_from[c]
+                
+            while path[0] == entity.place:
+                path = path[1:]
                 
             res = entity.call('move', path[0], print)
                 

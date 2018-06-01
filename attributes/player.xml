@@ -46,7 +46,7 @@
 
     <function name="player_move">
         def player_move(entity, player, place):
-            return entity.call('pathmove', place)
+            return entity.call('pathmove', place, True)
     </function>
     
     <function name="craft">
