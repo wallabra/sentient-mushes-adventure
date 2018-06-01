@@ -437,8 +437,8 @@ class XMLGameLoader(object):
                         base['attr'][a.get('name')] = eval(a.get('value'))
                         
                     elif a.tag == "function":
-                        if a.get('name') not in functions or (hasattr(functions[a.get('name')], '__priority') and getattr(functions[a.get('name')], '__priority') > level):
-                            allfunc = tuple(funcholder.quick("{}-{}".format(id, a.get('name')), a.text).values())
+                        if (a.get('name') not in functions) or (level <= getattr(functions[a.get('name')], '__priority', 0)):
+                            allfunc = tuple(funcholder.quick("{}_a{}_{}".format(id, level, a.get('name')), a.text).values())
                             fncs = filter(lambda f: f.__name__ == a.get('name'), allfunc)
                             
                             try:
@@ -486,11 +486,6 @@ class XMLGameLoader(object):
             for sub in etype.getroot():
                 if sub.tag == "functions":
                     for f in sub:
-                        if f.tag == "function":
-                            functions[f.get('name')] = None # guarantee inoverrideability
-            
-            for sub in etype.getroot():
-                if sub.tag == "functions":
                         if f.tag == "function":
                             fncs = filter(lambda g: g.__name__ == f.get('name'), list(funcholder.quick("{}-{}".format(id, f.get('name')), f.text).values()))
                             

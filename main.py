@@ -20,14 +20,6 @@ turn = 0
 last_chan = {}
 last_interface = {}
 
-
-def command(name):
-    def __decorator__(func):
-        commands[name] = func
-        return func
-
-    return __decorator__
-    
 def next_turn():
     global turn
     turn += 1
@@ -39,6 +31,13 @@ def next_turn():
     world.broadcast(3, "It's now ", turnorder[turn], "'s turn!")
     
 log_file = open('event.log', 'w')
+
+def command(name):
+    def __decorator__(func):
+        commands[name] = func
+        return func
+
+    return __decorator__
     
 def log_channel(m, place, level):
     log_file.write(m)
@@ -95,6 +94,16 @@ def player_join(interface, connection, event, args):
     p.channels.append(_channel)
     players[event.source.nick] = p
     world.add_broadcast_channel(1, _channel)
+    
+    def __handle_dead_player(e):
+        global turn
+    
+        players.pop(e.name)
+        turnorder.remove(e.name)
+        turn -= 1
+        next_turn()
+    
+    setattr(p.entity, '__handle_dead_player', __handle_dead_player)
         
     turnorder.append(event.source.nick)
     world.broadcast(3, "A new player joined: ", p.entity, "!")

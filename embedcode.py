@@ -27,6 +27,7 @@ class CodeHolder(object):
                 
     def quick(self, key, code):
         self[key] = code
+        # print(open("tmp_{}.py".format(key)).read())
         return self[key]
 
     def deinit(self):

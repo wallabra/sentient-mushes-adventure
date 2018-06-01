@@ -11,14 +11,10 @@
     </function>
 
     <function name="on_death">
-        import main
-    
         def on_death(entity):
-            print("Removing player: " + str(entity))
-            main.players.pop(entity.name)
-            main.turnorder.remove(entity.name)
-            main.turn -= 1
-            main.next_turn()
+            if entity['isPlayer']:
+                print("Removing player: " + str(entity))
+                entity.__handle_dead_player(entity)
     </function>
     
     <function name="wield">
