@@ -32,11 +32,11 @@
                 if not t or t['dead']:
                     return
                     
-                if random.random() &lt;= 0.4:
-                    entity.world.broadcast(2, entity, " leaps to constrict ", t, ", but misses!", place=entity.place)
-                    return # Missed constriction! (40% chance)
-                    
                 if not entity['constricting']:
+                    if random.random() &lt;= 0.4:
+                        entity.world.broadcast(2, entity, " leaps to constrict ", t, ", but misses!", place=entity.place)
+                        return # Missed constriction! (40% chance)
+                        
                     # fall damage
                     t['instigator'] = entity.id
                     t.call('take_damage', 5)
