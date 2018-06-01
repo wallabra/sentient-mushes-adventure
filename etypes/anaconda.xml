@@ -12,7 +12,7 @@
                 target = entity.world.from_name(target)
                     
                 player.print_out("{}: Performing the Anaconda's constriction.".format(entity), place=entity.place)
-                entity['target'] = target
+                entity['target'] = target.id
                 entity.call('constrict')
                 return True
         </function>

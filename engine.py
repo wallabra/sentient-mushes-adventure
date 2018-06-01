@@ -105,7 +105,24 @@ class LoadedEntity(object):
         self.update()
         
     def update(self):
-        self.world.set_with_id(self.id, "{}#{}#{}#{}#{}#{}".format(self.id, self.type.id, self.name, self.place, self.variant['id'], json.dumps(self.attr)))
+        try:
+            self.world.set_with_id(self.id, "{}#{}#{}#{}#{}#{}".format(self.id, self.type.id, self.name, self.place, self.variant['id'], json.dumps(self.attr)))
+            
+        except TypeError as e:
+            bad = {}
+            
+            for k, v in self.attr.items():
+                try:
+                    json.dumps(v)
+                    
+                except TypeError:
+                    bad[k] = v
+                    
+            if len(bad) > 0:
+                print("Bad unserializable stuff found in {}: {}".format(self, ", ".join("{} ({})".format(k, repr(v)) for k, v in bad.items())))
+        
+            raise
+            
         self.world.update_loaded_entities()
         
     def __worldlist_unload(self):

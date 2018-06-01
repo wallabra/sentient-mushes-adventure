@@ -68,8 +68,9 @@
             # print('[DEBUG] * Life check...')
         
             if entity['dead']:
-                entity.reinit()
+                entity.now()
                 world.entities.pop(entity.index) # rotten or perished
+                entity.__worldlist_unload()
                 return
                 
             # print('[DEBUG]   Not dead.')
@@ -209,14 +210,15 @@
                 if random.random() &lt;= entity['moveSpeed'] * entity['speedModifier']:
                     if bPrint:
                         entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " has just moved to ", place, "!", place=place)
-                        return 2
                         
                     entity.set_place(place)
                     entity.event('movement')
+                    return 2
                     
                 elif bPrint:
                     entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " failed to move to ", place, " in one turn!", place=entity.place)
-                    return 1
+                
+                return 1
                     
             else:
                 print("Place not in possible paths!")

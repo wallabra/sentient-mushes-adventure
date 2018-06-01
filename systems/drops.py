@@ -2,12 +2,14 @@ import random
 
 def drops(event, entity):
     if event == 'death' and entity['drops'] and entity['instigator']:
-        if entity['instigator']:
+        if entity['instigator'] and entity.world.from_id(entity['instigator'])['isPlayer']:
             inv = entity.world.from_id(entity['instigator'])['inventory']
+        
+        print("Dropping all items from: " + str(entity))
         
         for item, amount in entity['drops'].items():
             if item in map(lambda x: x['name'], entity.world.item_types):
-                if entity['instigator']:
+                if entity['instigator'] and entity.world.from_id(entity['instigator'])['isPlayer']:
                     if item in inv:
                         inv[item] += random.randint(amount[0], amount[1]) # amount is a tuple (min, max)
                         
