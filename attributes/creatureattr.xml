@@ -306,7 +306,7 @@
     
     <function name="on_death">
         def on_death(entity):
-            print("Something died!")]
+            print("Something died!")
     </function>
         
     <function name="on_kill">
