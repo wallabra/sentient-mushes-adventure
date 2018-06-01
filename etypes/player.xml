@@ -11,13 +11,17 @@
                     
                 player.print_out("{}: Performing the Velociraptor's run.".format(entity), place=entity.place)
                     
+                a = None
+                    
                 for _ in range(3):
                     if entity.place == place:
                         return 1
                         break
                         
-                    entity.call('pathmove', place, 0)
-                    return 2
+                    b = entity.call('pathmove', place, 0)
+                    a = (a and min(a, b)) or b
+                    
+                return a
         </function>
     </functions>
 

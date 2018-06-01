@@ -66,11 +66,14 @@ class EntityType(object):
     def __str__(self):
         return self.name
         
-    def instantiate(self, world, place, variant):
+    def instantiate(self, world, place, variant, extra_attr={}):
         """Creates a default entity string and returns it."""
         attr = self.default_attr
         
         for k, v in self.variants[variant]['default'].items():
+            attr[k] = v
+        
+        for k, v in extra_attr.items():
             attr[k] = v
         
         id = ''.join([random.choice('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789') for _ in range(24)])
@@ -96,9 +99,59 @@ class LoadedEntity(object):
         
         world.all_loaded_entities.append(self)
         
+    def set_variant(self, variant):
+        for k, v in self.variant['default'].items():
+            if k in self.attr and self.attr[k] == v:
+                self.attr.pop(k)
+                
+        self.variant = self.type.variants[variant]
+        
+        for k, v in self.variant['default'].items():
+            if k not in self.attr:
+                self.attr[k] = v
+        
     def __setitem__(self, key, val):
         self.attr[key] = val
         self.update()
+     
+    def pointer(self, key):
+        return self.world.from_id(self[key])
+             
+    def pointer_list(self, key):
+        for a in self[key]:
+            yield self.world.from_id(a)
+     
+    def spawn(self, type=None, variant=None, place=None, extra_attr=None, return_loaded=True):
+        if type is None:
+            type = self.type
+    
+        elif isinstance(type, str):
+            _a = type
+            type = self.world.etypes[type]
+            
+            if not type:
+                raise ValueError("No such entity type: {}".format(_a))
+    
+        if variant is None:
+            variant = random.choice(tuple(type.variants.keys()))
+    
+        if place is None:
+            place = self.place
+            
+        if extra_attr is None:
+            extra_attr = {}
+            
+        e = type.instantiate(self.world, place, variant, extra_attr)
+        world.add_entity(e)
+        
+        if return_loaded:
+            return world.from_id(e)
+            
+        else:
+            return e.split('#')[0]
+     
+    def of(self, type):
+        return self.etype.id == type
      
     def set_name(self, name):
         self.name = name
@@ -163,6 +216,11 @@ class LoadedEntity(object):
     def set_place(self, p):
         self.place = p
         self.update()
+        
+    def despawn(self):
+        self.now()
+        self.world.entities.pop(self.index)
+        self.__worldlist_unload()
             
     def print_attr(self):
         for k, v in self.attr.items():

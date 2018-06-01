@@ -11,10 +11,14 @@
     </function>
 
     <function name="on_death">
+        def dummy(_):  
+            pass
+    
         def on_death(entity):
             if entity['isPlayer']:
                 print("Removing player: " + str(entity))
-                entity.__handle_dead_player(entity)
+                entity.variant['__handle_dead_player'].get(entity.name, dummy)(entity)
+                entity.variant['__handle_dead_player'].pop(entity.name, None)
     </function>
     
     <function name="wield">

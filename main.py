@@ -28,7 +28,8 @@ def next_turn():
         turn = 0
         world.tick()
     
-    world.broadcast(3, "It's now ", turnorder[turn], "'s turn!")
+    if len(turnorder) > 0:
+        world.broadcast(3, "It's now ", turnorder[turn], "'s turn!")
     
 log_file = open('event.log', 'w')
 
@@ -44,13 +45,28 @@ def log_channel(m, place, level):
     
 world.add_broadcast_channel(-1, log_channel)
     
+@command('reset_world')
+def reset_world(interface, connection, event, args):
+    global world, players, turnorder, turn
+
+    world = loader.load_world("mushworld.xml")
+    players = {}
+    turnorder = []
+    turn = 0
+    
+    interface.send_message(event.target, "{}: World reloaded and player list reset.".format(event.source.nick))
+    
 @command('help')
 def help(interface, connection, event, args):
     interface.send_message(event.target, "Available commands: {}".format(', '.join(commands.keys())))
     
 @command('turn')
 def help(interface, connection, event, args):
-    interface.send_message(event.target, "It's now {}'s turn!".format(turnorder[turn]))
+    if len(turnorder) > 0:
+        interface.send_message(event.target, "It's now {}'s turn!".format(turnorder[turn]))
+        
+    else:
+        interface.send_message(event.target, "Nobody's playing! :<")
     
 @command('join')
 def player_join(interface, connection, event, args):
@@ -103,11 +119,16 @@ def player_join(interface, connection, event, args):
         turn -= 1
         next_turn()
     
-    turnorder.append(event.source.nick)
-    setattr(p.entity, '__handle_dead_player', __handle_dead_player)
-        
+    if '__handle_dead_player' not in p.entity.variant:
+        p.entity.variant['__handle_dead_player'] = { p.entity.name: __handle_dead_player }
+    
+    else:
+        p.entity.variant['__handle_dead_player'][p.entity.name] = __handle_dead_player
+    
+    turnorder.append(event.source.nick)  
     world.broadcast(4, "A new player joined: ", p.entity, "!")
-    p.print_out("Welcome, {}. You have now joined the Mush, an infectious alien fungus race that controls brains. Your goal is to infect or kill enemies, make new friends, craft new items, discover new paths, solve puzzles... and in the end, save the world from yet another alien race...I shouldn't spoil this to you, so you'll discover it all yourself. Best of luck in your journey!".format(p.entity.name))
+    
+    interface.send_message(event.target, "Welcome, {}. Thou just joined the Mush, an infectious alien fungus race that controls brains. Your goal is to infect or kill enemies, make new friends, craft new items, explore... and in the end, save the world from yet another alien race...I shouldn't spoil this to you, so you'll discover it all yourself. Best of luck in your journey!".format(p.entity.name))
     
 @command('special')
 def special(interface, connection, event, args):
@@ -194,14 +215,14 @@ def craft(interface, connection, event, args):
         interface.send_message('{}: Join first!'.format(event.source.nick))
         return
         
+    if len(args) < 1:
+        interface.send_message(event.target, '{}: Syntax: craft <amount> <item name>'.format(event.source.nick))
+        return        
+        
     try:
         int(args[0])
         
     except ValueError:
-        interface.send_message(event.target, '{}: Syntax: craft <amount> <item name>'.format(event.source.nick))
-        return        
-        
-    if len(args) < 1:
         interface.send_message(event.target, '{}: Syntax: craft <amount> <item name>'.format(event.source.nick))
         return        
         
@@ -253,7 +274,7 @@ def send_msg(interface, connection, event, args):
         interface.send_message(event.target, '{}: Recipient is unknown!'.format(event.source.nick))
         return
         
-    last_interface[recipient].send_message(last_chan[recipient], '[{} @ {}] <{}> {}: {}'.format(event.target, last_interface[recipient].name, event.source.nick, recipient, message))
+    last_interface[recipient].send_message(last_chan[recipient], '[{} @ {}] <{}> {}: {}'.format(event.target, interface.name, event.source.nick, recipient, message))
     interface.send_message(event.target, 'Message sent to {} @ {} ({}) succesfully!'.format(recipient, last_chan[recipient], last_interface[recipient].name))
    
 @command('inventory')
