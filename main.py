@@ -303,8 +303,8 @@ def move(interface, connection, event, args):
         interface.send_message(event.target, '{}: Syntax: move <place name>'.format(event.source.nick))
         return
         
-    if not world.find_place(''.join(args)):
-        interface.send_message(event.target, '{}: No such place'.format(event.source.nick))
+    if world.find_place(' '.join(args)) is None:
+        interface.send_message(event.target, '{}: No such place!'.format(event.source.nick))
         return
         
         
@@ -314,7 +314,7 @@ def move(interface, connection, event, args):
     # print(rnames[res])
     
     if res == 2:
-        interface.send_message(event.target, "{} has moved with success to {}{}!".format(event.source.nick, ''.join(args), ('through {}'.format(e.place) if ''.join(args) != e.place else '')))
+        interface.send_message(event.target, "{} has moved with success to {}{}!".format(event.source.nick, e.place, (', heading toward {}'.format(e.place) if ''.join(args) != e.place else '')))
     
     if res:
         next_turn()

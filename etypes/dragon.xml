@@ -7,13 +7,14 @@
                 
                 if not entity.world.from_name(target):
                     player.print_out("{}: No such entity to target!".format(entity), place=entity.place)
-                    return
+                    return False
                     
                 target = entity.world.from_name(target)
                     
                 player.print_out("{}: Performing the Dragon's firebreath.".format(entity), place=entity.place)
                 entity['target'] = target
                 entity.call('firebreath')
+                return True
         </function>
     
         <function name="tick">

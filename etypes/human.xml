@@ -3,6 +3,10 @@
     <functions>
         <function name="player_special">
             def player_special(entity, player, args):
+                if not entity['weapon']:
+                    player.print_out("{}: Wield a weapon first!".format(entity), place=entity.place)
+                    return False
+            
                 player.print_out("{}: Performing the Human's weapon sharpening.".format(entity), place=entity.place)
                 
                 if entity['weapon'] in entity['sharpening']:
@@ -10,6 +14,8 @@
                 
                 else:
                     entity['sharpening'][entity['weapon']] = 1
+                    
+                return True
         </function>
     
         <function name="tick">

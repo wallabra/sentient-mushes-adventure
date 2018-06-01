@@ -5,17 +5,19 @@
             def player_special(entity, player, args):
                 place = args[0]
                 
-                if not entity.world.place(place):
+                if not entity.world.find_place(place):
                     player.print_out("{}: No such place!".format(entity), place=entity.place)
-                    return
+                    return False
                     
                 player.print_out("{}: Performing the Velociraptor's run.".format(entity), place=entity.place)
                     
                 for _ in range(3):
                     if player.place == place:
+                        return 1
                         break
                         
                     player.call('pathmove', place, 0)
+                    return 2
         </function>
     </functions>
 
