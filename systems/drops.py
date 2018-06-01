@@ -8,20 +8,23 @@ def drops(event, entity):
         print("Dropping all items from: " + str(entity))
         
         for item, amount in entity['drops'].items():
+            if type(amount) in (tuple, list):
+                amount = random.randint(amount[0], amount[1])
+        
             if item in map(lambda x: x['name'], entity.world.item_types):
                 if entity['instigator'] and entity.world.from_id(entity['instigator'])['isPlayer']:
                     if item in inv:
-                        inv[item] += random.randint(amount[0], amount[1]) # amount is a tuple (min, max)
+                        inv[item] += amount
                         
                     else:
-                        inv[item] = random.randint(amount[0], amount[1])
+                        inv[item] = amount
                         
                 else:
                     if item in entity.world.find_place(entity.place)['items']:
-                        entity.world.find_place(entity.place)['items'][item] += random.randint(amount[0], amount[1])
+                        entity.world.find_place(entity.place)['items'][item] += amount
                         
                     else:
-                        entity.world.find_place(entity.place)['items'][item] = random.randint(amount[0], amount[1])
+                        entity.world.find_place(entity.place)['items'][item] = amount
                 
             else:
                 print("Warning: Item {} dropped by a {} not found in world's item definitions!".format(

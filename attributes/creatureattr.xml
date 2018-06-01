@@ -69,7 +69,7 @@
         
             if entity['dead']:
                 entity.now()
-                world.entities.pop(entity.index) # rotten or perished
+                entity.world.entities.pop(entity.index) # rotten or perished
                 entity.__worldlist_unload()
                 return
                 
