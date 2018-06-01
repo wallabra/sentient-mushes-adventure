@@ -46,7 +46,8 @@
                     
                         entity['constricting'] = True
                             
-                        t['speedModifier'] /= 25
+                        t['speedModifier'] /= 10
+                        t['accuracy'] /= 1.2
                         entity['_oldSpeedMod'] = entity['speedModifier']
                         entity['_fullDmg'] = 0
                         entity['speedModifier'] = 0
@@ -56,6 +57,8 @@
                 elif t.place != entity.place or t['dead']:
                     entity['constricting'] = False
                     entity['speedModifier'] = entity['_oldSpeedMod']
+                    t['speedModifier'] *= 10
+                    t['accuracy'] *= 1.2
                     
                     if t.place == entity.place and random.random() &lt;= entity['vore']:
                         entity.world.broadcast(2, entity, " devours what remained of ", t, "!", place=entity.place)

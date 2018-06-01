@@ -72,6 +72,9 @@
                 entity.despawn() # rotten or perished
                 return
                 
+            if entity['target'] and not entity.pointer('target'):
+                entity['target'] = None
+                
             # print('[DEBUG]   Not dead.')
         
             bad = []
@@ -103,12 +106,12 @@
             if entity['destination'] and entity['destination'] != entity.place and not entity['target']:
                 entity.call('pathmove', entity['destination'])
                 
-            elif entity['target'] and entity.pointer('target') and entity['specialMoveFunc'] and (entity['dangerousness'] + entity['health']) * entity['courage'] &gt;= (entity.world.from_id(entity['target'])['dangerousness'] + entity.world.from_id(entity['target'])['health']) * entity.world.from_id(entity['target'])['courage'] / 10.0 and random.random() &lt;= 0.5:
-                entity['destination'] = entity.world.from_id(entity['target']).place
+            elif entity['target'] and entity.pointer('target') and entity['specialMoveFunc'] and (entity['dangerousness'] + entity['health']) * entity['courage'] &gt;= (entity.pointer('target')['dangerousness'] + entity.pointer('target')['health']) * entity.pointer('target')['courage'] / 10.0 and random.random() &lt;= 0.5:
+                entity['destination'] = entity.pointer('target').place
                 entity.call(entity['specialMoveFunc'])
                 
             else:
-                if entity['target'] and entity.world.from_id(entity['target'])['dead']:
+                if entity['target'] and entity.pointer('target')['dead']:
                     entity['target'] = None
             
                 # Hostility.
@@ -117,7 +120,7 @@
                     
                     if random.random() * 20 &lt;= entity['hostility'] / 2.5 + 10 - entity['humor'] * 10 and len(strangers) > 0:
                         entity['target'] = random.choice(strangers).id
-                        entity.world.broadcast((2.5 if entity.world.from_id(entity['target'])['isPlayer'] else 1), entity, ' suddenly turns to attack ', entity.world.from_id(entity['target']), '!', place=entity.place)
+                        entity.world.broadcast((2.5 if entity.pointer('target')['isPlayer'] else 1), entity, ' suddenly turns to attack ', entity.pointer('target'), '!', place=entity.place)
                         entity.call('pick_attack')
                     
                 ## Sociality.
@@ -148,8 +151,8 @@
                     for f_ in entity['friends']:
                         f = entity.world.from_id(f_)
                         
-                        if f['target'] and not entity.world.from_id(f['target'])['dead'] and random.random() &lt;= 0.1:
-                            entity.world.broadcast((2 if f['isPlayer'] or f.world.from_id(f['target'])['isPlayer'] else 0), entity, " decided to help his friend ", f, " in its battle aggainst ", f.world.from_id(f['target']), '!', place=entity.place)
+                        if f['target'] and f.pointer('target') and not f.pointer('target')['dead'] and random.random() &lt;= 0.1:
+                            entity.world.broadcast((2 if f['isPlayer'] or f.pointer('target')['isPlayer'] else 0), entity, " decided to help his friend ", f, " in its battle aggainst ", f.pointer('target'), '!', place=entity.place)
                             entity['target'] = f['target']
                             break
     </function>
@@ -161,7 +164,7 @@
             if not entity['target'] or entity['dead']:
                 return
                 
-            targ = entity.world.from_id(entity['target'])
+            targ = entity.pointer('target')
                 
             possib = set()
             
@@ -182,16 +185,16 @@
         import random
     
         def pick_attack(entity):
-            if not entity['target'] or entity['dead'] or (entity.world.from_id(entity['target']).place != entity.place):
+            if not entity['target'] or entity['dead'] or (entity.pointer('target').place != entity.place):
                 return
                 
-            if (entity['dangerousness'] + entity['health']) * entity['courage'] / 10.0 &lt; (entity.world.from_id(entity['target'])['dangerousness'] + entity.world.from_id(entity['target'])['health']) * entity.world.from_id(entity['target'])['courage'] / 10.0:
+            if (entity['dangerousness'] + entity['health']) * entity['courage'] / 10.0 &lt; (entity.pointer('target')['dangerousness'] + entity.pointer('target')['health']) * entity.pointer('target')['courage'] / 10.0:
                 entity.call('flee')
             
             else:
                 # print("{}  r={}  m={}  v={}".format(str(entity), entity['rangedAttackFunc'], entity['meleeAttackFunc'], entity.variant['attr']))
             
-                if entity.world.from_id(entity['target'])['size'] &lt;= entity['size'] and entity['rangedAttackFunc'] and random.random() &lt;= 0.7:
+                if entity.pointer('target')['size'] &lt;= entity['size'] and entity['rangedAttackFunc'] and random.random() &lt;= 0.7:
                     entity.call(entity['rangedAttackFunc'])
                     
                 elif entity['meleeAttackFunc']:
@@ -326,17 +329,13 @@
             while path[0] == entity.place:
                 path = path[1:]
                 
-            res = entity.call('move', path[0], _print)
+            res = entity.call('move', path[0], _print and (path[0] == navdest))
                 
             # if res:
             #     entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " wants to go to ", navdest, ("; just went through {}!".format(path[0]) if path[0] != navdest else "!"), place=path[0])
                 
-            if res == 1:
-                if path[0] == navdest:
-                    entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " failed to move to ", path[0], "!", place=path[0])
-                
-                else:
-                    entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " failed to move to ", path[0], " while trying to reach ", navdest, "!", place=path[0])
+            if res == 1 and path[0] != navdest:
+                entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " failed to move to ", path[0], " while trying to reach ", navdest, "!", place=path[0])
                 
             return res
     </function>
@@ -359,8 +358,41 @@
     <function name="infect">
         import random
     
+        def plural(name, amount=2):
+            if amount == 1:
+                return name
+            
+            elif name.endswith('us') or name.endswith('is') or name.endswith('os'):
+                return name[:-2] + 'i'
+
+            elif name[-1] == 's':
+                return name + 'es'
+                
+            else:
+                return name + 's'
+    
         def infect(entity, player, target):
-            if entity['dead'] or not target or not entity['mush'] or target['mush'] or entity.place != target.place or target['brainless']:
+            if entity['dead']:
+                player.print_out("You're dead! And your spores can't penetrate the vascular systems by themselves.", place=entity.place)
+                return False
+                
+            if not target:
+                return False:
+                
+            if not entity['mush']:
+                player.print_out("You're not mush!", place=entity.place)
+                return False
+                
+            if target['mush']:
+                player.print_out("You're not mush!", place=entity.place)
+                return False
+                
+            if entity.place != target.place:
+                player.print_out("You're at different places!", place=entity.place)
+                return False
+                
+            if target['brainless']:
+                player.print_out(entity, " nearly attmpts to infect ", target, ", but remembers that {} don't have brains that could be infected; avoids being jocular about the situation and calling the target 'brainless', since stealth is required!".format(plural(target.type.name)), place=entity.place)
                 return False
                 
             dmg = random.uniform(0.5, 3.25) * target['spawnHealth'] / target['health'] # wounds ease it
@@ -450,7 +482,7 @@
                 
                     entity.world.broadcast(2, entity, " took ", damage, " damage!", place=entity.place)
                     
-                    if not entity['target'] or (entity.world.from_id(entity['instigator'])['dangerousness'] + entity.world.from_id(entity['instigator'])['health'] &gt; entity.world.from_id(entity['target'])['dangerousness'] + entity.world.from_id(entity['target'])['health']):
+                    if not entity['target'] or (entity.world.from_id(entity['instigator'])['dangerousness'] + entity.world.from_id(entity['instigator'])['health'] &gt; entity.pointer('target')['dangerousness'] + entity.pointer('target')['health']):
                         entity['target'] = entity['instigator']
                         
                     entity['instigator'] = None

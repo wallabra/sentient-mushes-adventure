@@ -115,6 +115,9 @@ class LoadedEntity(object):
         self.update()
      
     def pointer(self, key):
+        if not self[key]:
+            return None
+    
         return self.world.from_id(self[key])
              
     def pointer_list(self, key):
