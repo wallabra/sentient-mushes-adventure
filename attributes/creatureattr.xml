@@ -373,10 +373,13 @@
     
         def infect(entity, player, target):
             if entity['dead']:
-                player.print_out("You're dead! And your spores can't penetrate the vascular systems by themselves.", place=entity.place)
+                player.print_out("You're dead! And your spores can't penetrate the vascular system by themselves.", place=entity.place)
                 return False
                 
+            print(target)
+                
             if not target:
+                player.print_out("No such target!", place=entity.place)
                 return False
                 
             if not entity['mush']:
@@ -384,7 +387,7 @@
                 return False
                 
             if target['mush']:
-                player.print_out("You're not mush!", place=entity.place)
+                player.print_out("Your target is not mush!", place=entity.place)
                 return False
                 
             if entity.place != target.place:

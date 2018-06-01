@@ -51,6 +51,7 @@
         <!-- Materials -->
         <item name="stick" />
         <item name="pebble" />
+        <item name="flint" />
         <item name="leaf" />
         <item name="stray" />
         
@@ -74,14 +75,13 @@
             <attr key="recipe" value="{ 'stick': 2, 'flint': 1, 'straw': 3 }" />
         </item>
         
-        <item name="flint sword">
+        <item name="poisonous flint sword">
             <flag name="weapon" />
             <attr key="poison" value="5" />
             <attr key="uses" value="70" />
             <attr key="minDamage" value="25" />
             <attr key="maxDamage" value="60" />
             <attr key="recipe" value="{ 'flint sword': 1, 'poison sac': 1 }" />
-            
         </item>
         
         <item name="steel sword">

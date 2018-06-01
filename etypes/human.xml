@@ -165,25 +165,26 @@
     </itemdefs>
     
     <variants>
-        <variant name="Peasant" id="peasant">
-            <attr name="obituary" value="'{killer} poked {victim} some holes with a hoe!'" />
+        <variant name="Citizen" id="peasant">
+            <attr name="obituary" value="'{killer} poked {victim} some holes with a kitchen knife!'" />
             <attr name="size" value="1.00" />
             <attr name="health" value="80" />
             <attr name="weight" value="50" /> <!-- in kilograms - peasants are poor, hungry and skinny -->
             <attr name="dangerousness" value="12" />
             <attr name="meleeAttackFunc" value="'hoe_attack'" />
-            <default key="accuracy" value="0.8" />
+            <default key="accuracy" value="0.5" />
             
-            <default name="inventory" value="{ 'steel hoe': 1 }" />
+            <default name="inventory" value="{ 'dagger': 1 }" />
         </variant>
         
-        <variant name="Farmer" id="farmer">
+        <variant name="Land Owner" id="farmer">
             <attr name="obituary" value="'{killer} poked {victim} some holes with a hoe!'" />
             <attr name="size" value="1.00" />
             <attr name="health" value="95" />
             <attr name="weight" value="65" /> <!-- in kilograms -->
             <attr name="dangerousness" value="15" />
             <attr name="meleeAttackFunc" value="'hoe_attack'" />
+            <default key="accuracy" value="0.8" />
             
             <default name="inventory" value="{ 'steel hoe': 1 }" />
         </variant>
@@ -199,8 +200,8 @@
             <default name="inventory" value="{ 'steel pickaxe': 1 }" />
         </variant>
         
-        <variant name="Daggerman" id="dagger">
-            <attr name="obituary" value="'{killer} slayed {victim} with multiple wide lacerations!'" />
+        <variant name="Thief" id="dagger">
+            <attr name="obituary" value="'{killer} slayed {victim} with a couple deadly stabs!'" />
             <attr name="size" value="1.05" />
             <attr name="health" value="102" />
             <attr name="weight" value="110" /> <!-- in kilograms -->
@@ -211,8 +212,8 @@
             <default name="inventory" value="{ 'curvy dagger': 1 }" />
         </variant>
         
-        <variant name="Knight" id="knight">
-            <attr name="obituary" value="'{killer} slayed {victim} with multiple wide lacerations!'" />
+        <variant name="Sword Bandit" id="knight">
+            <attr name="obituary" value="'{killer} mutilated {victim} with multiple wide lacerations!'" />
             <attr name="size" value="1.05" />
             <attr name="health" value="102" />
             <attr name="weight" value="110" /> <!-- in kilograms -->

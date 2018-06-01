@@ -106,8 +106,12 @@ def player_join(interface, connection, event, args):
     def _channel(m, place, level):
         if place == world.from_id(p.entity.id).place and level < 3:
             interface.send_message(last_chan[event.source.nick], m)
+                    
+    def _super_channel(m, place, level):
+        if level < 3:
+            interface.send_message(last_chan[event.source.nick], m)
             
-    p.channels.append(_channel)
+    p.channels.append(_super_channel)
     players[event.source.nick] = p
     world.add_broadcast_channel(1, _channel)
     
