@@ -69,11 +69,19 @@
         
             if entity['dead']:
                 entity.now()
-                entity.world.entities.pop(entity.index) # rotten or perished
-                entity.__worldlist_unload()
+                entity.despawn() # rotten or perished
                 return
                 
             # print('[DEBUG]   Not dead.')
+        
+            bad = []
+        
+            for i, f in enumerate(entity['friends']):
+                if not entity.world.from_id(f):
+                    bad.append(i)
+                   
+            for i, b in enumerate(bad):
+                entity['friends'].pop(b - i)
         
             if entity['burning'] and random.random() &lt;= 0.5:
                 dmg = random.uniform(2, 9)
@@ -95,7 +103,7 @@
             if entity['destination'] and entity['destination'] != entity.place and not entity['target']:
                 entity.call('pathmove', entity['destination'])
                 
-            elif entity['target'] and entity['specialMoveFunc'] and (entity['dangerousness'] + entity['health']) * entity['courage'] &gt;= (entity.world.from_id(entity['target'])['dangerousness'] + entity.world.from_id(entity['target'])['health']) * entity.world.from_id(entity['target'])['courage'] / 10.0 and random.random() &lt;= 0.5:
+            elif entity['target'] and entity.pointer('target') and entity['specialMoveFunc'] and (entity['dangerousness'] + entity['health']) * entity['courage'] &gt;= (entity.world.from_id(entity['target'])['dangerousness'] + entity.world.from_id(entity['target'])['health']) * entity.world.from_id(entity['target'])['courage'] / 10.0 and random.random() &lt;= 0.5:
                 entity['destination'] = entity.world.from_id(entity['target']).place
                 entity.call(entity['specialMoveFunc'])
                 
@@ -247,7 +255,7 @@
             res -= {place}
             
             return res
-    
+        
         def pathmove(entity, navdest, _print=False):
             if (entity['dead']) or (entity.place == navdest):
                 return 0
@@ -260,6 +268,15 @@
             rcost = { entity.place: 0 }
             p = False
             
+            def baddies(place):
+                b = 1
+            
+                for a in entity.world.all_in_place(place):
+                    if not (a['mush'] and entity['mush']) and a.type.id != entity.type.id:
+                        b += a['dangerousness'] + a['health']
+                    
+                return b
+            
             while True:
                 try:
                     cur = open.get_nowait()[1]
@@ -271,13 +288,14 @@
                     if n in closed:
                         continue
                 
-                    come_from[n] = cur
+                    if n not in come_from or rcost[cur] &lt; rcost[come_from[n]]:
+                        come_from[n] = cur
                     
                     if navdest == n:
                         p = True
                         break
                     
-                    rcost[n] = rcost[cur] + 1
+                    rcost[n] = rcost[cur] + baddies(n)
                     open.put((rcost[n], n))
                     
                 closed.add(cur)

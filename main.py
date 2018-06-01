@@ -114,8 +114,10 @@ def player_join(interface, connection, event, args):
     def __handle_dead_player(e):
         global turn
     
-        players.pop(e.name)
-        turnorder.remove(e.name)
+        if e.name in players:
+            players.pop(e.name)
+            turnorder.remove(e.name)
+            
         turn -= 1
         next_turn()
     
