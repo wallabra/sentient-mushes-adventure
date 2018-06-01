@@ -142,11 +142,13 @@
              
         <variant name="Brown Kangaroo Player" id="kplayer">
             <attr name="isPlayer" value="True" />
-            <attr name="size" value="1.7" />
-            <attr name="health" value="130" />
-            <attr name="weight" value="85" /> <!-- in kilograms -->
             <attr name="dangerousness" value="80" />
             <attr name="punchDamage" value="20" />
+            
+            <attr name="size" value="1.7" />
+            <attr name="weight" value="85" /> <!-- in kilograms -->
+            <attr name="health" value="130" />
+            
             <default key="mush" value="True" />
         </variant>
     </variants>

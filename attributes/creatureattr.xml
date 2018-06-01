@@ -233,6 +233,9 @@
     
     <function name="pathmove">
         import random
+        
+        from queue import PriorityQueue, Empty
+        
     
         def neighbor_paths(place, world):
             res = set()
@@ -245,34 +248,42 @@
             
             return res
     
-        def pathmove(entity, navdest, print=False):
+        def pathmove(entity, navdest, _print=False):
             if (entity['dead']) or (entity.place == navdest):
                 return 0
         
             # Super basic pathfinder.
-            open = [entity.place]
+            open = PriorityQueue()
+            open.put_nowait((0, entity.place))
             closed = set()
             come_from = { entity.place: None }
-            p = None
+            rcost = { entity.place: 0 }
+            p = False
             
-            while len(open) > 0:
-                cur = open.pop()
+            while True:
+                try:
+                    cur = open.get_nowait()[1]
+                    
+                except Empty:
+                    break
             
                 for n in neighbor_paths(cur, entity.world):
                     if n in closed:
                         continue
                 
                     come_from[n] = cur
-                
+                    
                     if navdest == n:
-                        p = n
+                        p = True
                         break
                     
-                    open.append(n)
+                    rcost[n] = rcost[cur] + 1
+                    open.put((rcost[n], n))
                     
                 closed.add(cur)
                     
-            if p is None:
+            if not p:
+                # print("@")
                 entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " can't find a path to ", navdest, "!", place=entity.place)
                 return 0
                 
@@ -284,17 +295,20 @@
                 path.append(c)
                 
                 if c not in come_from:
+                    # print("!" + c)
                     entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " can't find a path to ", navdest, "!", place=entity.place)
                     return 0
                     
                 c = come_from[c]
                 
-            print(' &lt;- '.join(path))
+            print(" &lt;= ".join(path))
+            
+            path.reverse()
                 
             while path[0] == entity.place:
                 path = path[1:]
                 
-            res = entity.call('move', path[0], print)
+            res = entity.call('move', path[0], _print)
                 
             # if res:
             #     entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " wants to go to ", navdest, ("; just went through {}!".format(path[0]) if path[0] != navdest else "!"), place=path[0])

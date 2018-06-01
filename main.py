@@ -439,7 +439,7 @@ class IRCInterface(SingleServerIRCBot):
             self.connection.privmsg('NickServ', 'IDENTIFY {} {}'.format(self.account['username'], self.account['password']))
         
         def _joinchan_postwait():
-            time.sleep(2.5)
+            time.sleep(3)
         
             for c in self.joinchans:
                 self.connection.join(c)

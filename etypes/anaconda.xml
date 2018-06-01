@@ -174,7 +174,6 @@
             <attr name="isPlayer" value="True" />
             <attr name="vore" value="1.0" />
             <attr name="dangerousness" value="70" />
-            <attr name="hostility" value="1.5" />
             <attr name="punchDamage" value="35" /> <!-- would've been called biteDamage -->
             
             <attr name="size" value="60" />

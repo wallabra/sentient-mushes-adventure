@@ -8,7 +8,7 @@ class CodeHolder(object):
         
     def __setitem__(self, key, code):
         f = open("tmp_{}.py".format(key), 'wb')
-        f.write(textwrap.dedent(code).encode('utf-8'))
+        f.write(textwrap.dedent(code).strip('\n').encode('utf-8'))
         
         self.files.add(key)
         
