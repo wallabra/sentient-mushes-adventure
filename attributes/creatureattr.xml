@@ -453,8 +453,8 @@
                 return
         
             for i in entity['inventory'].keys():
-                if entity['inventory'].get(i) &gt; 0 and 'modify_damage' in entity.world.item_type(i).functions:
-                    damage = entity.world.item_type(i).functions['modify_damage'](entity, world, damage)
+                if entity['inventory'].get(i) &gt; 0 and 'modify_damage' in entity.world.item_type(i)['functions']:
+                    damage = entity.world.item_type(i)['functions']['modify_damage'](entity, world, damage)
                     
             entity['health'] = entity['health'] - damage
 

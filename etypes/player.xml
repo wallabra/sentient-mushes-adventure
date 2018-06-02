@@ -57,45 +57,45 @@
         
         <item name="rope">
             <flag name="craftable" />
-            <attr key="recipe" value="{ 'stray': 3 }" />
+            <attribute key="recipe" value="{ 'stray': 3 }" />
         </item>
         
         <item name="plank">
             <flag name="craftable" />
-            <attr key="recipe" value="{ 'stick': 5 }" />
-            <attr key="prerequisites" value="set('flint')" /> <!-- ingredients that aren't consumed in the process -->
+            <attributekey="recipe" value="{ 'stick': 5 }" />
+            <attribute key="prerequisites" value="set('flint')" /> <!-- ingredients that aren't consumed in the process -->
         </item>
         
         <!-- Weapons -->
         <item name="flint sword">
             <flag name="weapon" />
-            <attr key="uses" value="70" />
-            <attr key="minDamage" value="25" />
-            <attr key="maxDamage" value="60" />
-            <attr key="recipe" value="{ 'stick': 2, 'flint': 1, 'straw': 3 }" />
+            <attribute key="uses" value="70" />
+            <attribute key="minDamage" value="25" />
+            <attribute key="maxDamage" value="60" />
+            <attribute key="recipe" value="{ 'stick': 2, 'flint': 1, 'straw': 3 }" />
         </item>
         
         <item name="poisonous flint sword">
             <flag name="weapon" />
-            <attr key="poison" value="5" />
-            <attr key="uses" value="70" />
-            <attr key="minDamage" value="25" />
-            <attr key="maxDamage" value="60" />
-            <attr key="recipe" value="{ 'flint sword': 1, 'poison sac': 1 }" />
+            <attribute key="poison" value="5" />
+            <attribute key="uses" value="70" />
+            <attribute key="minDamage" value="25" />
+            <attribute key="maxDamage" value="60" />
+            <attribute key="recipe" value="{ 'flint sword': 1, 'poison sac': 1 }" />
         </item>
         
         <item name="steel sword">
             <flag name="weapon" />
-            <attr key="uses" value="125" />
-            <attr key="minDamage" value="40" />
-            <attr key="maxDamage" value="80" />
+            <attribute key="uses" value="125" />
+            <attribute key="minDamage" value="40" />
+            <attribute key="maxDamage" value="80" />
         </item>
         
         <item name="grenades">
             <flag name="weapon" />
-            <attr key="uses" value="8" />
-            <attr key="minDamage" value="40" />
-            <attr key="maxDamage" value="80" />
+            <attribute key="uses" value="8" />
+            <attribute key="minDamage" value="40" />
+            <attribute key="maxDamage" value="80" />
         </item>
     </itemdefs>
     

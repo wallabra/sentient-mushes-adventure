@@ -59,21 +59,21 @@
                 return
         
             if not entity.world.find_item(desired):
-                player.print_out(entity, "That recipe does not seem to exist.")
+                player.print_out(entity.name, ": That recipe does not seem to exist.")
                 return False
             
             if 'recipe' not in entity.world.find_item(desired)['attr']:
-                player.print_out(entity, "That recipe does not seem to be possible. This is Einsteinian stuff!")
+                player.print_out(entity.name, ": That recipe does not seem to be possible. This is Einsteinian stuff!")
                 return False
                 
             for k, v in entity.world.find_item(desired)['attr']['recipe'].items():
                 if k not in entity['inventory'] or entity['inventory'][k] &lt; world.find_item(desired)['recipe'][k] * amount:
-                    player.print_out(entity, "You do not have enough {} to craft {} {} items ({}/{}).".format(k, amount, desired, entity['inventory'][k], world.find_item(desired)['recipe'][k] * amount))
+                    player.print_out(entity.name, ": You do not have enough {} to craft {} {} items ({}/{}).".format(k, amount, desired, entity['inventory'][k], world.find_item(desired)['recipe'][k] * amount))
                     return False
                     
             for r in enity.world.find_item(desired)['attr']['prerequisites']:
                 if r not in entity['inventory'] or entity['inventory'][r] &lt;= 0:
-                    player.print_out(entity, "As a prerequisite, you must have a {} in your inventory in order to craft a {}.".format(r, desired))
+                    player.print_out(entity.name, ":As a prerequisite, in order to craft any {}, you must have a {} in your inventory.".format(plural(desired), r))
                     return False
             
             inv = entity['inventory']
