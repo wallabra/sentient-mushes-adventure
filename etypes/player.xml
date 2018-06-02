@@ -53,7 +53,7 @@
         <item name="pebble" />
         <item name="flint" />
         <item name="leaf" />
-        <item name="stray" />
+        <item name="straw" />
         
         <item name="rope">
             <flag name="craftable" />

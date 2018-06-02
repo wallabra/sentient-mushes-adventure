@@ -19,6 +19,7 @@ turnorder = []
 turn = 0
 last_chan = {}
 last_interface = {}
+_chan_already = set()
 
 def next_turn():
     global turn
@@ -70,6 +71,8 @@ def help(interface, connection, event, args):
     
 @command('join')
 def player_join(interface, connection, event, args):
+    global _chan_already
+
     while True:
         if event.source.nick in players:
             if players[event.source.nick].entity['dead']:
@@ -113,7 +116,11 @@ def player_join(interface, connection, event, args):
             
     p.channels.append(_super_channel)
     players[event.source.nick] = p
-    world.add_broadcast_channel(1, _channel)
+    
+    if _channel not in _chan_already:
+        world.add_broadcast_channel(1, _channel)
+        
+    _chan_already |= {_channel}
     
     def __handle_dead_player(e):
         global turn
