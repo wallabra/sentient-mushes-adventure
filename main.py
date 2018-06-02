@@ -23,12 +23,13 @@ _chan_already = set()
 ticks = 1
 
 def next_turn():
-    global turn
+    global turn, ticks
+    
     turn += 1
 
     if turn >= len(turnorder) or len(turnorder) == 0:
         turn = 0
-        threading.Thread(name="Tick #{}".format(ticks), target=world.tick).start()
+        Thread(name="Tick #{}".format(ticks), target=world.tick).start()
         ticks += 1
     
     if len(turnorder) > 0:
@@ -113,8 +114,7 @@ def player_join(interface, connection, event, args):
             interface.send_message(last_chan[event.source.nick], m)
                     
     def _super_channel(m, place, level):
-        if level < 3:
-            interface.send_message(last_chan[event.source.nick], m)
+        interface.send_message(last_chan[event.source.nick], m)
             
     p.channels.append(_super_channel)
     players[event.source.nick] = p

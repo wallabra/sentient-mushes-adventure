@@ -2,6 +2,7 @@ import json
 import lxml
 import embedcode
 import time
+import logging
 import namegen
 import importlib
 import random
