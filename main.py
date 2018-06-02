@@ -35,7 +35,7 @@ def next_turn():
         world.broadcast(3, "It's now ", turnorder[turn], "'s turn!")
         
         if turn == 0:
-            Thread(name="Tick #" + ticks, target=world.tick()).start()
+            Thread(name="Tick #%i" % ticks, target=world.tick()).start()
     
 log_file = open('event.log', 'w')
 
