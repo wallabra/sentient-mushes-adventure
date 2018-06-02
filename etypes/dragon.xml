@@ -67,14 +67,15 @@
             import random
         
             def firebreath(entity):
-                if entity.attr['target'] is None:
+                if entity.pointer('target') is None:
                     return
                     
                 # print(entity.id)
                     
                 entity.world.broadcast(2, entity, " breathes a burst of flames towards ", entity.world.from_id(entity['target']), "!", place=entity.place)
                 for _ in range(random.randint(3, 6)):
-                    entity.call('attack', entity.world.from_id(entity['target']),  __import__('random').uniform(10, 25))
+                    entity.pointer('target')['instigator'] = entity.id
+                    entity.pointer('target').call('take_damage', random.uniform(10, 25))
                     
                 if entity.world.from_id(entity['target'])['flammable'] and random.random() &lt;= 0.625:
                     entity.world.broadcast(2, entity, " lit ", entity.world.from_id(entity['target']), " on flames!", place=entity.place)

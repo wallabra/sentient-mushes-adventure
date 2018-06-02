@@ -20,6 +20,7 @@ turn = 0
 last_chan = {}
 last_interface = {}
 _chan_already = set()
+ticks = 1
 
 def next_turn():
     global turn
@@ -27,7 +28,8 @@ def next_turn():
 
     if turn >= len(turnorder) or len(turnorder) == 0:
         turn = 0
-        world.tick()
+        threading.Thread(name="Tick #{}".format(ticks), target=world.tick).start()
+        ticks += 1
     
     if len(turnorder) > 0:
         world.broadcast(3, "It's now ", turnorder[turn], "'s turn!")

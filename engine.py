@@ -81,7 +81,7 @@ class EntityType(object):
         while world.from_id(id):
             id = ''.join([random.choice('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789') for _ in range(24)])
 
-        return "{}#{}#{}#{}#{}#{}".format(id, self.id, namegen.generate_name(random.randint(4, 9)), place, variant, json.dumps(attr))
+        return "{}#{}#{}#{}#{}#{}".format(id, self.id, namegen.generate_name(random.randint(3, 10)), place, variant, json.dumps(attr))
         
     def call(self, func, entity, *args):
         return self.functions[func](entity, *args)
@@ -204,6 +204,7 @@ class LoadedEntity(object):
         return (b if b is not None else (True if key in self.variant['flags'] else None))
     
     def call(self, func, *args):
+        logging.debug("ENTITY CALL: {}.{}({})".format(self.type.id, func, self.name))
         return self.type.call(func, self, *args)
         
     def event(self, evt, *args):
