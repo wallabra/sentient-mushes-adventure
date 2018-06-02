@@ -62,7 +62,7 @@
         
         <item name="plank">
             <flag name="craftable" />
-            <attributekey="recipe" value="{ 'stick': 5 }" />
+            <attribute key="recipe" value="{ 'stick': 5 }" />
             <attribute key="prerequisites" value="set('flint')" /> <!-- ingredients that aren't consumed in the process -->
         </item>
         
