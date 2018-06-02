@@ -124,11 +124,11 @@
                         entity.call('pick_attack')
                     
                 ## Sociality.
-                friends = tuple(filter(lambda e: e.type.name == entity.type.name and e.place == entity.place, entity.world.all_in_place(entity.place)))
+                friends = tuple(filter(lambda e: e.type.name == entity.type.name, entity.world.all_in_place(entity.place)))
                 
                 if entity['mush']:
-                    # Once mush, always mush ;)
-                    friends = tuple(set(friends) | set(filter(lambda e: e['mush'] and e.place == entity.place, entity.world.all_in_place(entity.place))))
+                    # Once mush, forever mush ;)
+                    friends = tuple(set(friends) | set(tuple(filter(lambda e: e['mush'], entity.world.all_in_place(entity.place)))))
                 
                 friends = tuple(filter(lambda f: f.id not in entity['friends'] and entity.id != f.id and (not entity['mush'] or f['mush']), friends))
                 

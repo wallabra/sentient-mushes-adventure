@@ -68,10 +68,20 @@
                     dmg = random.uniform(15, 40) * entity['weight'] / t['weight']
                     
                     entity['_fullDmg'] += dmg
-                    entity.world.broadcast(2, entity, " smashes ", t, (' further' if entity['_fullDmg'] == dmg else ''), ", provoking ", 100 * dmg / entity['_constrictHealth'], "% vital damage, for a total of ", 100 * entity['_fullDmg'] / entity['_constrictHealth'], "%!", place=entity.place)
+                    entity.world.broadcast(2, entity, " smashes ", t, (' further' if entity['_fullDmg'] == dmg else ''), ", provoking ", 100 * dmg / entity['_constrictHealth'], "% vital damage, for a total of ", max(100, 100 * entity['_fullDmg'] / entity['_constrictHealth']), "%!", place=entity.place)
                     
                     t['instigator'] = entity.id
                     t.call('take_damage', dmg)   
+                    
+                    if t['dead']:
+                        entity['constricting'] = False
+                        entity['speedModifier'] = entity['_oldSpeedMod']
+                        t['speedModifier'] *= 10
+                        t['accuracy'] *= 1.2
+                        
+                        if random.random() &lt; entity['vore']:
+                            entity.world.broadcast(2, entity, " devours what remained of ", t, "!", place=entity.place)
+                            entity['feeding'] += t['weight'] / 15
                     
         </function>
     
@@ -125,7 +135,7 @@
         <attr name="dangerousness" value="90" /> <!-- apparent dangerousness, in a vague hitpoint scale -->
         <!-- kinetic (movement & combat) attributes -->
         <attr name="speed" value="0.16" /> <!-- likelihood to evade enemy attacks, from 0 to 1 -->
-        <attr name="moveSpeed" value="0.4" /> <!-- chance, from 0 to 1, for a succesful tile move -->
+        <attr name="moveSpeed" value="0.6" /> <!-- chance, from 0 to 1, for a succesful tile move -->
         
         <attr name="postTransfer" value="'striped'" />
     </base>

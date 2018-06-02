@@ -29,11 +29,13 @@ def next_turn():
 
     if turn >= len(turnorder) or len(turnorder) == 0:
         turn = 0
-        Thread(name="Tick #{}".format(ticks), target=world.tick).start()
         ticks += 1
     
     if len(turnorder) > 0:
         world.broadcast(3, "It's now ", turnorder[turn], "'s turn!")
+        
+        if turn == 0:
+            Thread(name="Tick #" + ticks, target=world.tick()).start()
     
 log_file = open('event.log', 'w')
 
@@ -48,6 +50,10 @@ def log_channel(m, place, level):
     log_file.write(m)
     
 world.add_broadcast_channel(-1, log_channel)
+    
+@command('players')
+def list_players(interface, connection, event, args):
+    interface.send_message(event.target, "The following are playing: " + ', '.join(tuple(players.keys())))
     
 @command('reset_world')
 def reset_world(interface, connection, event, args):
@@ -119,10 +125,9 @@ def player_join(interface, connection, event, args):
     p.channels.append(_super_channel)
     players[event.source.nick] = p
     
-    if _channel not in _chan_already:
+    if event.target not in _chan_already:
         world.add_broadcast_channel(1, _channel)
-        
-    _chan_already |= {_channel}
+        _chan_already |= {event.target}
     
     def __handle_dead_player(e):
         global turn
@@ -143,7 +148,7 @@ def player_join(interface, connection, event, args):
     turnorder.append(event.source.nick)  
     world.broadcast(4, "A new player joined: ", p.entity, "!")
     
-    interface.send_message(event.target, "Welcome, {}. Thou just joined the Mush, an infectious alien fungus race that controls brains. Your goal is to infect or kill enemies, make new friends, craft new items, explore... and in the end, save the world from yet another alien race...I shouldn't spoil this to you, so you'll discover it all yourself. Best of luck in your journey!".format(p.entity.name))
+    interface.send_message(event.target, "Welcome, {}. Thou hast just joined witnessing the Mush, a parasitic, mind-controlling alien fungus race. Thy goal resumes in subjugating enemies, making new friends, exploring areas, crafting... all in order to finally save the world from yet another alien race... you'll discover it all by yourself eventually. Best of luck in thy journey!".format(p.entity.name))
     
 @command('special')
 def special(interface, connection, event, args):

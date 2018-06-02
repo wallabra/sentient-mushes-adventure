@@ -36,7 +36,7 @@ class PlayerInterface(object):
         return self.entity.call('player_move', self, place)
         
     def attack_name(self, other_name):
-        return self.entity.call('player_attack', self.entity.world.from_name(other_name))
+        return self.entity.call('player_attack', self, self.entity.world.from_name(other_name))
         
     def attack(self, other):
         return self.entity.call('player_attack', self, other)
