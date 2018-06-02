@@ -387,7 +387,7 @@ class GameWorld(object):
         
     def item_type(self, name):
         for it in self.item_types:
-            if it.name == name:
+            if it['name'] == name:
                 return it
                
         return None
