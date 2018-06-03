@@ -78,7 +78,7 @@
             
             inv = entity['inventory']
                 
-            for k, v in entity.world.find_item(desired)['recipe'].items():
+            for k, v in entity.world.find_item(desired)['attr']['recipe'].items():
                 inv[k] -= v * amount
                 
             if desired not in inv:
