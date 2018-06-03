@@ -45,7 +45,7 @@
     <default>
         <declare name="weapon" />
         <attribute name="weaponUses" value="{}" />
-        <attr name="mush" value="True" />
+        <attribute name="mush" value="True" />
         
         <import name="player" href="attributes/player.xml" />
     </default>

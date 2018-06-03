@@ -1,0 +1,22 @@
+"previous": "UNKNOWN"
+
+"v2018.06.03.3":
+    changes:
+        - "Fixed another craft error. Unknown if the command now works."
+        - "Fixed an mistake with how the Velociraptor special is executed; where if it reached the destination before the last pathmove call, it wouldn't not apply the damage, and return 1 instead of 2."
+        - "Renamed 'Naked Summer Sheep' to 'Summerine Sheep' for diverse reasons."
+        
+    todo: []
+        
+"v2018.06.03.4":
+    changes:
+        - "Fixed, at last, the 'craft' entity function, including errors and printing messages."
+        - "Added Fancy Names, which override an entity's name when doing str() of it, but don't replace the name attribute."
+        - "Made players' entity Fancy Names bold (IRC formatting)."
+        - "Made creatures move more often with good humor."
+        - "Now infected targets have their 'friends' attribute set to a list containing the infector as their its item."
+        - "Fixed the wield command."
+        - "Now kangaroo players and missing kangaroo NPCs were fixed: mushworld.xml wasn't importing etypes/kangaroo.xml in a feeble yet lasting mistake."
+        - "Renamed Yohantown to Yohansville - this isn't a medieval game, after all."
+        
+    todo: []

@@ -114,6 +114,7 @@ def player_join(interface, connection, event, args):
     variant = random.choice(types[type])
         
     p = player.PlayerInterface.join([], world, event.source.nick, random.choice(world.beginning.split(';')), type, variant)
+    p.entity['fancy_name'] = "\x02" + event.source.nick + "\x0F"
         
     def _channel(m, place, level):
         if place == world.from_id(p.entity.id).place and level < 3:
@@ -151,7 +152,7 @@ def player_join(interface, connection, event, args):
     turnorder.append(event.source.nick)  
     world.broadcast(4, "A new player joined: ", p.entity, "!")
     
-    interface.send_message(event.target, "Welcome, {}. Thou hast just joined    the Mush, a parasitic, mind-controlling alien fungus race. Thy goal resumes in subjugating enemies, making new friends, exploring areas, crafting... all in order to finally save the world from yet another alien race... you'll discover it all by yourself eventually. Best of luck in thy journey!".format(p.entity.name))
+    interface.send_message(event.target, "Welcome, {}. Thou hast just joined the Mush, a parasitic, mind-controlling alien fungus race. Thy goal resumes in subjugating enemies, making new friends, exploring areas, crafting... all in order to finally save the world from yet another alien race... you'll discover it all by yourself eventually. Best of luck in thy journey!".format(p.entity.name))
     
 @command('special')
 def special(interface, connection, event, args):
@@ -161,7 +162,7 @@ def special(interface, connection, event, args):
         
     p = players[event.source.nick]
     e = p.entity
-
+    
     if e['dead']:
         interface.send_message(event.target, "{}: You're dead! Join back after a tick, ie, after the AI creatures' turn.".format(event.source.nick))
         return
@@ -229,7 +230,7 @@ def wield(interface, connection, event, args):
     if len(args) < 1:
         players[event.source.nick].wield() # exactly, nothing!
         
-    if players[event.source.nick].wield(args[0]):
+    if players[event.source.nick].wield(' '.join(args)):
         pass # for now, I guess?
     
 @command('craft')

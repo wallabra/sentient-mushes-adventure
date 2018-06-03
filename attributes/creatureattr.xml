@@ -218,7 +218,7 @@
                     possib |= path
                     
             if place in possib:
-                if random.random() &lt;= entity['moveSpeed'] * entity['speedModifier']:
+                if random.random() &lt;= (entity['moveSpeed'] + entity['humor'] / 1.25) / 1.25 * entity['speedModifier']:
                     if bPrint:
                         entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " has just moved to ", place, "!", place=place)
                         
@@ -407,7 +407,7 @@
                 # Reset social attributes.
                 target['instigator'] = None
                 target['target'] = None
-                target['friends'] = []
+                target['friends'] = [entity]
                 
                 target['humor'] += 0.2
                 entity['humor'] += 0.35

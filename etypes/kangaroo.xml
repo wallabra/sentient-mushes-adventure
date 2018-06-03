@@ -117,21 +117,21 @@
     </itemdefs>
         
     <variants>
-        <variant name="Brown Kangaroo" id="kbrown">
+        <variant name="Brown Kangaroo" id="brown">
             <attr name="maxGrazeHealth" value="140" />
             <attr name="size" value="1.7" />
             <attr name="health" value="125" />
             <attr name="weight" value="80" /> <!-- in kilograms -->
         </variant>
         
-        <variant name="Yellow Kangaroo" id="kyellow">
+        <variant name="Yellow Kangaroo" id="yellow">
             <attr name="maxGrazeHealth" value="140" />
             <attr name="size" value="1.7" />
             <attr name="health" value="125" />
             <attr name="weight" value="80" /> <!-- in kilograms -->
         </variant>
                 
-        <variant name="Baby Kangaroo" id="kbaby">
+        <variant name="Baby Kangaroo" id="baby">
             <flag name="baby" />
             <attr name="maxGrazeHealth" value="90" />
             <attr name="size" value="1.1" />

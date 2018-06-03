@@ -71,9 +71,9 @@
                     player.print_out(entity.name, ": You do not have enough {} to craft {} {} items ({}/{}).".format(k, amount, desired, entity['inventory'].get(k, 0), entity.world.find_item(desired)['attr']['recipe'][k] * amount))
                     return False
                     
-            for r in entity.world.find_item(desired)['attr']['prerequisites']:
+            for r in entity.world.find_item(desired)['attr'].get('prerequisites', ()):
                 if r not in entity['inventory'] or entity['inventory'][r] &lt;= 0:
-                    player.print_out(entity.name, ":As a prerequisite, in order to craft any {}, you must have a {} in your inventory.".format(plural(desired), r))
+                    player.print_out(entity.name, ": As a prerequisite, in order to craft any {}, you must have a {} in your inventory.".format(plural(desired), r))
                     return False
             
             inv = entity['inventory']
@@ -88,7 +88,7 @@
                 inv[desired] += amount
                 
             entity['inventory'] = inv
-            player.print_out(entity, "{} {} items crafted successfully.".format(amount, desired))
+            player.print_out(entity.name, ": {} {} items crafted successfully.".format(amount, desired))
             
             return True
     </function>

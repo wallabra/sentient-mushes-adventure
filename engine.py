@@ -231,8 +231,11 @@ class LoadedEntity(object):
         for k, v in self.attr.items():
             print('  * {} -> {}'.format(k, v))
             
+    def get_name(self):
+        return self['fancy_name'] if self['fancy_name'] is not None else self.name
+            
     def __str__(self):
-        return "{} the {} from {}".format(self.name, self.variant['name'], self.place)
+        return "{} the {} from {}".format(self.get_name(), self.variant['name'], self.place)
         
 class GameWorld(object):
     def __init__(self, etypes=(), paths=(), places=(), entities=(), item_types=(), beginning=None):

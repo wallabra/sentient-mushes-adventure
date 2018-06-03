@@ -5,26 +5,26 @@
             <flock type="dragon" amount="8-12" variant="small;medium" /> <!-- ';' separates random choices -->
             <flock type="dragon" amount="3-10" variant="baby"/>
             <flock type="dragon" amount="1-4" variant="large" />
+            <flock type="kangaroo" amount="2-4" variant="brown;yellow;baby" />
+            <flock type="anaconda" amount="2-5" variant="striped;rock" />
             
             <items type="leaf" amount="20-30" />
             <items type="stick" amount="10-18" />
             <items type="pebble" amount="30-50" />
             <items type="leaf" amount="20-30" />
             <items type="flint" amount="10-30" />
-            
-            <flock type="anaconda" amount="2-5" variant="striped;rock" />
         </place>
         
-        <place name="Prairies of Yohantown">
+        <place name="Prairies of Yohansville">
             <flock type="sheep" amount="10-35" variant="*" /> <!-- "*" means random variant -->
-            <flock type="kangaroo" amount="5-25" variant="brown;yellow;kbaby" />
+            <flock type="kangaroo" amount="5-25" variant="brown;yellow;baby" />
             
             <items type="stick" amount="4-8" />
             <items type="pebble" amount="20-40" />
             <items type="straw" amount="30-55" />
         </place>
         
-        <place name="Yohantown">
+        <place name="Yohansville">
             <flock type="human" amount="25-60" variant="peasant;farmer;miner" />
             <flock type="human" amount="5-20" variant="dagger" />
             <flock type="human" amount="3-8" variant="knight" />
@@ -65,6 +65,7 @@
         <etype filename="etypes/sheep.xml" />
         <etype filename="etypes/player.xml" />
         <etype filename="etypes/human.xml" />
+        <etype filename="etypes/kangaroo.xml" />
         <etype filename="etypes/anaconda.xml" />
     </etypes>
 </world>
