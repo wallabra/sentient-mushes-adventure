@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<default>
+<default name="creature">
     <flag name="living" />
     <attribute key="dead" value="False" />
     
@@ -161,23 +161,25 @@
                     entity.world.broadcast((2 if f['isPlayer'] else 0), entity, " made a new friend: ", f, "!", place=entity.place)
                     
                 # Sympathy.
-                teammates = tuple(filter(lambda e: e.type.name != entity.type.name and e['health'] &gt; 0 and e['target'] == entity['target'], entity.world.all_in_place(entity.place)))
-                
-                if len(teammates) &gt; 0 and entity['sociality'] + entity['humor'] * 15 &gt; random.uniform(0, 49.99):
-                    tmate = random.choice(teammates)
-                    fl = entity['friends']
-                    fl.append(tmate.id)
-                    entity['friends'] = fl
-                    fl = tmate['friends']
-                    fl.append(entity.id)
-                    tmate['friends'] = fl
-                    entity.world.broadcast((2 if tmate['isPlayer'] else 0), entity, " felt sympathy for ", tmate, ", and became friends!", place=entity.place)
+                if entity['target'] and entity['sociality'] + entity['humor'] * 15 &gt; random.uniform(0, 49.99):
+                    teammates = tuple(filter(lambda e: e.type.name != entity.type.name and e['health'] &gt; 0 and e['target'] == entity['target'], entity.world.all_in_place(entity.place)))
+                    
+                    if len(teammates) &gt; 0:
+                        tmate = random.choice(teammates)
+                        fl = entity['friends']
+                        fl.append(tmate.id)
+                        entity['friends'] = fl
+                        fl = tmate['friends']
+                        fl.append(entity.id)
+                        tmate['friends'] = fl
+                        entity.world.broadcast((2 if tmate['isPlayer'] else 0), entity, " felt sympathy for ", tmate, ", and became friends!", place=entity.place)
                     
                 # Following friends.
                 if len(entity['friends']) &gt; 0 and random.random() * 10 &lt;= entity['humor'] * 8 + 2:
-                    to_follow = weighted_random(list({e: e['leadership'] for e in map(lambda e: entity.world.from_id(e), entity['friends'])}.items()))
+                    to_follow = list({e: e['leadership'] for e in filter(lambda e: e.place != entity.place, entity.pointer_list('friends'))}.items())
                     
-                    if to_follow:
+                    if len(to_follow) &gt; 0:
+                        to_follow = weighted_random(to_follow)
                         entity.call('pathmove', to_follow.place)
                         entity.world.broadcast((2 if to_follow['isPlayer'] else 0), entity, " decided to follow ", to_follow, ".", place=to_follow.place)
                         
@@ -272,9 +274,14 @@
             return 0
     </function>
     
+    <function name="creature_init">
+        def creature_init(entity):
+            entity['spawnHealth'] = entity['health']
+    </function>
+       
     <function name="init">
         def init(entity):
-            entity['spawnHealth'] = entity['health']
+            entity.call('creature_init')
     </function>
     
     <function name="pathmove">
@@ -458,12 +465,17 @@
     <function name="attack">
         import random
     
-        def attack(entity, other, damage):
+        def attack(entity, other, damage, message=None):
             if entity['dead'] or not other or (entity.place != other.place):
                 return False
         
             if random.random() * 0.8 + min(1, max(entity['humor'], 0)) * entity['accuracy'] &lt;= other['speed']:
-                entity.world.broadcast(2, entity, " tried to attack ", other, "! It missed!", place=entity.place)
+                if message:
+                    entity.world.broadcast(2, message, place=entity.place)
+                
+                else
+                    entity.world.broadcast(2, entity, " tried to attack ", other, "! It missed!", place=entity.place)
+                    
                 entity['humor'] -= 0.08
                 return False
                 

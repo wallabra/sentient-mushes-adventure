@@ -210,7 +210,12 @@ class LoadedEntity(object):
         return (b if b is not None else (True if key in self.variant['flags'] else None))
     
     def call(self, func, *args):
-        logging.debug("ENTITY CALL: {}({}).{}({})".format(self.type.id, self.name, func, ', '.join([(repr(a.name) if isinstance(a, LoadedEntity) else (repr(a.entity.name) if isinstance(a, player.PlayerInterface) else repr(a))) for a in args])))
+        fspace = getattr(func, '__funcspace', "")
+        
+        if fspace:
+            fspace = "<" + fspace + ">"
+        
+        logging.debug("ENTITY CALL: {}({}).{}{}({})".format(self.type.id, self.name, func, fspace, ', '.join([(repr(a.name) if isinstance(a, LoadedEntity) else (repr(a.entity.name) if isinstance(a, player.PlayerInterface) else repr(a))) for a in args])))
         return self.type.call(func, self, *args)
         
     def event(self, evt, *args):
@@ -325,6 +330,7 @@ class GameWorld(object):
         
     def tick(self):
         self.all_loaded_entities = []
+        perc = 0
         
         for i, e in enumerate(self.entities):
             en = LoadedEntity(self, i, e)
@@ -336,6 +342,9 @@ class GameWorld(object):
                 s('tick', en)
                 
             self.all_loaded_entities = []
+            perc += 1
+            
+            logging.debug("TICK: {}%".format(100.0 * perc / len(self.entities)))
         
     def add_entity(self, e):
         self.entities.append(e)
@@ -442,6 +451,8 @@ class XMLGameLoader(object):
         
         world = GameWorld(beginning=xworld.getroot().get('beginning'))
         
+        logging.info("Loading entity types...")
+        
         for el in xworld.getroot():
             if el.tag == 'etypes':
                 for t in el:
@@ -449,6 +460,8 @@ class XMLGameLoader(object):
                         (e, items) = self.load_entity_type(world, t.get('filename'))
                         world.etypes[e.id] = e
                         world.item_types.extend(items)
+                        
+        logging.info("Loading and populating places...")
                     
         for el in xworld.getroot():
             if el.tag == "places":
@@ -496,6 +509,7 @@ class XMLGameLoader(object):
                                     else:
                                         i[sub.get('type')] = amount
                     
+                        logging.debug("- Loaded place {}".format(p.get('name')))
                         world.places.append({
                             'name': p.get('name'),
                             'id': p.get('id'),
@@ -506,7 +520,9 @@ class XMLGameLoader(object):
                 for p in el:
                     if p.tag == "path":
                         world.paths.append(set(p.get('ends').split(';')))
-                        
+                                        
+        print("World loaded!")
+        logging.info("World loaded!")
         world.entities = random.sample(world.entities, len(world.entities))
         return world
         
@@ -559,6 +575,7 @@ class XMLGameLoader(object):
                             try:
                                 f = tuple(fncs)[-1]
                                 setattr(f, '__priority', level)
+                                setattr(f, '__funcspace', imported.getroot().get('name'))
                                 functions[a.get('name')] = f
                                 
                             except IndexError:
@@ -699,5 +716,7 @@ class XMLGameLoader(object):
                         
         finally:                
             funcholder.deinit()
+            
+        logging.debug("- Imported Entity Type {}, with {} variants, {} functions and {} item types loaded.".format(name, len(variants), len(functions), len(item_types)))
         
         return (EntityType(name, id, base, variants, functions, systems, default), item_types)

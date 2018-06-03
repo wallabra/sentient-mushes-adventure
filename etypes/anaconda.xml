@@ -37,22 +37,29 @@
                         entity.world.broadcast(2, entity, " leaps to constrict ", t, ", but misses!", place=entity.place)
                         return # Missed constriction!
                         
-                    # fall damage
-                    t['instigator'] = entity.id
-                    t.call('take_damage', 5)
                     
                     if not t['dead']:
                         entity.world.broadcast(2, entity, " leaps and constricts ", t, "!", place=entity.place)
                     
-                        entity['constricting'] = True
-                            
-                        t['speedModifier'] /= 10
-                        t['accuracy'] /= 1.2
-                        entity['_oldSpeedMod'] = entity['speedModifier']
-                        entity['_fullDmg'] = 0
-                        entity['speedModifier'] = 0
+                        # fall damage
+                        t['instigator'] = entity.id
+                        t.call('take_damage', 5)
                         
-                        entity['_constrictHealth'] = t['health']
+                        if t['dead'] and random.random() &lt; entity['vore']:
+                            entity.world.broadcast(2, entity, " devours what remained of ", t, "!", place=entity.place)
+                            entity['feeding'] += t['weight'] / 10
+                            t.despawn()
+                        
+                        else:
+                            entity['constricting'] = True
+                                
+                            t['speedModifier'] /= 10
+                            t['accuracy'] /= 1.2
+                            entity['_oldSpeedMod'] = entity['speedModifier']
+                            entity['_fullDmg'] = 0
+                            entity['speedModifier'] = 0
+                            
+                            entity['_constrictHealth'] = t['health']
                 
                 elif t.place != entity.place or t['dead']:
                     entity['constricting'] = False
@@ -63,6 +70,7 @@
                     if t.place == entity.place and random.random() &lt;= entity['vore']:
                         entity.world.broadcast(2, entity, " devours what remained of ", t, "!", place=entity.place)
                         entity['feeding'] += t['weight'] / 10
+                        t.despawn()
                 
                 elif random.random() &lt;= 0.8:
                     dmg = random.uniform(25, 65) * entity['weight'] / t['weight']
@@ -82,7 +90,21 @@
                         if random.random() &lt; entity['vore']:
                             entity.world.broadcast(2, entity, " devours what remained of ", t, "!", place=entity.place)
                             entity['feeding'] += t['weight'] / 10
+                            t.despawn()
                     
+        </function>
+        
+        <function name="bite">
+            import random
+            
+            def bite(entity):
+                t = entity.pointer('target')
+                
+                if not t:
+                    return
+                    
+                dmg = random.uniform(20, 35)
+                t.call('attack', entity, dmg, "{} bites {}, dealing {} damage!".format(entity, t, dmg))
         </function>
     
         <function name="tick">
@@ -107,16 +129,16 @@
                         entity.call('move', p)
                         
                 if entity['feeding'] &gt; 0:
-                    pts = entity['feeding'] / 1.5
+                    pts = entity['feeding']
                     entity['feeding'] = entity['feeding'] - 1
-                    entity.call('heal', entity, pts, '{} healed {} points from feeding,'.format(entity, pts))
+                    entity.call('heal', entity, pts, '{} healed {:.2f} points from nutrition,'.format(entity, pts))
         </function>
     </functions>
     
     <base>
         <flag name="hasRanged" />
         
-        <attr name="meleeAttackFunc" value="'constrict'" />
+        <attr name="meleeAttackFunc" value="'bite'" />
         <attr name="rangedAttackFunc" value="'constrict'" /> <!-- technically, ranged applies for smaler entities.
                                                                   If it doesn't have a melee attack, it runs from
                                                                   larger entities. -->

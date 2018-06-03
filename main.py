@@ -2,6 +2,7 @@ import yaml
 import namegen
 import player
 import time
+import sys
 import engine
 import traceback
 import logging
@@ -10,6 +11,11 @@ import textwrap
 
 from irc.bot import ServerSpec, SingleServerIRCBot
 from threading import Thread
+
+if __name__ == "__main__": # which it should be
+    logging.basicConfig(filename="bot.log", level=logging.DEBUG)
+    #logging.basicConfig(filename="last.log", filemode='w', level=logging.DEBUG)
+    logging.basicConfig(stream=sys.stdout, format='%(name)-12s: %(levelname)-8s %(message)s', level=logging.DEBUG)
 
 loader = engine.XMLGameLoader()
 world = loader.load_world("mushworld.xml")
@@ -254,35 +260,42 @@ def craft(interface, connection, event, args):
    
 @command('stats')
 def stats(interface, connection, event, args):
-    if event.source.nick not in players:
-        interface.send_message(event.target, '{}: Join first!'.format(event.source.nick))
+    name = (' '.join(args) if len(args) > 0 else event.source.nick)
+    e = world.from_name(name)
+    
+    if not e or not e['living']:
+        interface.send_message(event.target, "{}? No such creature named '{}'!".format(event.source.nick, ' '.join(args)))
         return
-        
-    e = players[event.source.nick].entity
-    interface.send_message(event.target, "{}: You are a {}, with {} health, at {}. Currently you're wielding {}. You are friends with {}.".format(
-        event.source.nick,
+    
+    interface.send_message(event.target, "{} is a {}, with {:.2f} hitpoints, at {}. Has {:.2f} Rm immune level, weights {:.2f} kg and has a {:.2f} meter size ({:.2f}% the average human's size); wields {}{}, and is friends with {}.".format(
+        e.name,
         e.variant['name'],
         e['health'],
         e.place,
+        e['immune'],
+        e['weight'],
+        e['size'] * 1.5,
+        e['size'] * 100,
+        ('' if not e['weapon'] else ('a ' if e['weapon'][0] in namegen.consonants else 'an ')), 
         (e['weapon'] if e['weapon'] is not None else 'nothing'),
         (', '.join(e.pointer_list('friends')) if len(e['friends']) > 0 else 'nobody')
     ))
    
-@command('gethealth')
-def gethealth(interface, connection, event, args):
-    if len(args) < 1:
-        interface.send_message(event.target, '{}: Syntax: gethealth <entity name (e.g. Axamur)>'.format(event.source.nick))
-        return
+# @command('gethealth')
+# def gethealth(interface, connection, event, args):
+    # if len(args) < 1:
+        # interface.send_message(event.target, '{}: Syntax: gethealth <entity name (e.g. Axamur)>'.format(event.source.nick))
+        # return
         
-    if not world.from_name(args[0]):
-        interface.send_message(event.target, "{}: {} doesn't exist, I guess!".format(event.source.nick, args[0]))
-        return
+    # if not world.from_name(args[0]):
+        # interface.send_message(event.target, "{}: {} doesn't exist, I guess!".format(event.source.nick, args[0]))
+        # return
    
-    elif world.from_name(args[0])['health'] is None:
-        interface.send_message(event.target, "{}: {} isn't a living being!".format(event.source.nick, args[0]))
-        return
+    # elif world.from_name(args[0])['health'] is None:
+        # interface.send_message(event.target, "{}: {} isn't a living being!".format(event.source.nick, args[0]))
+        # return
    
-    interface.send_message(event.target, "{}: {} has {} health!".format(event.source.nick, args[0], world.from_name(args[0])['health']))
+    # interface.send_message(event.target, "{}: {} has {} health!".format(event.source.nick, args[0], world.from_name(args[0])['health']))
   
 def plural(name, amount=2):
     if amount == 1:
@@ -494,16 +507,6 @@ class IRCInterface(SingleServerIRCBot):
         Thread(target=_joinchan_postwait).start()
 
 if __name__ == "__main__":
-    logging.basicConfig(filename="bot.log", level=logging.DEBUG)
-
-    console = logging.StreamHandler()
-    console.setLevel(logging.DEBUG)
-
-    formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
-    console.setFormatter(formatter)
-
-    logging.getLogger('').addHandler(console)
-    
     conns = {}
     threads = []
           

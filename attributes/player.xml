@@ -61,6 +61,8 @@
     </function>
     
     <function name="craft">
+        import namegen
+    
         def plural(name, amount=2):
             if amount == 1:
                 return name
@@ -120,6 +122,7 @@
             if entity['dead'] or not other:
                 return False
         
+            entity['target'] = other.id
             entity.call('attack', other, (entity['punchDamage'] * random.uniform(0.7, 1.3) if (not entity['weapon'] or entity['inventory'].get(entity['weapon'], 0) &lt;= 0) else random.uniform(entity.world.item_type(entity['weapon'])['attr']['minDamage'], entity.world.item_type(entity['weapon'])['attr']['maxDamage'])))
             
             if entity['weapon'] and entity['inventory'].get(entity['weapon'], 0) > 0:
@@ -184,7 +187,8 @@
                         break
                     
                 elif _item not in entity.world.find_place(entity.place)['items'] or entity.world.find_place(entity.place)['items'][_item] &lt;= 0:
-                    break
+                    player.print_out("There is no such item at the current place!")
+                    return False
                     
                 if _item in picked:
                     picked[_item] += 1
@@ -223,6 +227,61 @@
             
             return len(picked) &gt; 0
     </function>
+    
+    <!--=====-->
+    <!-- ITEMS -->
+    <!--=====-->
+    
+    <!-- Materials -->
+    <item name="stick" />
+    <item name="pebble" />
+    <item name="flint" />
+    <item name="leaf" />
+    <item name="straw" />
+    
+    <item name="rope">
+        <flag name="craftable" />
+        <attribute key="recipe" value="{ 'stray': 3 }" />
+    </item>
+    
+    <item name="plank">
+        <flag name="craftable" />
+        <attribute key="recipe" value="{ 'stick': 5 }" />
+        <attribute key="prerequisites" value="set('flint')" /> <!-- ingredients that aren't consumed in the process -->
+    </item>
+    
+    <!-- Weapons -->
+    <item name="flint sword">
+        <flag name="weapon" />
+        <attribute key="uses" value="70" />
+        <attribute key="minDamage" value="30" />
+        <attribute key="maxDamage" value="80" />
+        <attribute key="recipe" value="{ 'stick': 2, 'flint': 1, 'straw': 3 }" />
+    </item>
+    
+    <item name="poisonous flint sword">
+        <flag name="weapon" />
+        <attribute key="poison" value="3" />
+        <attribute key="uses" value="70" />
+        <attribute key="minDamage" value="40" />
+        <attribute key="maxDamage" value="60" />
+        <attribute key="recipe" value="{ 'flint sword': 1, 'poison sac': 1 }" />
+    </item>
+    
+    <item name="steel sword">
+        <flag name="weapon" />
+        <attribute key="uses" value="125" />
+        <attribute key="minDamage" value="40" />
+        <attribute key="maxDamage" value="95" />
+    </item>
+    
+    <item name="grenades">
+        <flag name="weapon" />
+        <attribute key="uses" value="8" />
+        <attribute key="minDamage" value="60" />
+        <attribute key="maxDamage" value="250" />
+    </item>
+    <!--=====-->
     
     <attribute key="pickups" value="0" />
     <attribute key="weaponUses" value="{}" />

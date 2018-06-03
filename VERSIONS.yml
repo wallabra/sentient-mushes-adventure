@@ -46,3 +46,15 @@
         - "Added stats command."
         
     todo: []
+    
+"v2018.06.03.8": # current release
+    changes:
+        - "Removed the Huamn Player."
+        - "Added the Green and Lime Velociraptor NPCs."
+        - "Renamed etypes/player.xml to etypes/velociraptor.xml due to the NPC raptors."
+        - "Moved material and weapon items (like straw and flint sword) from etypes/player.xml (now velociraptor.xml) to attributes/player.xml."
+        - "Replaced gethealth by the more informative stats command."
+        - "Added Vallis Ordo (from Latin: Valley of Order) and North Bridge"
+        - "Fixed the Kangaroo player not importing attributes/player.xml."
+        
+    todo: []

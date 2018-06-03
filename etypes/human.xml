@@ -88,14 +88,13 @@
     </base>
     
     <default>
-        <import name="player" href="attributes/player.xml" />
+        <import name="creatureattr" href="attributes/creatureattr.xml" />
         
         <attribute key="drops" value="{'coin': (0, 20)}" />
         <attribute key="sharpening" value="{}" />
     </default>
     
     <systems>
-        <system name="pinata_drops" href="systems/pinata_drops.py" />
         <system name="drops" href="systems/drops.py" />
     </systems>
     
@@ -185,10 +184,11 @@
             <default name="inventory" value="{ 'steel sword': 1 }" />
         </variant>
         
+        <!--
         <variant name="Human Player" id="player">
             <attr name="size" value="1.05" />
             <attr name="health" value="100" />
-            <attr name="weight" value="65" /> <!-- in kilograms -->
+            <attr name="weight" value="65" /> (in kilograms)
             <attr name="dangerousness" value="30" />
             <attr name="punchDamage" value="8" />
             
@@ -199,5 +199,6 @@
             <default key="mush" value="True" />
             <default name="inventory" value="{ 'curvy dagger': 1 }" />
         </variant>
+        -->
     </variants>
 </entitytype>

@@ -1,6 +1,29 @@
 <?xml version="1.0"?>
 <world beginning="Prairies of Yohansville;Port Ludicrous;Yohansville">
     <places>
+        <place name="Vallis Ordo">
+            <flock type="anaconda" amount="3-9" variant="striped" />
+            <flock type="sheep" amount="5-12" variant="*" />
+            
+            <items type="flint" amount="3-10" />
+            <items type="pebble" amount="12-28" />
+            <items type="stick" amount="9-25" />
+            <items type="leaf" amount="22-45" />
+            <items type="straw" amount="24-38" />
+        </place>
+    
+        <place name="North Bridge">
+            <flock type="velociraptor" amount="3-19" variant="green;lime" />
+            <flock type="anaconda" amount="4-12" variant="beach;striped;rock" />
+            <flock type="sheep" amount="8-25" variant="*" />
+            <flock type="kangaroo" amount="3-9" variant="brown;yellow;baby" />
+            
+            <items type="flint" amount="10-30" />
+            <items type="pebble" amount="15-40" />
+            <items type="stick" amount="5-12" />
+            <items type="straw" amount="15-24" />
+        </place>
+    
         <place name="Mount Bayoku">
             <flock type="dragon" amount="8-12" variant="small;medium" /> <!-- ';' separates random choices -->
             <flock type="dragon" amount="3-10" variant="baby"/>
@@ -58,12 +81,14 @@
         <path ends="Mount Bayoku;Prairies of Yohansville" />
         <path ends="Yohansville;Prairies of Yohansville;Port Ludicrous" />
         <path ends="Port Ludicrous;Beach of Harmony;Yohansville" />
+        <path ends="Mount Bayoku;North Bridge" />
+        <path ends="Vallis Ordo;North Bridge" />
     </paths>
     
     <etypes> <!-- entity dependencies -->
         <etype filename="etypes/dragon.xml" />
         <etype filename="etypes/sheep.xml" />
-        <etype filename="etypes/player.xml" />
+        <etype filename="etypes/velociraptor.xml" />
         <etype filename="etypes/human.xml" />
         <etype filename="etypes/kangaroo.xml" />
         <etype filename="etypes/anaconda.xml" />
