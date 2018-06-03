@@ -1,5 +1,4 @@
 import json
-import lxml
 import embedcode
 import time
 import logging
@@ -10,7 +9,7 @@ import atexit
 import yaml
 import threading
 
-from lxml import etree
+import xml.etree.ElementTree as etree
 from queue import Queue, Empty
 
 
@@ -205,7 +204,7 @@ class LoadedEntity(object):
         return (b if b is not None else (True if key in self.variant['flags'] else None))
     
     def call(self, func, *args):
-        logging.debug("ENTITY CALL: {}.{}({})".format(self.type.id, func, self.name))
+        logging.debug("ENTITY CALL: {}({}).{}({})".format(self.type.id, self.name, func, [(a.name if isinstance(a, LoadedEntity) else str(a)) for a in self.args]))
         return self.type.call(func, self, *args)
         
     def event(self, evt, *args):
@@ -304,15 +303,16 @@ class GameWorld(object):
             for node in message:
                 m += str(node)
         
+            logging.debug("BROADCAST: PLACE={} LVL={} MSG={}".format(repr(place), level, repr(m)))
+            
             can_wait = False
         
             for b in self.broadcast_channels:
-                if not b._level or level >= b._level:
-                    b(m, place, level)
-                    can_wait = True
+                if not hasattr(b, '_level') or level >= b._level:
+                    can_wait = b(m, place, level) or can_wait
         
             if can_wait:
-                time.sleep(0.65)
+                time.sleep(0.6)
         
     def tick(self):
         self.all_loaded_entities = []

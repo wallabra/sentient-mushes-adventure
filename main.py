@@ -118,6 +118,9 @@ def player_join(interface, connection, event, args):
     def _channel(m, place, level):
         if place == world.from_id(p.entity.id).place and level < 3:
             interface.send_message(last_chan[event.source.nick], m)
+            return True
+            
+        return False
                     
     def _super_channel(m, place, level):
         interface.send_message(last_chan[event.source.nick], m)
@@ -148,7 +151,7 @@ def player_join(interface, connection, event, args):
     turnorder.append(event.source.nick)  
     world.broadcast(4, "A new player joined: ", p.entity, "!")
     
-    interface.send_message(event.target, "Welcome, {}. Thou hast just joined witnessing the Mush, a parasitic, mind-controlling alien fungus race. Thy goal resumes in subjugating enemies, making new friends, exploring areas, crafting... all in order to finally save the world from yet another alien race... you'll discover it all by yourself eventually. Best of luck in thy journey!".format(p.entity.name))
+    interface.send_message(event.target, "Welcome, {}. Thou hast just joined    the Mush, a parasitic, mind-controlling alien fungus race. Thy goal resumes in subjugating enemies, making new friends, exploring areas, crafting... all in order to finally save the world from yet another alien race... you'll discover it all by yourself eventually. Best of luck in thy journey!".format(p.entity.name))
     
 @command('special')
 def special(interface, connection, event, args):
@@ -423,12 +426,14 @@ class IRCInterface(SingleServerIRCBot):
             def __wrapper__(m, place, level):
                 if place is None or level >= 3:
                     self.send_message(chan, m)
+                    return True
+                    
+                return False
                 
             return __wrapper__
                 
         for j in self.joinchans:
             world.add_broadcast_channel(2, _channel(j))
-    
         
     def send_message(self, channel, msg):
         for line in textwrap.wrap(msg, 350):
