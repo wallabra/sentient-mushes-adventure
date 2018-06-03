@@ -2,6 +2,8 @@
 <entitytype name="Player" id="player">
     <functions>
         <function name="player_special">
+            import random
+        
             def player_special(entity, player, args):
                 place = ' '.join(args)
                 
@@ -9,7 +11,8 @@
                     player.print_out("{}: No such place!".format(entity), place=entity.place)
                     return False
                     
-                player.print_out("{}: Performing the Velociraptor's run.".format(entity), place=entity.place)
+                dmg = random.uniform(5, 15)
+                player.print_out("{}: Performing the Velociraptor's run, at the expense of {} health.".format(entity, dmg), place=entity.place)
                     
                 a = None
                     
@@ -21,6 +24,7 @@
                     b = entity.call('pathmove', place, 0)
                     a = (a and min(a, b)) or b
                     
+                entity.call('take_damage', dmg)
                 return a
         </function>
     </functions>

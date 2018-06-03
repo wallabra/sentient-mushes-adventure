@@ -8,6 +8,7 @@ import random
 import atexit
 import yaml
 import threading
+import player
 
 import xml.etree.ElementTree as etree
 from queue import Queue, Empty
@@ -204,7 +205,7 @@ class LoadedEntity(object):
         return (b if b is not None else (True if key in self.variant['flags'] else None))
     
     def call(self, func, *args):
-        logging.debug("ENTITY CALL: {}({}).{}({})".format(self.type.id, self.name, func, [(a.name if isinstance(a, LoadedEntity) else str(a)) for a in self.args]))
+        logging.debug("ENTITY CALL: {}({}).{}({})".format(self.type.id, self.name, func, ', '.join([(repr(a.name) if isinstance(a, LoadedEntity) else (repr(a.entity.name) if isinstance(a, player.PlayerInterface) else str(a))) for a in args])))
         return self.type.call(func, self, *args)
         
     def event(self, evt, *args):
