@@ -111,6 +111,11 @@ class LoadedEntity(object):
             if k not in self.attr:
                 self.attr[k] = v
         
+    def pop(self, key, default=None):
+        res = self.attr.pop(key, default)
+        self.update()
+        return res
+        
     def __setitem__(self, key, val):
         self.attr[key] = val
         self.update()
@@ -662,7 +667,7 @@ class XMLGameLoader(object):
                                         i['attr'][char.get('key')] = None
                         
                                 elif char.tag == 'flag':
-                                    i['flags'].add(char.get('key'))
+                                    i['flags'].add(char.get('name'))
                             
                             item_types.append(i)
                             

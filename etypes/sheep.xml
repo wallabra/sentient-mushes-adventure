@@ -50,7 +50,7 @@
 
     
         <!-- reaction traits, in a scale from 1 to 10 -->
-        <attr name="hostility" value="0.1" /> <!-- negativity of reaction to living entities of other kinds --> 
+        <attr name="hostility" value="0.05" /> <!-- negativity of reaction to living entities of other kinds --> 
         <attr name="courage" value="3.5" /> <!-- likelihood to stay when underwhelmed or outnumbered -->
         <attr name="sociality" value="8.5" /> <!-- likelihood to form 'friends' (will tend to follow each other and share friends and enemies) -->
         <attr name="leadership" value="2" /> <!-- likelihood to become leader (least likely to follow friends, most likely to be followed) -->

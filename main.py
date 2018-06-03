@@ -117,7 +117,7 @@ def player_join(interface, connection, event, args):
     p.entity['fancy_name'] = "\x02" + event.source.nick + "\x0F"
         
     def _channel(m, place, level):
-        if place == world.from_id(p.entity.id).place and level < 3:
+        if place == p.entity.place and level < 3:
             interface.send_message(last_chan[event.source.nick], m)
             return True
             

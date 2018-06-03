@@ -27,24 +27,11 @@
                     return
                 
                 if random.random() &lt;= 0.3:
-                    entity.world.broadcast(2, entity, " powerfully kicks ", t, "!", place=entity.place)
+                    entity.world.broadcast((3 if entity['isPlayer'] or t['isPlayer'] else 2), entity, " powerfully kicks ", t, "!", place=entity.place)
                     entity.call('attack', t, random.uniform(55, 120))
-                    
-                    # if random.random() &lt;= 0.7:
-                    #     possib = set()
-                    #     
-                    #     for p in entity.world.pathes:
-                    #         if entity.place in p:
-                    #             possib |= p
-                    #             
-                    #     possib -= {entity.place}
-                    #      
-                    #     pl = random.choice(tuple(possib))
-                    #     
-                    #     entity.world.broadcast(2, entity, " displaces ", t, "into ", pl, "!", place=entity.place)
                 
                 else:
-                    entity.world.broadcast(2, entity, " kicks ", t, "!", place=entity.place)
+                    entity.world.broadcast((3 if entity['isPlayer'] or t['isPlayer'] else 2), entity, " kicks ", t, "!", place=entity.place)
                     entity.call('attack', t, random.uniform(30, 70))
                     
         </function>
@@ -70,7 +57,7 @@
                         entity.world.broadcast(0, entity, " wanders to ", p, ".", place=p)
                         entity.call('move', p)
                 
-                if entity['health'] &lt; entity['maxGrazeHealth'] and random.random() &lt;= 0.2:
+                if not entity['isPlayer'] and entity['health'] &lt; entity['maxGrazeHealth'] and random.random() &lt;= 0.2:
                     # graze
                     entity.call('heal', entity, min(entity['maxGrazeHealth'] - entity['health'], random.uniform(5, 15)))
         </function>
@@ -83,7 +70,7 @@
 
     
         <!-- reaction traits, in a scale from 1 to 10 -->
-        <attr name="hostility" value="0.1" /> <!-- negativity of reaction to living entities of other kinds --> 
+        <attr name="hostility" value="0.09" /> <!-- negativity of reaction to living entities of other kinds --> 
         <attr name="courage" value="3.5" /> <!-- likelihood to stay when underwhelmed or outnumbered -->
         <attr name="sociality" value="8.5" /> <!-- likelihood to form 'friends' (will tend to follow each other and share friends and enemies) -->
         <attr name="leadership" value="2" /> <!-- likelihood to become leader (least likely to follow friends, most likely to be followed) -->
@@ -127,8 +114,10 @@
         <variant name="Yellow Kangaroo" id="yellow">
             <attr name="maxGrazeHealth" value="140" />
             <attr name="size" value="1.7" />
-            <attr name="health" value="125" />
+            <attr name="health" value="135" />
             <attr name="weight" value="80" /> <!-- in kilograms -->
+            
+            <attr name="hostility" value="0.073" />
         </variant>
                 
         <variant name="Baby Kangaroo" id="baby">

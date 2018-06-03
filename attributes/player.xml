@@ -22,6 +22,9 @@
     </function>
     
     <function name="wield">
+        import random
+        random_wtfs = ['a cooking utensil', 'an electronic device', 'furniture', 'a vacuum cleaner', 'trash', 'some much wow item', 'a 64 item stack', 'a Notch apple', 'a block', 'a deadly heavy piano', 'my swamp', 'a null pointer', "your mother's deadly dough roll", 'a new addition', 'the everforgotten Minecraft 1.13 version', 'lava', 'a pile of soap', 'a soap gun', 'a waterarm', 'my son, the Sock Puppet', 'my boyfriend', 'my girlfriend', 'random.choice(random_wtfs)', 'entropy', 'a black hole', 'space and time']
+    
         def wield(entity, player, item=None):
             if entity['dead']:
                 return False
@@ -33,9 +36,13 @@
             
             else:
                 i = entity.world.find_item(item)
+                
+                if not i:
+                    player.print_out("{}: Is that {}? That doesn't exist in this game!".format(entity.name, random.choice(random_wtfs)))
+                    return False
                    
-                if 'weapon' not in i['flags']:
-                    player.print_out("{}: That is not a weapon, that's... another kind of item!".format(entity.name))
+                if 'weapon' not in i['flags'] and not i['attr'].get('weapon', False):
+                    player.print_out("{}: That is not a weapon, that's just {}!".format(entity.name, random.choice(random_wtfs)))
                     return False
                 
                 if item not in entity['inventory'] or entity['inventory'][item] &lt;= 0:
@@ -88,7 +95,7 @@
                 inv[desired] += amount
                 
             entity['inventory'] = inv
-            player.print_out(entity.name, ": {} {} items crafted successfully.".format(amount, desired))
+            player.print_out(entity.name, ": {} {} crafted successfully.".format(amount, plural(desired, amount)))
             
             return True
     </function>
