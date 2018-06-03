@@ -7,6 +7,10 @@
             def player_special(entity, player, args):
                 place = ' '.join(args)
                 
+                if entity.place == place:
+                    player.print_out("{}: You are already there!".format(entity), place=entity.place)
+                    return False                    
+                
                 if not entity.world.find_place(place):
                     player.print_out("{}: No such place!".format(entity), place=entity.place)
                     return False
@@ -18,7 +22,7 @@
                     
                 for _ in range(3):
                     if entity.place == place:
-                        return 1
+                        a = 2
                         break
                         
                     b = entity.call('pathmove', place, 0)
