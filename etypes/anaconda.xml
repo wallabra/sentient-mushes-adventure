@@ -33,9 +33,9 @@
                     return
                     
                 if not entity['constricting']:
-                    if random.random() &lt;= 0.4:
+                    if random.random() &lt;= 1 - entity['constrictChance']:
                         entity.world.broadcast(2, entity, " leaps to constrict ", t, ", but misses!", place=entity.place)
-                        return # Missed constriction! (40% chance)
+                        return # Missed constriction!
                         
                     # fall damage
                     t['instigator'] = entity.id
@@ -62,13 +62,13 @@
                     
                     if t.place == entity.place and random.random() &lt;= entity['vore']:
                         entity.world.broadcast(2, entity, " devours what remained of ", t, "!", place=entity.place)
-                        entity['feeding'] += t['weight'] / 15
+                        entity['feeding'] += t['weight'] / 10
                 
                 elif random.random() &lt;= 0.8:
-                    dmg = random.uniform(15, 40) * entity['weight'] / t['weight']
+                    dmg = random.uniform(25, 65) * entity['weight'] / t['weight']
                     
                     entity['_fullDmg'] += dmg
-                    entity.world.broadcast(2, entity, " smashes ", t, (' further' if entity['_fullDmg'] == dmg else ''), ", provoking ", 100 * dmg / entity['_constrictHealth'], "% vital damage, for a total of ", max(100, 100 * entity['_fullDmg'] / entity['_constrictHealth']), "%!", place=entity.place)
+                    entity.world.broadcast(2, entity, " crushes ", t, (' further' if entity['_fullDmg'] == dmg else ''), ", provoking ", 100 * dmg / entity['_constrictHealth'], "% vital damage, for a total of ", min(100, 100 * entity['_fullDmg'] / entity['_constrictHealth']), "%!", place=entity.place)
                     
                     t['instigator'] = entity.id
                     t.call('take_damage', dmg)   
@@ -81,7 +81,7 @@
                         
                         if random.random() &lt; entity['vore']:
                             entity.world.broadcast(2, entity, " devours what remained of ", t, "!", place=entity.place)
-                            entity['feeding'] += t['weight'] / 15
+                            entity['feeding'] += t['weight'] / 10
                     
         </function>
     
@@ -107,8 +107,9 @@
                         entity.call('move', p)
                         
                 if entity['feeding'] &gt; 0:
+                    pts = entity['feeding'] / 1.5
                     entity['feeding'] = entity['feeding'] - 1
-                    entity.call('heal', entity, entity['health'] + entity['feeding'] / 2)
+                    entity.call('heal', entity, pts, '{} healed {} points from feeding,'.format(entity, pts))
         </function>
     </functions>
     
@@ -123,7 +124,8 @@
         <!-- anaconda traits -->
         <attr name="maxFoodHeal" value="20" />
         <attr name="vore" value="0.8" /> <!-- chance to eat the target, from 0 to 1 -->
-        <attr name="obituary" value="'{killer} smashed {victim} into a creamy flesh! (yuck)'" />
+        <attr name="constrictChance" value="0.4" />
+        <attr name="obituary" value="'{killer} crushed {victim} into a creamy flesh! (yuck)'" />
     
         <!-- reaction traits, in a scale from 1 to 10 -->
         <attr name="hostility" value="4" /> <!-- negativity of reaction to living entities of other kinds --> 
@@ -138,6 +140,7 @@
         <attr name="moveSpeed" value="0.6" /> <!-- chance, from 0 to 1, for a succesful tile move -->
         
         <attr name="postTransfer" value="'striped'" />
+        
     </base>
     
     <default>
@@ -188,6 +191,7 @@
             <attr name="vore" value="1.0" />
             <attr name="dangerousness" value="70" />
             <attr name="punchDamage" value="35" /> <!-- would've been called biteDamage -->
+            <attr name="constrictChance" value="0.75" />
             
             <attr name="size" value="60" />
             <attr name="weight" value="50" />

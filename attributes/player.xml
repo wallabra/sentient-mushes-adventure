@@ -50,7 +50,7 @@
                     return False
                     
                 entity['weapon'] = item
-                entity.world.broadcast(2, entity, ' is now wielding a {}!'.format(item), entity.place)
+                entity.world.broadcast(2, entity, ' is now wielding a {}!'.format(item), place=entity.place)
                 
                 return True
     </function>
@@ -61,6 +61,19 @@
     </function>
     
     <function name="craft">
+        def plural(name, amount=2):
+            if amount == 1:
+                return name
+            
+            elif name.endswith('us') or name.endswith('is'):
+                return name[:-2] + 'i'
+
+            elif name[-1] == 's':
+                return name + 'es'
+                
+            else:
+                return name + 's'
+    
         def craft(entity, player, desired, amount):
             if entity['dead']:
                 return
@@ -107,7 +120,7 @@
             if entity['dead'] or not other:
                 return False
         
-            entity.call('attack', other, (entity['punchDamage'] * random.uniform(0.7, 1.3) if (not entity['weapon'] or entity['inventory'].get(entity['weapon'], 0) &lt;= 0) else random.uniform(world.item_type(entity['weapon'])['attr']['minDamage'], world.item_type(entity['weapon'])['attr']['maxDamage'])))
+            entity.call('attack', other, (entity['punchDamage'] * random.uniform(0.7, 1.3) if (not entity['weapon'] or entity['inventory'].get(entity['weapon'], 0) &lt;= 0) else random.uniform(entity.world.item_type(entity['weapon'])['attr']['minDamage'], entity.world.item_type(entity['weapon'])['attr']['maxDamage'])))
             
             if entity['weapon'] and entity['inventory'].get(entity['weapon'], 0) > 0:
                 if entity['weapon'] in entity['weaponUses']:
@@ -117,7 +130,7 @@
                     
                 else:
                     wu = entity['weaponUses']
-                    wu[entity['weapon']] = world.item_type(entity['weapon'])['attr']['weaponUses'] - 1
+                    wu[entity['weapon']] = entity.world.item_type(entity['weapon'])['attr']['weaponUses'] - 1
                     entity['weaponUses'] = wu
                     
                 if entity['weaponUses'][entity['weapon']] &lt;= 0:
@@ -212,4 +225,7 @@
     </function>
     
     <attribute key="pickups" value="0" />
+    <attribute key="weaponUses" value="{}" />
+    
+    <declare name="weapon" />
 </default>

@@ -116,14 +116,32 @@
             
                 # Hostility.
                 if not entity['target']:
-                    strangers = tuple(filter(lambda e: ((e.type.id != entity.type.id) or (e['mush'] != entity['mush'] and entity['mush']) and ((entity['dangerousness'] + entity['health']) * entity['courage'] / 10.0 &gt;= (e['dangerousness'] + e['health']) * e['courage'] / 10.0)) and e['health'] &gt; 0, entity.world.all_in_place(entity.place)))
+                    strangers = tuple(map(
+                        lambda x: entity.world.from_id(x),
+                        tuple(
+                            set(map(
+                                lambda x: x.id,
+                                tuple(filter(
+                                    lambda e: \
+                                        ((e.type.id != entity.type.id) \
+                                        or (e['mush'] != entity['mush'] and entity['mush'])) \
+                                        and (
+                                            (entity['dangerousness'] + entity['health']) * entity['courage'] &gt;= \
+                                            (e['dangerousness'] + e['health']) * e['courage']
+                                        ) \
+                                        and e['health'] &gt; 0,
+                                    entity.world.all_in_place(entity.place)
+                                ))
+                            )) - set(entity['friends'])
+                        )
+                    ))
                     
                     if random.random() * 20 &lt;= entity['hostility'] / 2.5 + 10 - entity['humor'] * 10 and len(strangers) > 0:
                         entity['target'] = random.choice(strangers).id
                         entity.world.broadcast((2.5 if entity.pointer('target')['isPlayer'] else 1), entity, ' suddenly turns to attack ', entity.pointer('target'), '!', place=entity.place)
                         entity.call('pick_attack')
                     
-                ## Sociality.
+                # Sociality.
                 friends = tuple(filter(lambda e: e.type.name == entity.type.name and e['health'] &gt; 0, entity.world.all_in_place(entity.place)))
                 
                 if entity['mush']:
@@ -132,19 +150,30 @@
                 
                 friends = tuple(filter(lambda f: f.id not in entity['friends'] and entity.id != f.id and (not entity['mush'] or f['mush']), friends))
                 
-                if random.random() * 10 &lt;= entity['sociality'] * entity['humor'] and len(friends) > 0:
+                if random.random() * 10 &lt;= entity['sociality'] * entity['humor'] and len(friends) &gt; 0:
                     f = random.choice(friends)
                     fl = entity['friends']
                     fl.append(f.id)
                     entity['friends'] = fl
                     entity.world.broadcast((2 if f['isPlayer'] else 0), entity, " made a new friend: ", f, "!", place=entity.place)
                     
+                # Sympathy.
+                teammates = tuple(filter(lambda e: e.type.name != entity.type.name and e['health'] &gt; 0 and e['target'] == entity['target'], entity.world.all_in_place(entity.place)))
+                
+                if len(teammates) &gt; 0 and entity['sociality'] + entity['humor'] * 15 &gt; random.uniform(0, 49.99):
+                    tmate = random.choice(teammates)
+                    fl = entity['friends']
+                    fl.append(tmate.id)
+                    entity['friends'] = fl
+                    entity.world.broadcast((2 if tmate['isPlayer'] else 0), entity, " felt sympathy for ", tmate, ", and became friends!", place=entity.place)
+                    
                 # Following friends.
-                if len(entity['friends']) > 0 and random.random() * 10 &lt;= entity['humor'] * 8 + 2:
+                if len(entity['friends']) &gt; 0 and random.random() * 10 &lt;= entity['humor'] * 8 + 2:
                     to_follow = weighted_random(list({e: e['leadership'] for e in map(lambda e: entity.world.from_id(e), entity['friends'])}.items()))
                     
                     if to_follow:
                         entity.call('pathmove', to_follow.place)
+                        entity.world.broadcast((2 if to_follow['isPlayer'] else 0), entity, " decided to follow ", to_follow, ".", place=to_follow.place)
                         
                 # Sharing battles with friends.
                 if not entity['target'] and entity['friends']:
@@ -496,16 +525,20 @@
     </function>
     
     <function name="heal">
-        def heal(entity, other, amount):
+        def heal(entity, other, amount, print_msg=None):
             if entity['dead']:
                 return
         
             if entity.place == other.place:
-                if entity.id == other.id:
-                    entity.world.broadcast((2 if entity['isPlayer'] else 0), entity, " is healing itself by ", amount, " hitpoints!", place=entity.place)
+                if print_msg:
+                    entity.world.broadcast((3 if entity['isPlayer'] else 1), print_msg, place=entity.place)
                 
                 else:
-                    entity.world.broadcast((2 if entity['isPlayer'] else 1), entity, " is healing ", other, " by ", amount, " hitpoints!", place=entity.place)
+                    if entity.id == other.id:
+                        entity.world.broadcast((2 if entity['isPlayer'] else 0), entity, " is healing itself by ", amount, " hitpoints!", place=entity.place)
+                    
+                    else:
+                        entity.world.broadcast((2 if entity['isPlayer'] else 1), entity, " is healing ", other, " by ", amount, " hitpoints!", place=entity.place)
                     
                 other['health'] = other['health'] + amount
     </function>

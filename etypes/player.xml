@@ -43,8 +43,6 @@
     </base>
     
     <default>
-        <declare name="weapon" />
-        <attribute name="weaponUses" value="{}" />
         <attribute name="mush" value="True" />
         
         <import name="player" href="attributes/player.xml" />
@@ -78,16 +76,16 @@
         <item name="flint sword">
             <flag name="weapon" />
             <attribute key="uses" value="70" />
-            <attribute key="minDamage" value="25" />
-            <attribute key="maxDamage" value="60" />
+            <attribute key="minDamage" value="30" />
+            <attribute key="maxDamage" value="80" />
             <attribute key="recipe" value="{ 'stick': 2, 'flint': 1, 'straw': 3 }" />
         </item>
         
         <item name="poisonous flint sword">
             <flag name="weapon" />
-            <attribute key="poison" value="5" />
+            <attribute key="poison" value="3" />
             <attribute key="uses" value="70" />
-            <attribute key="minDamage" value="25" />
+            <attribute key="minDamage" value="40" />
             <attribute key="maxDamage" value="60" />
             <attribute key="recipe" value="{ 'flint sword': 1, 'poison sac': 1 }" />
         </item>
@@ -96,14 +94,14 @@
             <flag name="weapon" />
             <attribute key="uses" value="125" />
             <attribute key="minDamage" value="40" />
-            <attribute key="maxDamage" value="80" />
+            <attribute key="maxDamage" value="95" />
         </item>
         
         <item name="grenades">
             <flag name="weapon" />
             <attribute key="uses" value="8" />
-            <attribute key="minDamage" value="40" />
-            <attribute key="maxDamage" value="80" />
+            <attribute key="minDamage" value="60" />
+            <attribute key="maxDamage" value="250" />
         </item>
     </itemdefs>
     
