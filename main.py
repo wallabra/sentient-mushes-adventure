@@ -252,6 +252,22 @@ def craft(interface, connection, event, args):
         
     players[event.source.nick].craft(' '.join(args[1:]), int(args[0]))
    
+@command('stats')
+def stats(interface, connection, event, args):
+    if event.source.nick not in players:
+        interface.send_message(event.target, '{}: Join first!'.format(event.source.nick))
+        return
+        
+    e = players[event.source.nick].entity
+    interface.send_message(event.target, "{}: You are a {}, with {} health, at {}. Currently you're wielding {}. You are friends with {}.".format(
+        event.source.nick,
+        e.variant['name'],
+        e['health'],
+        e.place,
+        (e['weapon'] if e['weapon'] is not None else 'nothing'),
+        (', '.join(e.pointer_list('friends')) if len(e['friends']) > 0 else 'nobody')
+    ))
+   
 @command('gethealth')
 def gethealth(interface, connection, event, args):
     if len(args) < 1:
@@ -437,8 +453,13 @@ class IRCInterface(SingleServerIRCBot):
             world.add_broadcast_channel(2, _channel(j))
         
     def send_message(self, channel, msg):
-        for line in textwrap.wrap(msg, 350):
+        wp = textwrap.wrap(msg, 350)
+    
+        for i, line in enumerate(wp):
             self.connection.privmsg(channel, line)
+            
+            if i < len(wp) - 1:
+                time.sleep(0.6)
         
     def on_pubmsg(self, connection, event):
         last_chan[event.source.nick] = event.target

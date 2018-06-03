@@ -155,6 +155,9 @@
                     fl = entity['friends']
                     fl.append(f.id)
                     entity['friends'] = fl
+                    fl = f['friends']
+                    fl.append(entity.id)
+                    f['friends'] = fl
                     entity.world.broadcast((2 if f['isPlayer'] else 0), entity, " made a new friend: ", f, "!", place=entity.place)
                     
                 # Sympathy.
@@ -165,6 +168,9 @@
                     fl = entity['friends']
                     fl.append(tmate.id)
                     entity['friends'] = fl
+                    fl = tmate['friends']
+                    fl.append(entity.id)
+                    tmate['friends'] = fl
                     entity.world.broadcast((2 if tmate['isPlayer'] else 0), entity, " felt sympathy for ", tmate, ", and became friends!", place=entity.place)
                     
                 # Following friends.

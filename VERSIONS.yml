@@ -39,3 +39,10 @@
         - "Fixed craft... finally! I want sleep ...........zzZZZ"
         
     todo: []
+    
+"v2018.06.03.7":
+    changes:
+        - "Now friends are bidirectional!"
+        - "Added stats command."
+        
+    todo: []
