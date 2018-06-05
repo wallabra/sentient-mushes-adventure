@@ -24,9 +24,47 @@
                     entity.type.variants[entity.variant['id']].pop('__handle_dead_player')
     </function>
     
+    <function name="eat">
+        import random
+        random_wtfs = ['a cooking utensil', 'an electronic device', 'furniture', 'a vacuum cleaner', 'trash', 'rubbish', 'some much wow item', 'a 64 item stack', 'a Notch apple', 'a block', 'a deadly heavy piano', 'my swamp', 'a null pointer', "your mother's deadly dough roll", 'a new addition', 'the everforgotten Minecraft 1.13 version', 'lava', 'a pile of soap', 'a soap gun', 'a waterarm', 'my son, the Sock Puppet', 'my boyfriend', 'my girlfriend', 'random.choice(random_wtfs)', 'entropy', 'a black hole', 'space and time']
+    
+        def eat(entity, player, item=None):
+            if entity['dead']:
+                return False
+            
+            if item is None:
+                entity.world.broadcast(2, entity, " is eating thin air! To no effect! (turn wasn't consumed)", entity.place)
+                return False
+            
+            else:
+                i = entity.world.find_item(item)
+                
+                if not i:
+                    player.print_out("{}: Is that {}? That doesn't exist in this game!".format(entity.name, random.choice(random_wtfs)))
+                    return False
+                   
+                if 'food' not in i['flags'] and not i['attr'].get('food', False):
+                    player.print_out("{}: That is not food, that's just {}!".format(entity.name, random.choice(random_wtfs)))
+                    return False
+                
+                if item not in entity['inventory'] or entity['inventory'][item] &lt;= 0:
+                    player.print_out("{}: Imaginary food doesn't kill hunger! You don't have that!".format(entity.name))
+                    return False
+                    
+                heal = i['attr']['heal']
+                
+                if type(heal) in (list, tuple):
+                    heal = random.uniform(heal[0], heal[1])
+                
+                entity['health'] += heal
+                entity.world.broadcast(2, entity, ' ate a {} and healed {} points!'.format(item, heal), place=entity.place)
+                
+                return True
+    </function>
+
     <function name="wield">
         import random
-        random_wtfs = ['a cooking utensil', 'an electronic device', 'furniture', 'a vacuum cleaner', 'trash', 'some much wow item', 'a 64 item stack', 'a Notch apple', 'a block', 'a deadly heavy piano', 'my swamp', 'a null pointer', "your mother's deadly dough roll", 'a new addition', 'the everforgotten Minecraft 1.13 version', 'lava', 'a pile of soap', 'a soap gun', 'a waterarm', 'my son, the Sock Puppet', 'my boyfriend', 'my girlfriend', 'random.choice(random_wtfs)', 'entropy', 'a black hole', 'space and time']
+        random_wtfs = ['a cooking utensil', 'an electronic device', 'furniture', 'a vacuum cleaner', 'trash', 'rubbish', 'some much wow item', 'a 64 item stack', 'a Notch apple', 'a block', 'a deadly heavy piano', 'my swamp', 'a null pointer', "your mother's deadly dough roll", 'a new addition', 'the everforgotten Minecraft 1.13 version', 'lava', 'a pile of soap', 'a soap gun', 'a waterarm', 'my son, the Sock Puppet', 'my boyfriend', 'my girlfriend', 'random.choice(random_wtfs)', 'entropy', 'a black hole', 'space and time']
     
         def wield(entity, player, item=None):
             if entity['dead']:
@@ -35,7 +73,7 @@
             if item is None:
                 entity['weapon'] = None
                 entity.world.broadcast(2, entity, ' is now fighting with their own body instead of a weapon!', entity.place)
-                return False
+                return True
             
             else:
                 i = entity.world.find_item(item)
@@ -240,6 +278,14 @@
     <item name="pebble" />
     <item name="flint" />
     <item name="leaf" />
+    
+    <item name="apple">
+        <flag name="herbivorousFood" />
+        <flag name="food" />
+        <attribute key="heal" value="(5, 12)" />
+    </item>
+    
+    <item name="wheat" />
     <item name="straw" />
     
     <item name="rope">

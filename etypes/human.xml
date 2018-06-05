@@ -130,7 +130,7 @@
             <attr name="obituary" value="'{killer} poked {victim} some holes with a kitchen knife!'" />
             <attr name="size" value="1.00" />
             <attr name="health" value="80" />
-            <attr name="weight" value="50" /> <!-- in kilograms - peasants are poor, hungry and skinny -->
+            <attr name="weight" value="50" /> <!-- in kilograms - low class citizens are poor, hungry and skinny -->
             <attr name="dangerousness" value="12" />
             <attr name="meleeAttackFunc" value="'hoe_attack'" />
             <default key="accuracy" value="0.5" />
@@ -165,7 +165,7 @@
             <attr name="obituary" value="'{killer} slayed {victim} with a couple deadly stabs!'" />
             <attr name="size" value="1.05" />
             <attr name="health" value="102" />
-            <attr name="weight" value="110" /> <!-- in kilograms -->
+            <attr name="weight" value="40" /> <!-- in kilograms -->
             <attr name="dangerousness" value="25" />
             <attr name="meleeAttackFunc" value="'sword_attack'" />
             <default key="accuracy" value="0.7" />
@@ -177,8 +177,19 @@
             <attr name="obituary" value="'{killer} mutilated {victim} with multiple wide lacerations!'" />
             <attr name="size" value="1.05" />
             <attr name="health" value="102" />
-            <attr name="weight" value="110" /> <!-- in kilograms -->
+            <attr name="weight" value="75" /> <!-- in kilograms -->
             <attr name="dangerousness" value="40" />
+            <attr name="meleeAttackFunc" value="'sword_attack'" />
+            
+            <default name="inventory" value="{ 'steel sword': 1 }" />
+        </variant>
+                
+        <variant name="Lighthouse Keeper" id="lhkeeper">
+            <attr name="obituary" value="'{killer} wiped {victim} off the Lamp Floor of Lighthouse Anne! (because wiping them from the face of Earth is NOT enough)'" />
+            <attr name="size" value="1.08" />
+            <attr name="health" value="121" />
+            <attr name="weight" value="82" /> <!-- in kilograms -->
+            <attr name="dangerousness" value="55" />
             <attr name="meleeAttackFunc" value="'sword_attack'" />
             
             <default name="inventory" value="{ 'steel sword': 1 }" />

@@ -61,6 +61,10 @@ world.add_broadcast_channel(-1, log_channel)
 def list_players(interface, connection, event, args):
     interface.send_message(event.target, "The following are playing: " + ', '.join(tuple(players.keys())))
     
+@command('dumpplaces')
+def list_players(interface, connection, event, args):
+    interface.send_message(event.target, "{} places: ".format(len(world.places)) + ', '.join(map(lambda p: p['name'], world.places)))
+    
 @command('reset_world')
 def reset_world(interface, connection, event, args):
     global world, players, turnorder, turn

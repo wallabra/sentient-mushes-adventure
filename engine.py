@@ -482,6 +482,7 @@ class XMLGameLoader(object):
                 for p in el:
                     if p.tag == "place":
                         i = {}
+                        attr = {}
                     
                         for sub in p:
                             if sub.tag == "flock":
@@ -503,6 +504,9 @@ class XMLGameLoader(object):
                                 if sub.get('type') in world.etypes:
                                     world.add_entity(world.etypes[sub.get('type')].instantiate(world, p.get('name'), (random.choice(sub.get('variant').split(';')) if sub.get('variant') != '*' else random.choice(tuple(world.etypes[sub.get('type')].variants.keys())))))
                                     
+                            elif sub.tag == "attr":
+                                attr[sub.get('key')] = sub.get('value', None)
+                                   
                             elif sub.tag == "items":
                                 if world.find_item(sub.get('type')):
                                     amount = sub.get('amount')
@@ -527,6 +531,7 @@ class XMLGameLoader(object):
                         world.places.append({
                             'name': p.get('name'),
                             'id': p.get('id'),
+                            'attr': attr,
                             'items': i
                         })
                 

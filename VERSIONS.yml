@@ -47,7 +47,7 @@
         
     todo: []
     
-"v2018.06.04.1": # current release
+"v2018.06.04.1":
     changes:
         - "Removed the Huamn Player."
         - "Added the Green and Lime Velociraptor NPCs."
@@ -64,3 +64,12 @@
         
     todo: []
     
+"v2018.06.04.2":  # current release
+    cbanges:
+        - "Added Lighthouse Anne at Port Ludicrous, and an alternative path around Mount Bayoku: Australocampus."
+        - "Added random food items eating for creatures. Only for items lying in the place."
+        - "Added the eat command for inventory foods."
+        - "Added apples."
+        - "Added dumpplaces."
+    
+    todo: []

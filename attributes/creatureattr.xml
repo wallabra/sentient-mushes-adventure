@@ -192,6 +192,22 @@
                             entity.world.broadcast((2 if f['isPlayer'] or f.pointer('target')['isPlayer'] else 0), entity, " decided to help his friend ", f, " in its battle aggainst ", f.pointer('target'), '!', place=entity.place)
                             entity['target'] = f['target']
                             break
+                            
+                # Eat.
+                if (entity['herbivore'] or entity['carnivore']) and random.random() &lt;= 0.3:
+                    food = [k for k, v in entity.world.find_place(entity.place)['items'] if v &gt; 0 and ((entity['herbivore'] and entity.world.item_type(k)['attr'].get('herbivoreFood', False)) or (entity['carnivore'] and entity.world.item_type(k)['attr'].get('carnivoreFood', False)))]
+                    
+                    if len(food) &gt; 0:
+                        food = entity.world.item_type(random.choice(food))
+                        heal = food['attr']['heal']
+                
+                        if type(heal) in (list, tuple):
+                            heal = random.uniform(heal[0], heal[1])
+                            
+                        entity.world.find_place(entity.place)['items'][food] -= 1
+                        entity['health'] += heal
+                        entity.world.broadcast((1 if f['isPlayer'] or f.pointer('target')['isPlayer'] else 0), entity, " ate a randomly lying ", food, " and healed {.2f} HP.".format(heal), place=entity.place)
+                        
     </function>
     
     <function name="flee">
