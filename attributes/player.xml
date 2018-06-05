@@ -17,8 +17,11 @@
         def on_death(entity):
             if entity['isPlayer']:
                 print("Removing player: " + str(entity))
-                entity.variant['__handle_dead_player'].get(entity.name, dummy)(entity)
-                entity.variant['__handle_dead_player'].pop(entity.name, None)
+                entity.type.variants[entity.variant['id']]['__handle_dead_player'].get(entity.name, dummy)(entity)
+                entity.type.variants[entity.variant['id']]['__handle_dead_player'].pop(entity.name, None)
+                
+                if len(entity.type.variants[entity.variant['id']]['__handle_dead_player']) &lt;= 0:
+                    entity.type.variants[entity.variant['id']].pop('__handle_dead_player')
     </function>
     
     <function name="wield">

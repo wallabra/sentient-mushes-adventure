@@ -84,8 +84,8 @@ class EntityType(object):
 
         return "{}#{}#{}#{}#{}#{}".format(id, self.id, namegen.generate_name(random.randint(3, 10)), place, variant, json.dumps(attr))
         
-    def call(self, func, entity, *args):
-        return self.functions[func](entity, *args)
+    def call(self, func, entity, *args, **kwargs):
+        return self.functions[func](entity, *args, **kwargs)
 
 class LoadedEntity(object):
     def __init__(self, world, index, s):
@@ -209,24 +209,24 @@ class LoadedEntity(object):
             
         return (b if b is not None else (True if key in self.variant['flags'] else None))
     
-    def call(self, func, *args):
+    def call(self, func, *args, **kwargs):
         fspace = getattr(func, '__funcspace', "")
         
-        if fspace:
+        if fspace != "":
             fspace = "<" + fspace + ">"
         
         logging.debug("ENTITY CALL: {}({}).{}{}({})".format(self.type.id, self.name, func, fspace, ', '.join([(repr(a.name) if isinstance(a, LoadedEntity) else (repr(a.entity.name) if isinstance(a, player.PlayerInterface) else repr(a))) for a in args])))
-        return self.type.call(func, self, *args)
+        return self.type.call(func, self, *args, **kwargs)
         
-    def event(self, evt, *args):
+    def event(self, evt, *args, **kwargs):
         for s in self.type.systems:
-            s(evt, self, *args)
+            s(evt, self, *args, **kwargs)
             
         for s in self.variant['systems']:
-            s(evt, self, *args)
+            s(evt, self, *args, **kwargs)
             
         for s in self.world.global_systems:
-            s(evt, self, *args)
+            s(evt, self, *args, **kwargs)
     
     def set_place(self, p):
         self.place = p
@@ -290,7 +290,7 @@ class GameWorld(object):
         self.entities = data['entities']
         self.places = data['places']
         
-    def add_broadcast_channel(self, level, *channels):
+    def add_broadcast_channel(self, level, *channels, name=None):
         for c in channels:
             def _exit():
                 c('\n')
@@ -298,7 +298,21 @@ class GameWorld(object):
             atexit.register(_exit)
             setattr(c, '_level', level)
     
+        if name is not None:
+            for c in channels:
+                setattr(c, '__chan_name', name)
+        
         self.broadcast_channels.extend(channels)
+        
+    def remove_broadcast_channel(self, name):
+        bad = []
+    
+        for i, c in enumerate(self.broadcast_channels):
+            if getattr(c, '__chan_name', None) == name:
+                bad.append(i)
+                
+        for no, ind in enumerate(bad):
+            self.broadcast_channels.pop(ind - no)
         
     def broadcast(self, level, *message, place=None):
         self.message_queue.put((level, message, place))

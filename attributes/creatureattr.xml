@@ -353,7 +353,7 @@
             path = []
             
             c = navdest
-            while c != entity.place:
+            while c is not None:
                 # print(c, entity.place)
                 path.append(c)
                 
@@ -471,17 +471,23 @@
         
             if random.random() * 0.8 + min(1, max(entity['humor'], 0)) * entity['accuracy'] &lt;= other['speed']:
                 if message:
-                    entity.world.broadcast(2, message, place=entity.place)
+                    entity.world.broadcast(2, message + " It missed!", place=entity.place)
                 
-                else
+                else:
                     entity.world.broadcast(2, entity, " tried to attack ", other, "! It missed!", place=entity.place)
                     
                 entity['humor'] -= 0.08
                 return False
                 
             other['instigator'] = entity.id
-            entity.world.broadcast(2, entity, " attacks ", other, "!", place=entity.place)
-            other.call('take_damage', damage)
+            
+            if message:
+                entity.world.broadcast(2, message + " It receives {} damage!".format(damage), place=entity.place)
+            
+            else:
+                entity.world.broadcast(2, entity, " attacks ", other, "!", place=entity.place)
+                
+            other.call('take_damage', damage, message is None)
             
             entity.event('attack')
             
@@ -495,29 +501,39 @@
     </function>
     
     <function name="take_damage">
-        def take_damage(entity, damage):
+        def take_damage(entity, damage, broadcast=True):
             if entity['dead']:
                 return
+        
+            changed = False
+        
+            dmg = damage
         
             for i in entity['inventory'].keys():
                 if entity['inventory'].get(i) &gt; 0 and 'modify_damage' in entity.world.item_type(i)['functions']:
                     damage = entity.world.item_type(i)['functions']['modify_damage'](entity, world, damage)
-                    
+                    changed = True
+                   
+            # if changed and dmg != damage:
+            #     # superseded
+            #     entity.world.broadcast(1, entity, "'s damage was {} from {.2f} to {.2f} hitpoints!".format(('amplified' if damage > dmg else 'reduced'), dmg, damage))
+                
             entity['health'] = entity['health'] - damage
 
             if entity['health'] &lt;= 0:
                 if entity['instigator']:
                     entity.world.from_id(entity['instigator'])['humor'] = entity.world.from_id(entity['instigator'])['humor'] + 0.02 * entity.world.from_id(entity['instigator'])['hostility'] - 5
                 
-                    if entity.world.from_id(entity['instigator'])['obituary']:
-                        entity.world.broadcast(2, '* ' + entity.world.from_id(entity['instigator'])['obituary'].format(killer=entity.world.from_id(entity['instigator']), victim=entity), place=entity.place)
-                        
-                    else:
-                         entity.world.broadcast(2, '* ', entity, " took ", damage, " damage from ", entity.world.from_id(entity['instigator']), " and died!", place=entity.place)
+                    if broadcast:
+                        if entity.world.from_id(entity['instigator'])['obituary']:
+                            entity.world.broadcast(2, '* ' + entity.world.from_id(entity['instigator'])['obituary'].format(killer=entity.world.from_id(entity['instigator']), victim=entity), place=entity.place)
+                            
+                        else:
+                             entity.world.broadcast(2, '* ', entity, " took ", damage, " damage from ", entity.world.from_id(entity['instigator']), " and died!", place=entity.place)
                          
                     entity.world.from_id(entity['instigator']).call('on_kill', entity)
             
-                else:
+                elif broadcast:
                     entity.world.broadcast(2, '* ', entity, " took ", damage, " damage and died!", place=entity.place)
                     
                 entity.call('on_death')
@@ -530,14 +546,15 @@
                 if entity['instigator']:
                     entity['humor'] -= 7
                 
-                    entity.world.broadcast(2, entity, " took ", damage, " damage!", place=entity.place)
+                    if broadcast:
+                        entity.world.broadcast(2, entity, " took ", damage, " damage!", place=entity.place)
                     
                     if not entity['target'] or (entity.world.from_id(entity['instigator'])['dangerousness'] + entity.world.from_id(entity['instigator'])['health'] &gt; entity.pointer('target')['dangerousness'] + entity.pointer('target')['health']):
                         entity['target'] = entity['instigator']
                         
                     entity['instigator'] = None
                     
-                else:
+                elif broadcast:
                     entity.world.broadcast((2 if entity['isPlayer'] else 1), entity, " took ", damage, " damage!", place=entity.place)
             
     </function>

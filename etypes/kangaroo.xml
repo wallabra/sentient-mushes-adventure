@@ -27,12 +27,12 @@
                     return
                 
                 if random.random() &lt;= 0.3:
-                    entity.world.broadcast((3 if entity['isPlayer'] or t['isPlayer'] else 2), entity, " powerfully kicks ", t, "!", place=entity.place)
-                    entity.call('attack', t, random.uniform(55, 120))
+                    dmg = random.uniform(70, 135)
+                    entity.call('attack', t, dmg, "{} powerfully kicks {}!!".format(entity, t, dmg))
                 
                 else:
-                    entity.world.broadcast((3 if entity['isPlayer'] or t['isPlayer'] else 2), entity, " kicks ", t, "!", place=entity.place)
-                    entity.call('attack', t, random.uniform(30, 70))
+                    dmg = random.uniform(25, 60)
+                    entity.call('attack', t, dmg, "{} kicks {}!".format(entity, t, dmg))
                     
         </function>
     

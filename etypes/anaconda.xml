@@ -129,9 +129,9 @@
                         entity.call('move', p)
                         
                 if entity['feeding'] &gt; 0:
-                    pts = entity['feeding']
+                    pts = entity['feeding'] * 2.5
                     entity['feeding'] = entity['feeding'] - 1
-                    entity.call('heal', entity, pts, '{} healed {:.2f} points from nutrition,'.format(entity, pts))
+                    entity.call('heal', entity, pts, '{} healed {:.2f} points from nutrition.'.format(entity, pts))
         </function>
     </functions>
     
@@ -213,7 +213,7 @@
             <attr name="vore" value="1.0" />
             <attr name="dangerousness" value="70" />
             <attr name="punchDamage" value="35" /> <!-- would've been called biteDamage -->
-            <attr name="constrictChance" value="0.75" />
+            <attr name="constrictChance" value="0.8" />
             
             <attr name="size" value="60" />
             <attr name="weight" value="50" />

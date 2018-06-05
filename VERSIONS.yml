@@ -47,7 +47,7 @@
         
     todo: []
     
-"v2018.06.03.8": # current release
+"v2018.06.04.1": # current release
     changes:
         - "Removed the Huamn Player."
         - "Added the Green and Lime Velociraptor NPCs."
@@ -56,5 +56,11 @@
         - "Replaced gethealth by the more informative stats command."
         - "Added Vallis Ordo (from Latin: Valley of Order) and North Bridge"
         - "Fixed the Kangaroo player not importing attributes/player.xml."
+        - "Fixed broadcasting-related issues with the part command."
+        - "Fixed the Small Dragon Player's special (firebreath)."
+        - "Fixed broadcast handling with channels that already had players in the past."
+        - "Added a custom attack message to the Kangaroo's kick, instead of broadcasting it along with the default attack message."
+        - "Fixed the message parameter for take_damage."
         
     todo: []
+    

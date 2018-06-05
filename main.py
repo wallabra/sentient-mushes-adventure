@@ -121,23 +121,14 @@ def player_join(interface, connection, event, args):
         
     p = player.PlayerInterface.join([], world, event.source.nick, random.choice(world.beginning.split(';')), type, variant)
     p.entity['fancy_name'] = "\x02" + event.source.nick + "\x0F"
-        
-    def _channel(m, place, level):
-        if place == p.entity.place and level < 3:
-            interface.send_message(last_chan[event.source.nick], m)
-            return True
-            
-        return False
                     
     def _super_channel(m, place, level):
         interface.send_message(last_chan[event.source.nick], m)
             
     p.channels.append(_super_channel)
     players[event.source.nick] = p
-    
-    if event.target not in _chan_already:
-        world.add_broadcast_channel(1, _channel)
-        _chan_already |= {event.target}
+     
+    interface.chan_population[event.target] = interface.chan_population.get(event.target, set()) | {event.source.nick}
     
     def __handle_dead_player(e):
         global turn
@@ -146,14 +137,16 @@ def player_join(interface, connection, event, args):
             players.pop(e.name)
             turnorder.remove(e.name)
             
+        interface.chan_population[event.target] -= {event.source.nick}
         turn -= 1
+        
         next_turn()
     
-    if '__handle_dead_player' not in p.entity.variant:
-        p.entity.variant['__handle_dead_player'] = { p.entity.name: __handle_dead_player }
+    if '__handle_dead_player' not in p.entity.type.variants[p.entity.variant['id']]:
+        p.entity.type.variants[p.entity.variant['id']]['__handle_dead_player'] = { p.entity.name: __handle_dead_player }
     
     else:
-        p.entity.variant['__handle_dead_player'][p.entity.name] = __handle_dead_player
+        p.entity.type.variants[p.entity.variant['id']]['__handle_dead_player'][p.entity.name] = __handle_dead_player
     
     turnorder.append(event.source.nick)  
     world.broadcast(4, "A new player joined: ", p.entity, "!")
@@ -451,10 +444,11 @@ class IRCInterface(SingleServerIRCBot):
         self.name = name
         self.joinchans = channels
         self.account = account
+        self.chan_population = {}
         
         def _channel(chan):
             def __wrapper__(m, place, level):
-                if place is None or level >= 3:
+                if (place in map(lambda p: players[p].entity.place, self.chan_population.get(chan, set())) or place is None) or level >= 3:
                     self.send_message(chan, m)
                     return True
                     

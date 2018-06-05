@@ -12,7 +12,7 @@
                 target = entity.world.from_name(target)
                     
                 player.print_out("{}: Performing the Dragon's firebreath.".format(entity), place=entity.place)
-                entity['target'] = target
+                entity['target'] = target.id
                 entity.call('firebreath')
                 return True
         </function>
