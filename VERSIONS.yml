@@ -64,12 +64,21 @@
         
     todo: []
     
-"v2018.06.04.2":  # current release
+"v2018.06.04.2":
     cbanges:
         - "Added Lighthouse Anne at Port Ludicrous, and an alternative path around Mount Bayoku: Australocampus."
         - "Added random food items eating for creatures. Only for items lying in the place."
         - "Added the eat command for inventory foods."
         - "Added apples."
         - "Added dumpplaces."
+    
+    todo: [] 
+    
+"v2018.06.05.1":  # current release
+    cbanges:
+        - "Fixed __worldlist_unload (an internal LoadedEntity method to unload itself from the world's master list)."
+        - "Added G to consonantal ditongs for the name generator (g*, *g and gg)."
+        - "Fixed pathmove broadcasts."
+        - "Added tick progress info (broadcasts) when too many entities are ticked."
     
     todo: []

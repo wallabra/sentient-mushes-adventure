@@ -104,7 +104,7 @@
                     return
                     
                 dmg = random.uniform(20, 35)
-                t.call('attack', entity, dmg, "{} bites {}, dealing {} damage!".format(entity, t, dmg))
+                t.call('attack', entity, dmg, "{} bites {}!".format(entity, t))
         </function>
     
         <function name="tick">

@@ -10,8 +10,8 @@ import random
 
 vowels = 'aeiou'
 consonants = 'bcdfghjklmnpqrstvwxyz'
-pre_consonants = 'tspdkcmnlxr'
-post_consonants = 'rhpzklt'
+pre_consonants = 'tspdkcmnlxrg'
+post_consonants = 'rhpzkltg'
 triple_consonants = ['str', 'spl', 'xpl']
 ditongs = ["ae", "ai", "ou", "ao", "oe", "oi", "oy", "aeo", "eio", "ee", "oo"]
 

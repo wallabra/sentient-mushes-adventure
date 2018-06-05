@@ -188,9 +188,14 @@ class LoadedEntity(object):
         self.world.update_loaded_entities()
         
     def __worldlist_unload(self):
+        bad = []
+    
         for i, e in enumerate(self.world.all_loaded_entities):
             if e is self:
-                self.world.all_loaded_entities.pop(i)
+                bad.append(i)
+                
+        for no, num in enumerate(bad):
+            self.world.all_loaded_entities.pop(num - no)
         
     def now(self):
         n = self.world.from_id(self.id)
@@ -345,6 +350,10 @@ class GameWorld(object):
     def tick(self):
         self.all_loaded_entities = []
         perc = 0
+        pinterval = 2000 / len(self.entities)
+        _pipos = 1
+        
+        print("[tick progress broadcast interval: {.2f}%]".format(pinterval))
         
         for i, e in enumerate(self.entities):
             en = LoadedEntity(self, i, e)
@@ -358,7 +367,11 @@ class GameWorld(object):
             self.all_loaded_entities = []
             perc += 1
             
-            logging.debug("TICK: {}%".format(100.0 * perc / len(self.entities)))
+            if perc > _pipos * pinterval or i == len(self.entities) - 1:
+                self.broadcast(3, "# {.2f}% completed processing tick.".format(perc))
+                _pipos += 1
+            
+            logging.debug("TICK: {.2f}% complete.".format(100.0 * perc / len(self.entities)))
         
     def add_entity(self, e):
         self.entities.append(e)

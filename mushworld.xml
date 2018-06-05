@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<world beginning="Prairies of Yohansville;Port Ludicrous;Yohansville">
+<world beginning="Prairies of Yohansville;Port Ludicrous;Australocampus;Furrow Hills">
     <places>
         <place name="Vallis Ordo">
             <flock type="anaconda" amount="3-9" variant="striped" />

@@ -392,8 +392,12 @@
             # if res:
             #     entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " wants to go to ", navdest, ("; just went through {}!".format(path[0]) if path[0] != navdest else "!"), place=path[0])
                 
-            if res == 1 and path[0] != navdest:
-                entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " failed to move to ", path[0], " while trying to reach ", navdest, "!", place=path[0])
+            if path[0] != navdest:
+                if res == 1:
+                    entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " failed to move to ", path[0], " while trying to reach ", navdest, ".", place=path[0])
+                    
+                else:
+                    entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " moved to ", path[0], ", wanting to reach ", navdest, ".", place=path[0])
                 
             return res
     </function>
@@ -522,7 +526,6 @@
                 return
         
             changed = False
-        
             dmg = damage
         
             for i in entity['inventory'].keys():
@@ -538,19 +541,19 @@
 
             if entity['health'] &lt;= 0:
                 if entity['instigator']:
-                    entity.world.from_id(entity['instigator'])['humor'] = entity.world.from_id(entity['instigator'])['humor'] + 0.02 * entity.world.from_id(entity['instigator'])['hostility'] - 5
+                    entity.pointer('instigator')['humor'] = entity.pointer('instigator')['humor'] + 0.02 * entity.pointer('instigator')['hostility'] - 5
                 
                     if broadcast:
-                        if entity.world.from_id(entity['instigator'])['obituary']:
-                            entity.world.broadcast(2, '* ' + entity.world.from_id(entity['instigator'])['obituary'].format(killer=entity.world.from_id(entity['instigator']), victim=entity), place=entity.place)
+                        if entity.pointer('instigator')['obituary']:
+                            entity.world.broadcast(2, '* ' + entity.pointer('instigator')['obituary'].format(killer=entity.pointer('instigator'), victim=entity, damage=damage, place=entity.place), place=entity.place)
                             
                         else:
-                             entity.world.broadcast(2, '* ', entity, " took ", damage, " damage from ", entity.world.from_id(entity['instigator']), " and died!", place=entity.place)
+                             entity.world.broadcast(2, '* ', entity, " took {.2f} damage from ".format(damage), entity.pointer('instigator'), " and died!", place=entity.place)
                          
-                    entity.world.from_id(entity['instigator']).call('on_kill', entity)
+                    entity.pointer('instigator').call('on_kill', entity)
             
                 elif broadcast:
-                    entity.world.broadcast(2, '* ', entity, " took ", damage, " damage and died!", place=entity.place)
+                    entity.world.broadcast(2, '* ', entity, " took {.2f} damage and died!".format(damage), place=entity.place)
                     
                 entity.call('on_death')
                 entity['dead'] = True
@@ -559,13 +562,13 @@
             else:
                 entity['humor'] -= damage / entity['health'] / 1.5
             
-                if entity['instigator']:
+                if entity.pointer('instigator'):
                     entity['humor'] -= 7
                 
                     if broadcast:
                         entity.world.broadcast(2, entity, " took ", damage, " damage!", place=entity.place)
                     
-                    if not entity['target'] or (entity.world.from_id(entity['instigator'])['dangerousness'] + entity.world.from_id(entity['instigator'])['health'] &gt; entity.pointer('target')['dangerousness'] + entity.pointer('target')['health']):
+                    if not entity.pointer('target') or (entity.pointer('instigator')['dangerousness'] + entity.pointer('instigator')['health'] &gt; entity.pointer('target')['dangerousness'] + entity.pointer('target')['health']):
                         entity['target'] = entity['instigator']
                         
                     entity['instigator'] = None

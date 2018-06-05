@@ -31,6 +31,13 @@ ticks = 1
 def next_turn():
     global turn, ticks
     
+    def _tick():
+        global commands
+        _cmds = commands
+        commands = {k: v for k, v in commands.items() if not getattr(v, '__important', False)}
+        world.tick()
+        commands = _cmds
+    
     turn += 1
 
     if turn >= len(turnorder) or len(turnorder) == 0:
@@ -41,12 +48,13 @@ def next_turn():
         world.broadcast(3, "It's now ", turnorder[turn], "'s turn!")
         
         if turn == 0:
-            Thread(name="Tick #%i" % ticks, target=world.tick()).start()
+            Thread(name="Tick #%i" % ticks, target=_tick).start()
     
 log_file = open('event.log', 'w')
 
-def command(name):
+def command(name, game_relevant=False):
     def __decorator__(func):
+        setattr(func, '__important', game_relevant)
         commands[name] = func
         return func
 
@@ -65,7 +73,7 @@ def list_players(interface, connection, event, args):
 def list_players(interface, connection, event, args):
     interface.send_message(event.target, "{} places: ".format(len(world.places)) + ', '.join(map(lambda p: p['name'], world.places)))
     
-@command('reset_world')
+@command('reset_world', True)
 def reset_world(interface, connection, event, args):
     global world, players, turnorder, turn
 
@@ -157,7 +165,7 @@ def player_join(interface, connection, event, args):
     
     interface.send_message(event.target, "Welcome, {}. Thou hast just joined the Mush, a parasitic, mind-controlling alien fungus race. Thy goal resumes in subjugating enemies, making new friends, exploring areas, crafting... all in order to finally save the world from yet another alien race... you'll discover it all by yourself eventually. Best of luck in thy journey!".format(p.entity.name))
     
-@command('special')
+@command('special', True)
 def special(interface, connection, event, args):
     if event.source.nick not in players:
         interface.send_message(event.target, '{}: Join first!'.format(event.source.nick))
@@ -192,7 +200,7 @@ greek_items = ['Icarus wing', 'ambrosia', "Zeus staff", 'Achilles boots', "Pytha
 def ping(interface, connection, event, args):
     interface.send_message(event.target, "{}: Pong! I got another score! You're too slow at this arcade game! I mean, have you ever truly played a Pong arcade? It's awesome.".format(event.source.nick))
     
-@command('pickup')
+@command('pickup', True)
 def pick_up(interface, connection, event, args):
     if event.source.nick not in players:
         interface.send_message('{}: Join first!'.format(event.source.nick))
@@ -224,7 +232,7 @@ def pick_up(interface, connection, event, args):
         if players[event.source.nick].entity['pickups'] >= 20:
             next_turn()
             
-@command('wield')
+@command('wield', True)
 def wield(interface, connection, event, args):
     if event.source.nick not in players:
         interface.send_message('{}: Join first!'.format(event.source.nick))
@@ -236,7 +244,7 @@ def wield(interface, connection, event, args):
     if players[event.source.nick].wield(' '.join(args)):
         pass # for now, I guess?
     
-@command('craft')
+@command('craft', True)
 def craft(interface, connection, event, args):
     if event.source.nick not in players:
         interface.send_message('{}: Join first!'.format(event.source.nick))
@@ -351,7 +359,7 @@ def listobjects(interface, connection, event, args):
         
     interface.send_message(event.target, "{}: Here you can see {}.".format(event.source.nick, ', '.join("{} the {}".format(world.from_id(e).name, world.from_id(e).variant['name']) for e in world.entities if world.from_id(e).place == players[event.source.nick].entity.place)))
     
-@command('infect')
+@command('infect', True)
 def infect(interface, connection, event, args):
     if event.source.nick not in players:
         interface.send_message(event.target, '{}: Join first!'.format(event.source.nick))
@@ -384,7 +392,7 @@ def paths(interface, connection, event, args):
     
     interface.send_message(event.target, "{}: From here you can go to {}".format(event.source.nick, ', '.join(tuple(pl))))
           
-@command('move')
+@command('move', True)
 def move(interface, connection, event, args):
     if event.source.nick not in players:
         interface.send_message(event.target, '{}: Join first!'.format(event.source.nick))
@@ -412,7 +420,7 @@ def move(interface, connection, event, args):
     if res:
         next_turn()
          
-@command('pass')
+@command('pass', True)
 def pass_turn(interface, connection, event, args):
     if event.source.nick not in players:
         interface.send_message(event.target, '{}: Join first!'.format(event.source.nick))
@@ -425,7 +433,7 @@ def pass_turn(interface, connection, event, args):
     world.broadcast(3, '{} passed the turn!'.format(event.source.nick))
     next_turn()
         
-@command('attack')
+@command('attack', True)
 def attack(interface, connection, event, args):
     if event.source.nick not in players:
         interface.send_message(event.target, '{}: Join first!'.format(event.source.nick))
