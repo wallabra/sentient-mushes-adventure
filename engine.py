@@ -220,7 +220,7 @@ class LoadedEntity(object):
         if fspace != "":
             fspace = "<" + fspace + ">"
         
-        logging.debug("ENTITY CALL: {}({}).{}{}({})".format(self.type.id, self.name, func, fspace, ', '.join([(repr(a.name) if isinstance(a, LoadedEntity) else (repr(a.entity.name) if isinstance(a, player.PlayerInterface) else repr(a))) for a in args])))
+        logging.debug("ENTITY CALL: {}('{}', '{}', '{}').{}{}({})".format(self.type.id, self.name, self.variant['name'], self.place, func, fspace, ', '.join([(repr(a.name) if isinstance(a, LoadedEntity) else (repr(a.entity.name) if isinstance(a, player.PlayerInterface) else repr(a))) for a in args])))
         return self.type.call(func, self, *args, **kwargs)
         
     def event(self, evt, *args, **kwargs):
@@ -350,10 +350,10 @@ class GameWorld(object):
     def tick(self):
         self.all_loaded_entities = []
         perc = 0
-        pinterval = 2000 / len(self.entities)
+        pinterval = 5000 / len(self.entities)
         _pipos = 1
         
-        print("[tick progress broadcast interval: {.2f}%]".format(pinterval))
+        print("[tick progress broadcast interval: {:.2f}%]".format(pinterval))
         
         for i, e in enumerate(self.entities):
             en = LoadedEntity(self, i, e)
@@ -367,11 +367,11 @@ class GameWorld(object):
             self.all_loaded_entities = []
             perc += 1
             
-            if perc > _pipos * pinterval or i == len(self.entities) - 1:
-                self.broadcast(3, "# {.2f}% completed processing tick.".format(perc))
+            if (100 * perc / len(self.entities)) > _pipos * pinterval or i == len(self.entities) - 1:
+                self.broadcast(3, "# {:.2f}% completed processing tick.".format(100 * perc / len(self.entities)))
                 _pipos += 1
             
-            logging.debug("TICK: {.2f}% complete.".format(100.0 * perc / len(self.entities)))
+            logging.debug("TICK: {:.2f}% complete.".format(100.0 * perc / len(self.entities)))
         
     def add_entity(self, e):
         self.entities.append(e)

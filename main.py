@@ -217,8 +217,11 @@ def pick_up(interface, connection, event, args):
     amount = min(int(args[0] if len(args) > 0 else 1), 20 - players[event.source.nick].entity['pickups'])
     
     if item and not world.find_item(item):
-        if amount > 1 and item.endswith('s'):
-            item = item.rstrip
+        if amount > 1 and item[-1] in 'si':
+            item = item[:-1]
+            
+            if item[-2:] == 'es':
+                item = item[:-1]
         
             if not world.find_item(item):
                 interface.send_message(event.target, "{}: No such item '{}'! Is that from some Greek myth? Like, {} doesn't really exist either.".format(event.source.nick, item, random.choice(greek_items)))
@@ -269,11 +272,12 @@ def stats(interface, connection, event, args):
     e = world.from_name(name)
     
     if not e or not e['living']:
-        interface.send_message(event.target, "{}? No such creature named '{}'!".format(event.source.nick, ' '.join(args)))
+        interface.send_message(event.target, "{}: No such creature named '{}'!".format(event.source.nick, ' '.join(args)))
         return
     
-    interface.send_message(event.target, "{} is a {}, with {:.2f} hitpoints, at {}. Has {:.2f} Rm immune level, weights {:.2f} kg and has a {:.2f} meter size ({:.2f}% the average human's size); wields {}{}, and is friends with {}.".format(
+    interface.send_message(event.target, "{} is a {} {}, with {:.2f} hitpoints, at {}. Has {:.2f} Rm immune level, weights {:.2f} kg and has a {:.2f} metre size ({:.2f}% the average human's size); wields {}{}, and is friends with {}.".format(
         e.name,
+        e['gender'],
         e.variant['name'],
         e['health'],
         e.place,
@@ -283,7 +287,7 @@ def stats(interface, connection, event, args):
         e['size'] * 100,
         ('' if not e['weapon'] else ('a ' if e['weapon'][0] in namegen.consonants else 'an ')), 
         (e['weapon'] if e['weapon'] is not None else 'nothing'),
-        (', '.join(e.pointer_list('friends')) if len(e['friends']) > 0 else 'nobody')
+        (', '.join(map(lambda x: str(x), e.pointer_list('friends'))) if len(e['friends']) > 0 else 'nobody')
     ))
    
 # @command('gethealth')
@@ -357,7 +361,7 @@ def listobjects(interface, connection, event, args):
         interface.send_message('{}: Join first!'.format(event.source.nick))
         return
         
-    interface.send_message(event.target, "{}: Here you can see {}.".format(event.source.nick, ', '.join("{} the {}".format(world.from_id(e).name, world.from_id(e).variant['name']) for e in world.entities if world.from_id(e).place == players[event.source.nick].entity.place)))
+    interface.send_message(event.target, "{}: Here you can see {}.".format(event.source.nick, ', '.join("{} the {}".format(world.from_id(e).name, world.from_id(e).variant['name']) for e in world.entities if world.from_id(e)['living'] and world.from_id(e).place == players[event.source.nick].entity.place)))
     
 @command('infect', True)
 def infect(interface, connection, event, args):

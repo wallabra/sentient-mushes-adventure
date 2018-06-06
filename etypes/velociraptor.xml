@@ -96,6 +96,7 @@
     <systems>
         <system name="pinata_drops" href="systems/pinata_drops.py" />
         <system name="drops" href="systems/drops.py" />
+        <attribute key="drops" value="{ 'raw steak': (2, 4) }" />
     </systems>
     
     <variants>

@@ -185,7 +185,7 @@
             <attr name="dangerousness" value="70" />
             <attr name="hostility" value="1.5" />
             
-            <attr name="size" value="60" />
+            <attr name="size" value="0.6" />
             <attr name="weight" value="50" />
             <attr name="health" value="75" />
         </variant>
@@ -195,7 +195,7 @@
             <attr name="dangerousness" value="100" />
             <attr name="hostility" value="7" />
             
-            <attr name="size" value="70" />
+            <attr name="size" value="0.7" />
             <attr name="weight" value="80" />
             <attr name="health" value="100" />
             
@@ -204,7 +204,7 @@
         
         <variant name="Beach Anaconda" id="beach">
             <attr name="weight" value="60" />
-            <attr name="size" value="70" />
+            <attr name="size" value="0.8" />
             <attr name="health" value="80" />
         </variant>
         
@@ -215,7 +215,7 @@
             <attr name="punchDamage" value="35" /> <!-- would've been called biteDamage -->
             <attr name="constrictChance" value="0.8" />
             
-            <attr name="size" value="60" />
+            <attr name="size" value="0.65" />
             <attr name="weight" value="50" />
             <attr name="health" value="75" />
             

@@ -1,84 +1,78 @@
-"previous": "UNKNOWN"
-
-"v2018.06.03.3":
-    changes:
-        - "Fixed another craft error. Unknown if the command now works."
-        - "Fixed an mistake with how the Velociraptor special is executed; where if it reached the destination before the last pathmove call, it wouldn't not apply the damage, and return 1 instead of 2."
-        - "Renamed 'Naked Summer Sheep' to 'Summerine Sheep' for diverse reasons."
+"vtrack_version": "0.1"
+"software_name": "Sentient Mushes: Adventure"
+"versions":
+    -
+        name: "v2018.06.03.7"
+            changes:
+                - "Now friends are bidirectional!"
+                - "Added stats command."
+                
+            todo: {}
+            done: []
         
-    todo: []
+    -
+        name: "v2018.06.04.1"
+        changes:
+            - "Removed the Huamn Player."
+            - "Added the Green and Lime Velociraptor NPCs."
+            - "Renamed etypes/player.xml to etypes/velociraptor.xml due to the NPC raptors."
+            - "Moved material and weapon items (like straw and flint sword) from etypes/player.xml (now velociraptor.xml) to attributes/player.xml."
+            - "Replaced gethealth by the more informative stats command."
+            - "Added Vallis Ordo (from Latin: Valley of Order) and North Bridge"
+            - "Fixed the Kangaroo player not importing attributes/player.xml."
+            - "Fixed broadcasting-related issues with the part command."
+            - "Fixed the Small Dragon Player's special (firebreath)."
+            - "Fixed broadcast handling with     channels that already had players in the past."
+            - "Added a custom attack message to the Kangaroo's kick, instead of broadcasting it along with the default attack message."
+            - "Fixed the message parameter for take_damage."
+            
+        todo: {}
+        done: []
         
-"v2018.06.03.4":
-    changes:
-        - "Added Fancy Names, which override an entity's name when doing str() of it, but don't replace the name attribute."
-        - "Made players' entity Fancy Names bold (IRC formatting)."
-        - "Made creatures move more often with good humor."
-        - "Now infected targets have their 'friends' attribute set to a list containing the infector as their its item."
-        - "Partially fixed the wield and craft commands."
-        - "Now kangaroo players and missing kangaroo NPCs were fixed: mushworld.xml wasn't importing etypes/kangaroo.xml in a feeble yet lasting mistake."
-        - "Renamed Yohantown to Yohansville - this isn't a medieval game, after all."
+    -
+        name: "v2018.06.04.2"
+        cbanges:
+            - "Added Lighthouse Anne at Port Ludicrous, and an alternative path around Mount Bayoku: Australocampus."
+            - "Added random food items eating for creatures. Only for items lying in the place."
+            - "Added the eat command for inventory foods."
+            - "Added apples."
+            - "Added dumpplaces."
         
-    todo: []
-    
-"v2018.06.03.5":
-    changes:
-        - "Try wielding something other than a weapon, or that isn't even in the game ;)"
-        - "Fixed the wield command."
-        - "Fixed the Kangaroo's special."
-        - "Fixed the total damage display for anacondas."
-        - "Made player anacondas more likely to succesfully constrict."
-        - "Slightly buffed the anaconda's constriction."
+        todo: {}
+        done: []
         
-    todo: []
-    
-"v2018.06.03.6":
-    changes:
-        - "Added sympathy."
-        - "Human players now do call creature_tick as well."
-        - "Fixed non-human players' weapon and weaponUses attributes."
-        - "Fixed craft... finally! I want sleep ...........zzZZZ"
+    -
+        name: "v2018.06.05.1"
+        cbanges:
+            - "Fixed __worldlist_unload (an internal LoadedEntity method to unload itself from the world's master list)."
+            - "Added G to consonantal ditongs for the name generator (g*, *g and gg)."
+            - "Fixed pathmove broadcasts."
+            - "Added tick progress info (broadcasts) when too many entities are ticked."
         
-    todo: []
-    
-"v2018.06.03.7":
-    changes:
-        - "Now friends are bidirectional!"
-        - "Added stats command."
+        todo: {}  
+        done: []
         
-    todo: []
-    
-"v2018.06.04.1":
-    changes:
-        - "Removed the Huamn Player."
-        - "Added the Green and Lime Velociraptor NPCs."
-        - "Renamed etypes/player.xml to etypes/velociraptor.xml due to the NPC raptors."
-        - "Moved material and weapon items (like straw and flint sword) from etypes/player.xml (now velociraptor.xml) to attributes/player.xml."
-        - "Replaced gethealth by the more informative stats command."
-        - "Added Vallis Ordo (from Latin: Valley of Order) and North Bridge"
-        - "Fixed the Kangaroo player not importing attributes/player.xml."
-        - "Fixed broadcasting-related issues with the part command."
-        - "Fixed the Small Dragon Player's special (firebreath)."
-        - "Fixed broadcast handling with channels that already had players in the past."
-        - "Added a custom attack message to the Kangaroo's kick, instead of broadcasting it along with the default attack message."
-        - "Fixed the message parameter for take_damage."
+    -
+        name: "v2018.06.06.1"  # current release
+        cbanges:
+            - "Fixed world.tick :S"
+            - "Fixed other float formats as well."
+            - "Fixed tick progress broadcasts. :S"
+            - "Added creature genders."
         
-    todo: []
-    
-"v2018.06.04.2":
-    cbanges:
-        - "Added Lighthouse Anne at Port Ludicrous, and an alternative path around Mount Bayoku: Australocampus."
-        - "Added random food items eating for creatures. Only for items lying in the place."
-        - "Added the eat command for inventory foods."
-        - "Added apples."
-        - "Added dumpplaces."
-    
-    todo: [] 
-    
-"v2018.06.05.1":  # current release
-    cbanges:
-        - "Fixed __worldlist_unload (an internal LoadedEntity method to unload itself from the world's master list)."
-        - "Added G to consonantal ditongs for the name generator (g*, *g and gg)."
-        - "Fixed pathmove broadcasts."
-        - "Added tick progress info (broadcasts) when too many entities are ticked."
-    
-    todo: []
+        todo:
+            "traps":
+                name: "Trap System"
+                description: "Traps would be layed down by human players. Living entities (Creatures) that lie in the same place as traps have a     chance to be damaged or even killed."
+                notes:
+                    - "Container Traps prevent smaller entities from moving for a set amount of turns. Example: arapuca, rope trap."
+                    - "Simple Traps damage smaller entities and are destroyed easily by large entities. Example: rabbit snare."
+                    - "Blunt Traps deal a bit less damage, but are reusable and require 2 turns for a larger creature to be able to destroy them. Example: pebble fall trap."
+                    - "Sturdy Traps deal a decent damage, and can be used a set number of times. Can not be destroyed without a mush or human creature to disarm. Example: bear trap."
+                    - "Lethal Traps are one-use, so they are destroyed when they are used, but can kill small entities and severely damage larger entities. Example: landmine."
+                    
+            "breeding":
+                name: "Creature Breeding"
+                description: "A slightly nasty, but nonetheless accurate way to avoid lack of fauna ingame. It can be made less nasty in a couple ways."
+                notes:
+                    - "Creatures have two variables: willTimer and gestationTimer. Once willTimer is set to 0, there is a     chance the humor of two creatures of the same entity type is raised significantly, and if gestationTimer < 2 (when it reaches 0 it is set back to its original value), there is a good     chance one of the entities will become pregnant."

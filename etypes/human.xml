@@ -96,6 +96,7 @@
     
     <systems>
         <system name="drops" href="systems/drops.py" />
+        <system name="pinata_drops" href="systems/pinata_drops.py" />
     </systems>
     
     <itemdefs>

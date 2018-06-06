@@ -106,9 +106,14 @@
             if entity['destination'] and entity['destination'] != entity.place and not entity['target']:
                 entity.call('pathmove', entity['destination'])
                 
-            elif entity['target'] and entity.pointer('target') and entity['specialMoveFunc'] and (entity['dangerousness'] + entity['health']) * entity['courage'] &gt;= (entity.pointer('target')['dangerousness'] + entity.pointer('target')['health']) * entity.pointer('target')['courage'] / 10.0 and random.random() &lt;= 0.5:
+            elif entity['target'] and entity.pointer('target') and entity['specialMoveFunc'] and random.random() &lt;= 0.7:
                 entity['destination'] = entity.pointer('target').place
-                entity.call(entity['specialMoveFunc'])
+                
+                if entity.place == entity.pointer('target').place:
+                    entity.call('pick_attack')
+                
+                else:
+                    entity.call(entity['specialMoveFunc'] or 'pathmove_dest')
                 
             else:
                 if entity['target'] and entity.pointer('target')['dead']:
@@ -142,13 +147,8 @@
                         entity.call('pick_attack')
                     
                 # Sociality.
-                friends = tuple(filter(lambda e: e.type.name == entity.type.name and e['health'] &gt; 0, entity.world.all_in_place(entity.place)))
-                
-                if entity['mush']:
-                    # Once mush, forever mush ;)
-                    friends = tuple(set(friends) | set(tuple(filter(lambda e: e['mush'] and e['health'] &gt; 0, entity.world.all_in_place(entity.place)))))
-                
-                friends = tuple(filter(lambda f: f.id not in entity['friends'] and entity.id != f.id and (not entity['mush'] or f['mush']), friends))
+                friends = tuple(filter(lambda e: ((bool(e['mush']) and bool(entity['mush'])) or e.type.name == entity.type.name) and e['health'] &gt; 0, entity.world.all_in_place(entity.place)))
+                friends = tuple(filter(lambda f: f.id not in entity['friends'] and entity.id != f.id, friends))
                 
                 if random.random() * 10 &lt;= entity['sociality'] * entity['humor'] and len(friends) &gt; 0:
                     f = random.choice(friends)
@@ -172,6 +172,8 @@
                         fl = tmate['friends']
                         fl.append(entity.id)
                         tmate['friends'] = fl
+                        entity.update()
+                        tmate.update()
                         entity.world.broadcast((2 if tmate['isPlayer'] else 0), entity, " felt sympathy for ", tmate, ", and became friends!", place=entity.place)
                     
                 # Following friends.
@@ -180,8 +182,8 @@
                     
                     if len(to_follow) &gt; 0:
                         to_follow = weighted_random(to_follow)
-                        entity.call('pathmove', to_follow.place)
                         entity.world.broadcast((2 if to_follow['isPlayer'] else 0), entity, " decided to follow ", to_follow, ".", place=to_follow.place)
+                        entity.call('pathmove', to_follow.place)
                         
                 # Sharing battles with friends.
                 if not entity['target'] and entity['friends']:
@@ -206,7 +208,7 @@
                             
                         entity.world.find_place(entity.place)['items'][food] -= 1
                         entity['health'] += heal
-                        entity.world.broadcast((1 if f['isPlayer'] or f.pointer('target')['isPlayer'] else 0), entity, " ate a randomly lying ", food, " and healed {.2f} HP.".format(heal), place=entity.place)
+                        entity.world.broadcast((1 if f['isPlayer'] or f.pointer('target')['isPlayer'] else 0), entity, " ate a randomly lying ", food, " and healed {:.2f} HP.".format(heal), place=entity.place)
                         
     </function>
     
@@ -273,7 +275,7 @@
             if place in possib:
                 if random.random() &lt;= (entity['moveSpeed'] + entity['humor'] / 1.25) / 1.25 * entity['speedModifier']:
                     if bPrint:
-                        entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " has just moved to ", place, "!", place=place)
+                        entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " has just moved from ", entity.place, " to ", place, "!", place=place)
                         
                     entity.set_place(place)
                     entity.event('movement')
@@ -291,8 +293,18 @@
     </function>
     
     <function name="creature_init">
+        import random
+    
         def creature_init(entity):
             entity['spawnHealth'] = entity['health']
+            entity['_origGestation'] = entity['gestationTimer']
+            entity['_origWill'] = entity['willTimer']
+            entity['gender'] = random.choice(('male', 'female'))
+    </function>
+           
+    <function name="pathmove_dest">
+        def pathmove_dest(entity):
+            entity.call('pathmove', entity['destination'])
     </function>
        
     <function name="init">
@@ -302,6 +314,7 @@
     
     <function name="pathmove">
         import random
+        import logging
         
         from queue import PriorityQueue, Empty
         
@@ -380,13 +393,14 @@
                     
                 c = come_from[c]
                 
-            print(" &lt;= ".join(path))
+            logging.debug(" &lt;= ".join(path))
             
             path.reverse()
                 
             while path[0] == entity.place:
                 path = path[1:]
                 
+            old_place = entity.place
             res = entity.call('move', path[0], _print and (path[0] == navdest))
                 
             # if res:
@@ -397,7 +411,7 @@
                     entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " failed to move to ", path[0], " while trying to reach ", navdest, ".", place=path[0])
                     
                 else:
-                    entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " moved to ", path[0], ", wanting to reach ", navdest, ".", place=path[0])
+                    entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " moved from ", old_place, " to ", path[0], ", wanting to reach ", navdest, ".", place=path[0])
                 
             return res
     </function>
@@ -535,7 +549,7 @@
                    
             # if changed and dmg != damage:
             #     # superseded
-            #     entity.world.broadcast(1, entity, "'s damage was {} from {.2f} to {.2f} hitpoints!".format(('amplified' if damage > dmg else 'reduced'), dmg, damage))
+            #     entity.world.broadcast(1, entity, "'s damage was {} from {:.2f} to {:.2f} hitpoints!".format(('amplified' if damage > dmg else 'reduced'), dmg, damage))
                 
             entity['health'] = entity['health'] - damage
 
@@ -548,12 +562,12 @@
                             entity.world.broadcast(2, '* ' + entity.pointer('instigator')['obituary'].format(killer=entity.pointer('instigator'), victim=entity, damage=damage, place=entity.place), place=entity.place)
                             
                         else:
-                             entity.world.broadcast(2, '* ', entity, " took {.2f} damage from ".format(damage), entity.pointer('instigator'), " and died!", place=entity.place)
+                             entity.world.broadcast(2, '* ', entity, " took {:.2f} damage from ".format(damage), entity.pointer('instigator'), " and died!", place=entity.place)
                          
                     entity.pointer('instigator').call('on_kill', entity)
             
                 elif broadcast:
-                    entity.world.broadcast(2, '* ', entity, " took {.2f} damage and died!".format(damage), place=entity.place)
+                    entity.world.broadcast(2, '* ', entity, " took {:.2f} damage and died!".format(damage), place=entity.place)
                     
                 entity.call('on_death')
                 entity['dead'] = True
