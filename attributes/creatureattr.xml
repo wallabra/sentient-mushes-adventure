@@ -210,6 +210,55 @@
                         entity['health'] += heal
                         entity.world.broadcast((1 if f['isPlayer'] or f.pointer('target')['isPlayer'] else 0), entity, " ate a randomly lying ", food, " and healed {:.2f} HP.".format(heal), place=entity.place)
                         
+                # Breed and merry.
+                if entity['gender'] in ('male', 'female'):
+                    entity['willTimer'] -= entity['humor']
+                    
+                    if entity['gender'] == 'female':
+                        entity['gestationTimr'] -= 1
+                        
+                        if entity['pregnancyTimer'] &lt;= 0:
+                            entity['pregnancyTimer'] = entity['_origPregnancy'] 
+                        
+                    if entity['willTimer'] &lt;= 0:
+                        entity['willTimer'] = entity['_origWill']
+                        partner = entity.pointer('partner') or random.choice(filter(lambda e: not e['isPlayer'] and e['gender'] != entity['gender'] and entity.type.id == e.type.id and e['gender'] in ('male', 'female'), world.all_in_place(entity.place)))
+                        
+                        if partner:
+                            if not entity.pointer('partner'):
+                                world.broadcast(1, entity, ' and ', partner, ' merry, looking forward for the future!', place=entity.place)
+                                entity['partner'] = partner.id
+                                
+                            else:
+                                world.broadcast(1, entity, ' and ', partner, ' joyfully merry again!', place=entity.place)
+                            
+                            fem = entity if entity['gender'] == 'female' else partner
+                            male = entity if partner.id == fem.id else partner
+                            
+                            if fem['pregnancyTimer'] &lt;= 2 and not fem['pregnant']:
+                                fem['pregnant'] = random.randint(10, 20) 
+                                world.broadcast(2, fem, ' is now pregnant!', place=entity.place)
+                                fem['babyVariant'] = random.choice(fem.variant.id, male.variant.id)
+                                
+                            else:
+                                fem['pregnancyTimer'] += random.randint(20, 25)
+               
+                # Aging.
+                if entity['age'] &gt; 0:
+                    entity['age'] -= 1
+                    
+                    if entity['age'] &lt;= 0 and entity['baby']:
+                        world.broadcast(2, entity, " grew up to be a ", entity.type.variants[entity['matureVariant']]['name'], "!", place=entity.place)
+                        entity.set_variant(entity['matureVariant'])
+                        entity['health'] *= entity.variant['spawnHealth'] / entity['spawnHealth']
+               
+                # Gestation.
+                if entity['gender'] == 'female' and entity['pregnant'] &gt; 0:
+                    entity['pregnant'] -= entity['humor']
+                    
+                    if entity['pregnant'] &lt;= 0:
+                        entity['pregnant'] = 0
+                        world.broadcast(2, entity, " gave birth to ", entity.spawn(variant=random.choice(filter(lambda v: 'baby' in v['flags'], entity.type.variants))['id'], extra_attr={ 'age': random.randint(12, 30), 'matureVariant': entity['babyVariant'] }), "!", place=entity.place)
     </function>
     
     <function name="flee">
@@ -297,9 +346,14 @@
     
         def creature_init(entity):
             entity['spawnHealth'] = entity['health']
-            entity['_origGestation'] = entity['gestationTimer']
+            entity['_origPregnancy'] = entity['pregnancyTimer']
             entity['_origWill'] = entity['willTimer']
             entity['gender'] = random.choice(('male', 'female'))
+            # print(entity['gender'])
+            
+            if entity['baby'] and not entity['mother']:
+                entity['age'] = random.randint(5, 20)
+                entity['matureVariant'] = random.choice(entity['defaultMature'])
     </function>
            
     <function name="pathmove_dest">
@@ -610,4 +664,17 @@
                     
                 other['health'] = other['health'] + amount
     </function>
+    
+    <attribute key="gender" value="'genderless'" />
+    <attribute key="spawnHealth" value="0" />
+    <attribute key="_origPregnancy" value="-1" />
+    <attribute key="_origWill" value="-1" />
+    <attribute key="pregnancyTimer" value="25" />
+    <attribute key="pregnant" value="0" />
+    <attribute key="age" value="0" />
+    
+    <attribute key="willTimer" value="9" />
+    <attribute key="pregnancyTimer" value="25" />
+    
+    <declare key="matureVariant" />
 </default>

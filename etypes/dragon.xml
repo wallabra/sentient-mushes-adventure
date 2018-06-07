@@ -117,6 +117,8 @@
         <!-- physical characteristics -->
         <attr name="flammable" value="False" />
         <attr name="postTransfer" value="'small'" />
+        
+        <attr name="defaultMature" value="['small', 'medium', 'large']" />
     </base>
     
     <default>

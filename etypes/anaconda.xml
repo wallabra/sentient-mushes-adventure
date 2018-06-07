@@ -163,6 +163,7 @@
         
         <attr name="postTransfer" value="'striped'" />
         
+        <attr name="defaultMature" value="['striped', 'rock', 'beach']" />
     </base>
     
     <default>
@@ -180,6 +181,18 @@
     </itemdefs>
         
     <variants>
+        <variant nme="Baby Anaconda" id="baby">
+            <flag name="baby" />
+        
+            <attr name="vore" value="0.8" />
+            <attr name="dangerousness" value="40" />
+            <attr name="hostility" value="0.5" />
+            
+            <attr name="size" value="0.225" />
+            <attr name="weight" value="28" />
+            <attr name="health" value="47" />
+        </variant>
+    
         <variant name="Striped Anaconda" id="striped">
             <attr name="vore" value="0.5" />
             <attr name="dangerousness" value="70" />

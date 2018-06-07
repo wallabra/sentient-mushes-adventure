@@ -80,6 +80,8 @@
         <attr name="postTransfer" value="'brown'" />
         
         <attr name="obituary" value="'{killer} flattened {victim} with a bunch of strong and distorting kicks!'" />
+        
+        <attr name="defaultMature" value="['brown', 'yellow']" />
     </base>
     
     <default>

@@ -275,11 +275,12 @@ def stats(interface, connection, event, args):
         interface.send_message(event.target, "{}: No such creature named '{}'!".format(event.source.nick, ' '.join(args)))
         return
     
-    interface.send_message(event.target, "{} is a {} {}, with {:.2f} hitpoints, at {}. Has {:.2f} Rm immune level, weights {:.2f} kg and has a {:.2f} metre size ({:.2f}% the average human's size); wields {}{}, and is friends with {}.".format(
+    interface.send_message(event.target, "{} is a {} {}, with {:.2f} hitpoints (initially {}), at {}. Has {:.2f} Rm immune level, weights {:.2f} kg and has a {:.2f} metre size ({:.2f}% the average human's size); wields {}{}, and is friends with {}.".format(
         e.name,
         e['gender'],
         e.variant['name'],
         e['health'],
+        e['spawnHealth'],
         e.place,
         e['immune'],
         e['weight'],

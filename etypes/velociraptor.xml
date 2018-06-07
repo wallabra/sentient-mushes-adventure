@@ -87,6 +87,8 @@
         <!-- kinetic (movement & combat) attributes -->
         <attr name="speed" value="0.4" /> <!-- likelihood to evade enemy attacks, from 0 to 1 -->
         <attr name="moveSpeed" value="0.8" /> <!-- chance, from 0 to 1, for a succesful tile move -->
+        
+        <attr name="defaultMature" value="['lime', 'green']" />
     </base>
     
     <default>
@@ -121,6 +123,14 @@
             <attr name="size" value="0.87" />
             <attr name="health" value="85" />
             <attr name="weight" value="72" /> <!-- in kilograms -->
+        </variant>
+        
+        <variant name="Baby Velociraptor" id="baby">
+            <flag name="baby" />
+        
+            <attr name="size" value="0.4" />
+            <attr name="health" value="52" />
+            <attr name="weight" value="45" /> <!-- in kilograms -->
         </variant>
     </variants>
 </entitytype>

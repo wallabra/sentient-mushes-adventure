@@ -85,6 +85,8 @@
         <!-- kinetic (movement & combat) attributes -->
         <attr name="speed" value="0.4" /> <!-- likelihood to evade enemy attacks, from 0 to 1 -->
         <attr name="moveSpeed" value="0.9" /> <!-- chance, from 0 to 1, for a succesful tile move -->
+        
+        <attr name="defaultMature" value="['peasant']" />
     </base>
     
     <default>
@@ -127,6 +129,17 @@
     </itemdefs>
     
     <variants>
+        <variant name="Kid" id="kid">
+            <flag name="baby" />
+            <attr name="obituary" value="'{killer} made {victim} prey for their vile cries!'" />
+            <attr name="size" value="0.65" />
+            <attr name="health" value="55" />
+            <attr name="weight" value="38" /> <!-- in kilograms -->
+            <attr name="dangerousness" value="0" />
+            <attr name="meleeAttackFunc" value="None" /> <!-- kids can't play with weapons! -->
+            <default key="accuracy" value="0.4" />
+        </variant>
+    
         <variant name="Citizen" id="peasant">
             <attr name="obituary" value="'{killer} poked {victim} some holes with a kitchen knife!'" />
             <attr name="size" value="1.00" />

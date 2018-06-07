@@ -89,14 +89,16 @@ class EntityType(object):
 
 class LoadedEntity(object):
     def __init__(self, world, index, s):
+        spl = s.split("#")
         self.world = world
         self.index = index
-        self.id = s.split("#")[0]
+        self.id = spl[0]
         self.type = world.etypes[s.split("#")[1]]
-        self.name = s.split('#')[2]
+        self.name = spl[2]
         self.place = s.split("#")[3]
         self.variant = self.type.variants[s.split("#")[4]]
         self.attr = json.loads(s.split("#")[5])
+        self.ignore_auto_updates = 0
         
         world.all_loaded_entities.append(self)
         
@@ -110,15 +112,28 @@ class LoadedEntity(object):
         for k, v in self.variant['default'].items():
             if k not in self.attr:
                 self.attr[k] = v
+                
+        self.update()
         
     def pop(self, key, default=None):
         res = self.attr.pop(key, default)
-        self.update()
+        
+        if self.ignore_auto_updates > 0:
+            self.ignore_auto_updates -= 1
+        
+        if self.ignore_auto_updates == 0: # so you can set it to -1 and never auto-update
+            self.update()
+             
         return res
         
     def __setitem__(self, key, val):
         self.attr[key] = val
-        self.update()
+        
+        if self.ignore_auto_updates > 0:
+            self.ignore_auto_updates -= 1
+        
+        if self.ignore_auto_updates == 0: # so you can set it to -1 and never auto-update
+            self.update()
      
     def pointer(self, key):
         if not self[key]:
@@ -152,6 +167,7 @@ class LoadedEntity(object):
             
         e = type.instantiate(self.world, place, variant, extra_attr)
         world.add_entity(e)
+        world.unload_all()
         
         if return_loaded:
             return world.from_id(e)
@@ -168,7 +184,8 @@ class LoadedEntity(object):
         
     def update(self):
         try:
-            self.world.set_with_id(self.id, "{}#{}#{}#{}#{}#{}".format(self.id, self.type.id, self.name, self.place, self.variant['id'], json.dumps(self.attr)))
+            if not self.world.set_with_id(self.id, "{}#{}#{}#{}#{}#{}".format(self.id, self.type.id, self.name, self.place, self.variant['id'], json.dumps(self.attr))):
+                logging.warning("Failure updating {}!".format(str(self)))
             
         except TypeError as e:
             bad = {}
@@ -273,6 +290,13 @@ class GameWorld(object):
     def update_loaded_entities(self):
         for l in self.all_loaded_entities:
             l.now()
+            
+    def index_from_id(self, id):
+        for i, e in enumerate(self.entities):
+            if self.entities[i].split('#')[0] == id:
+                return i
+            
+        return None
     
     def dumps(self, yaml=True):
         save = {
@@ -376,10 +400,8 @@ class GameWorld(object):
     def add_entity(self, e):
         self.entities.append(e)
         
-        funcs = self.etypes[e.split('#')[1]].functions
-        
-        if 'init' in funcs:
-            funcs['init'](self.from_id(e))
+        if 'init' in self.etypes[e.split('#')[1]].functions:
+            self.from_id(e).call('init')
         
     def find_item(self, name):
         for i in self.item_types:
@@ -403,20 +425,25 @@ class GameWorld(object):
         return None
         
     def from_id(self, uid):
+        uid = uid.split("#")[0]
+    
         for i, e in enumerate(self.entities):
-            if e.split("#")[0] == uid.split('#')[0]:
+            if e.split('#')[0] == uid:
                 return LoadedEntity(self, i, e)
                 
         return None
         
     def from_index(self, ind):
-        return self.from_id(self.entities[ind].split('#')[0])
+        if ind < 0 or ind >= len(self.entities):
+            return None
+        
+        return LoadedEntity(ind, self.entities[ind])
         
     def set_with_id(self, id, val):
-        e = self.from_id(id)
+        e = self.index_from_id(id)
         
-        if e:
-            self.entities[e.index] = val
+        if e is not None:
+            self.entities[e] = val
             return True
         
         return False
@@ -438,6 +465,9 @@ class GameWorld(object):
                 return it
                
         return None
+        
+    def unload_all(self):
+        self.all_loaded_entities = []
         
 class GameLoader(object):
     """A class which children will load
@@ -477,6 +507,7 @@ class XMLGameLoader(object):
         xworld = etree.parse(open(filename))
         
         world = GameWorld(beginning=xworld.getroot().get('beginning'))
+        funcholder = embedcode.CodeHolder()
         
         logging.info("Loading entity types...")
         
@@ -484,9 +515,11 @@ class XMLGameLoader(object):
             if el.tag == 'etypes':
                 for t in el:
                     if t.tag == 'etype':
-                        (e, items) = self.load_entity_type(world, t.get('filename'))
+                        (e, items) = self.load_entity_type(world, t.get('filename'), funcholder)
                         world.etypes[e.id] = e
                         world.item_types.extend(items)
+                        
+        funcholder.deinit()
                         
         logging.info("Loading and populating places...")
                     
@@ -558,7 +591,7 @@ class XMLGameLoader(object):
         world.entities = random.sample(world.entities, len(world.entities))
         return world
         
-    def load_entity_type(self, world, filename):
+    def load_entity_type(self, world, filename, funcholder=None):
         """Returns an EntityType instance.
         
         The filename is one of the entity type filenames
@@ -601,7 +634,7 @@ class XMLGameLoader(object):
                         
                     elif a.tag == "function":
                         if (a.get('name') not in functions) or (level <= getattr(functions[a.get('name')], '__priority', 0)):
-                            allfunc = tuple(funcholder.quick("{}_a{}_{}".format(id, level, a.get('name')), a.text).values())
+                            allfunc = tuple(funcholder.quick("{}_{}".format(imported.getroot().get('name'), a.get('name')), a.text).values())
                             fncs = filter(lambda f: f.__name__ == a.get('name'), allfunc)
                             
                             try:
@@ -645,7 +678,10 @@ class XMLGameLoader(object):
                         
                         item_types.append(i)
             
-            funcholder = embedcode.CodeHolder()
+            _f = funcholder is None
+            
+            if _f:
+                funcholder = embedcode.CodeHolder()
             
             for sub in etype.getroot():
                 if sub.tag == "functions":
@@ -746,8 +782,9 @@ class XMLGameLoader(object):
                                 
                         variants[va.get('id')] = v
                         
-        finally:                
-            funcholder.deinit()
+        finally:               
+            if _f:
+                funcholder.deinit()
             
         logging.debug("- Imported Entity Type {}, with {} variants, {} functions and {} item types loaded.".format(name, len(variants), len(functions), len(item_types)))
         

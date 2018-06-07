@@ -1,17 +1,16 @@
-"vtrack_version": "0.1"
+"vtrack_version": "0.1.1"
 "software_name": "Sentient Mushes: Adventure"
+"software_tags": ['game', '']
 "versions":
-    -
-        name: "v2018.06.03.7"
-            changes:
-                - "Now friends are bidirectional!"
-                - "Added stats command."
-                
-            todo: {}
-            done: []
+    -   name: "v2018.06.03.7"
+        changes:
+            - "Now friends are bidirectional!"
+            - "Added stats command."
+            
+        todo: {}
+        done: []
         
-    -
-        name: "v2018.06.04.1"
+    -   name: "v2018.06.04.1"
         changes:
             - "Removed the Huamn Player."
             - "Added the Green and Lime Velociraptor NPCs."
@@ -22,16 +21,15 @@
             - "Fixed the Kangaroo player not importing attributes/player.xml."
             - "Fixed broadcasting-related issues with the part command."
             - "Fixed the Small Dragon Player's special (firebreath)."
-            - "Fixed broadcast handling with     channels that already had players in the past."
+            - "Fixed broadcast handling with channels that already had players in the past."
             - "Added a custom attack message to the Kangaroo's kick, instead of broadcasting it along with the default attack message."
             - "Fixed the message parameter for take_damage."
             
         todo: {}
         done: []
         
-    -
-        name: "v2018.06.04.2"
-        cbanges:
+    -   name: "v2018.06.04.2"
+        changes:
             - "Added Lighthouse Anne at Port Ludicrous, and an alternative path around Mount Bayoku: Australocampus."
             - "Added random food items eating for creatures. Only for items lying in the place."
             - "Added the eat command for inventory foods."
@@ -41,9 +39,8 @@
         todo: {}
         done: []
         
-    -
-        name: "v2018.06.05.1"
-        cbanges:
+    -   name: "v2018.06.05.1"
+        changes:
             - "Fixed __worldlist_unload (an internal LoadedEntity method to unload itself from the world's master list)."
             - "Added G to consonantal ditongs for the name generator (g*, *g and gg)."
             - "Fixed pathmove broadcasts."
@@ -52,9 +49,8 @@
         todo: {}  
         done: []
         
-    -
-        name: "v2018.06.06.1"  # current release
-        cbanges:
+    -   name: "v2018.06.06.1"
+        changes:
             - "Fixed world.tick :S"
             - "Fixed other float formats as well."
             - "Fixed tick progress broadcasts. :S"
@@ -76,3 +72,15 @@
                 description: "A slightly nasty, but nonetheless accurate way to avoid lack of fauna ingame. It can be made less nasty in a couple ways."
                 notes:
                     - "Creatures have two variables: willTimer and gestationTimer. Once willTimer is set to 0, there is a     chance the humor of two creatures of the same entity type is raised significantly, and if gestationTimer < 2 (when it reaches 0 it is set back to its original value), there is a good     chance one of the entities will become pregnant."
+        
+        done: []
+                
+    -   name: "v2018.06.06.2" # current release
+        changes:
+            - "Performance improvements on world loading and ticking."
+            - "Added creature merrying and breeding system."
+            - "Added creature aging and growing system."
+            - "Fixed creature_init for player entities.x"
+        
+        todo: {}
+        done: ['breeding']

@@ -56,7 +56,7 @@ class PlayerInterface(object):
     @classmethod
     def join(self, channels, world, name, place, type, variant):
         entity = world.etypes[type].instantiate(world, place, variant)
-        world.entities.append(entity)
+        world.add_entity(entity)
         entity = world.from_id(entity)
 
         return PlayerInterface(channels, entity, name)
