@@ -215,16 +215,16 @@
                     entity['willTimer'] -= entity['humor']
                     
                     if entity['gender'] == 'female':
-                        entity['gestationTimr'] -= 1
+                        entity['pregnancyTimer'] -= 1
                         
                         if entity['pregnancyTimer'] &lt;= 0:
-                            entity['pregnancyTimer'] = entity['_origPregnancy'] 
+                            entity['pregnancyTimer'] = entity['_origPregnancy'] + random.randint(-4, 4)
                         
                     if entity['willTimer'] &lt;= 0:
-                        entity['willTimer'] = entity['_origWill']
-                        partner = entity.pointer('partner') or random.choice(filter(lambda e: not e['isPlayer'] and e['gender'] != entity['gender'] and entity.type.id == e.type.id and e['gender'] in ('male', 'female'), world.all_in_place(entity.place)))
+                        entity['willTimer'] = entity['_origWill'] + random.randint(-4, 4)
+                        partner = entity.pointer('partner') or random.choice(filter(lambda e: not e.pointer('target') and e['gender'] != entity['gender'] and not e['baby'] and entity.type.id == e.type.id and e['gender'] in ('male', 'female'), entity.world.all_in_place(entity.place))) # should I disallow creatures from merrying with player entities?
                         
-                        if partner:
+                        if partner and not partner.pointer('target') and not entity.pointer('target'):
                             if not entity.pointer('partner'):
                                 world.broadcast(1, entity, ' and ', partner, ' merry, looking forward for the future!', place=entity.place)
                                 entity['partner'] = partner.id
@@ -235,10 +235,15 @@
                             fem = entity if entity['gender'] == 'female' else partner
                             male = entity if partner.id == fem.id else partner
                             
-                            if fem['pregnancyTimer'] &lt;= 2 and not fem['pregnant']:
+                            if fem['pregnancyTimer'] &lt;= 3 and not fem['pregnant']:
                                 fem['pregnant'] = random.randint(10, 20) 
                                 world.broadcast(2, fem, ' is now pregnant!', place=entity.place)
-                                fem['babyVariant'] = random.choice(fem.variant.id, male.variant.id)
+                                
+                                if partner['isPlayer']:
+                                    fem['babyVariant'] = entity.variant['id']
+                                
+                                else:
+                                    fem['babyVariant'] = random.choice(fem.variant['id'], male.variant['id'])
                                 
                             else:
                                 fem['pregnancyTimer'] += random.randint(20, 25)
@@ -344,7 +349,7 @@
     <function name="creature_init">
         import random
     
-        def creature_init(entity):
+        def creature_init(entity):  
             entity['spawnHealth'] = entity['health']
             entity['_origPregnancy'] = entity['pregnancyTimer']
             entity['_origWill'] = entity['willTimer']
@@ -354,6 +359,10 @@
             if entity['baby'] and not entity['mother']:
                 entity['age'] = random.randint(5, 20)
                 entity['matureVariant'] = random.choice(entity['defaultMature'])
+                
+            else:
+                entity['pregnancyTimer'] = random.randint(int(entity['pregnancyTimer'] / 3), entity['pregnancyTimer'])
+                entity['willTimer'] = random.randint(int(entity['willTimer'] / 5), entity['willTimer'])
     </function>
            
     <function name="pathmove_dest">
@@ -460,7 +469,7 @@
             # if res:
             #     entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " wants to go to ", navdest, ("; just went through {}!".format(path[0]) if path[0] != navdest else "!"), place=path[0])
                 
-            if path[0] != navdest:
+            if _print and path[0] != navdest:
                 if res == 1:
                     entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " failed to move to ", path[0], " while trying to reach ", navdest, ".", place=path[0])
                     
@@ -673,8 +682,8 @@
     <attribute key="pregnant" value="0" />
     <attribute key="age" value="0" />
     
-    <attribute key="willTimer" value="9" />
-    <attribute key="pregnancyTimer" value="25" />
+    <attribute key="willTimer" value="11" />
+    <attribute key="pregnancyTimer" value="35" />
     
     <declare key="matureVariant" />
 </default>

@@ -42,6 +42,9 @@
             def tick(entity):
                 entity.call('creature_tick')
             
+                if entity['isPlayer']:
+                    return
+            
                 if random.random() &lt;= 0.125:
                     # wander
                     possib = set()
@@ -57,7 +60,7 @@
                         entity.world.broadcast(0, entity, " wanders to ", p, ".", place=p)
                         entity.call('move', p)
                 
-                if not entity['isPlayer'] and entity['health'] &lt; entity['maxGrazeHealth'] and random.random() &lt;= 0.2:
+                if entity['health'] &lt; entity['maxGrazeHealth'] and random.random() &lt;= 0.2:
                     # graze
                     entity.call('heal', entity, min(entity['maxGrazeHealth'] - entity['health'], random.uniform(5, 15)))
         </function>
@@ -108,14 +111,14 @@
         <variant name="Brown Kangaroo" id="brown">
             <attr name="maxGrazeHealth" value="140" />
             <attr name="size" value="1.7" />
-            <attr name="health" value="125" />
+            <default key="health" value="125" />
             <attr name="weight" value="0.8" /> <!-- in kilograms -->
         </variant>
         
         <variant name="Yellow Kangaroo" id="yellow">
             <attr name="maxGrazeHealth" value="140" />
             <attr name="size" value="1.7" />
-            <attr name="health" value="135" />
+            <default key="health" value="135" />
             <attr name="weight" value="0.8" /> <!-- in kilograms -->
             
             <attr name="hostility" value="0.073" />
@@ -125,7 +128,7 @@
             <flag name="baby" />
             <attr name="maxGrazeHealth" value="90" />
             <attr name="size" value="1.1" />
-            <attr name="health" value="80" />
+            <default key="health" value="80" />
             <attr name="weight" value="0.65" /> <!-- in kilograms -->
             <default key="drops" value="{'furry skin': (0, 1), 'raw steak': (0, 2)}" />
         </variant>
@@ -137,7 +140,7 @@
             
             <attr name="size" value="1.7" />
             <attr name="weight" value="0.85" /> <!-- in kilograms -->
-            <attr name="health" value="130" />
+            <default key="health" value="130" />
             
             <default key="mush" value="True" />
         </variant>

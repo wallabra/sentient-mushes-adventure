@@ -75,12 +75,29 @@
         
         done: []
                 
-    -   name: "v2018.06.06.2" # current release
+    -   name: "v2018.06.06.2"
         changes:
             - "Performance improvements on world loading and ticking."
-            - "Added creature merrying and breeding system."
+            - "Added creature merrying (with E, not A!) and breeding system."
             - "Added creature aging and growing system."
-            - "Fixed creature_init for player entities.x"
+            - "Fixed creature_init for player entities."
         
         todo: {}
         done: ['breeding']
+        
+    -   name: "v2018.06.12.1" # current release
+        changes:
+            - "Allowed NPC creatures to merry with player creatures temporarily, while I ask in a poll if such should be allowed."
+            - "Fixed a KeyError when running the pregnancy (period?) timer."
+            - "Creatures with a target can't merry."
+            - "Setting attributes now only updates 1 LoadedEntity class, as opposed to earlier. Huge performance improvements ensue."
+            - "Renamed help command to list."
+            - "Changed the bot prefix from '}]' to '=='."
+            - "Added the recipe, quickstart, and guide commands."
+            - "Removed the large join message."
+            - "Made it so that the bot automatically says who's turn it is when someone joins."
+            - "Disabled world reset."
+            - "Added hangman minigame."
+        
+        todo: {}
+        done: []

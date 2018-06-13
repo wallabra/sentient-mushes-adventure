@@ -133,7 +133,7 @@
             <flag name="baby" />
             <attr name="obituary" value="'{killer} made {victim} prey for their vile cries!'" />
             <attr name="size" value="0.65" />
-            <attr name="health" value="55" />
+            <default key="health" value="55" />
             <attr name="weight" value="38" /> <!-- in kilograms -->
             <attr name="dangerousness" value="0" />
             <attr name="meleeAttackFunc" value="None" /> <!-- kids can't play with weapons! -->
@@ -143,7 +143,7 @@
         <variant name="Citizen" id="peasant">
             <attr name="obituary" value="'{killer} poked {victim} some holes with a kitchen knife!'" />
             <attr name="size" value="1.00" />
-            <attr name="health" value="80" />
+            <default key="health" value="80" />
             <attr name="weight" value="50" /> <!-- in kilograms - low class citizens are poor, hungry and skinny -->
             <attr name="dangerousness" value="12" />
             <attr name="meleeAttackFunc" value="'hoe_attack'" />
@@ -155,7 +155,7 @@
         <variant name="Land Owner" id="farmer">
             <attr name="obituary" value="'{killer} poked {victim} some holes with a hoe!'" />
             <attr name="size" value="1.00" />
-            <attr name="health" value="95" />
+            <default key="health" value="95" />
             <attr name="weight" value="65" /> <!-- in kilograms -->
             <attr name="dangerousness" value="15" />
             <attr name="meleeAttackFunc" value="'hoe_attack'" />
@@ -167,7 +167,7 @@
         <variant name="Miner" id="miner">
             <attr name="obituary" value="'{killer} poked {victim} some holes with a hoe!'" />
             <attr name="size" value="1.00" />
-            <attr name="health" value="100" />
+            <default key="health" value="100" />
             <attr name="weight" value="65" /> <!-- in kilograms -->
             <attr name="dangerousness" value="15" />
             <attr name="meleeAttackFunc" value="'pickaxe_attack'" />
@@ -178,7 +178,7 @@
         <variant name="Thief" id="dagger">
             <attr name="obituary" value="'{killer} slayed {victim} with a couple deadly stabs!'" />
             <attr name="size" value="1.05" />
-            <attr name="health" value="102" />
+            <default key="health" value="102" />
             <attr name="weight" value="40" /> <!-- in kilograms -->
             <attr name="dangerousness" value="25" />
             <attr name="meleeAttackFunc" value="'sword_attack'" />
@@ -190,7 +190,7 @@
         <variant name="Sword Bandit" id="knight">
             <attr name="obituary" value="'{killer} mutilated {victim} with multiple wide lacerations!'" />
             <attr name="size" value="1.05" />
-            <attr name="health" value="102" />
+            <default key="health" value="102" />
             <attr name="weight" value="75" /> <!-- in kilograms -->
             <attr name="dangerousness" value="40" />
             <attr name="meleeAttackFunc" value="'sword_attack'" />
@@ -201,7 +201,7 @@
         <variant name="Lighthouse Keeper" id="lhkeeper">
             <attr name="obituary" value="'{killer} wiped {victim} off the Lamp Floor of Lighthouse Anne! (because wiping them from the face of Earth is NOT enough)'" />
             <attr name="size" value="1.08" />
-            <attr name="health" value="121" />
+            <default key="health" value="121" />
             <attr name="weight" value="82" /> <!-- in kilograms -->
             <attr name="dangerousness" value="55" />
             <attr name="meleeAttackFunc" value="'sword_attack'" />
@@ -212,7 +212,7 @@
         <!--
         <variant name="Human Player" id="player">
             <attr name="size" value="1.05" />
-            <attr name="health" value="100" />
+            <default key="health" value="100" />
             <attr name="weight" value="65" /> (in kilograms)
             <attr name="dangerousness" value="30" />
             <attr name="punchDamage" value="8" />

@@ -23,6 +23,9 @@
             def tick(entity):
                 entity.call('creature_tick')
             
+                if entity['isPlayer']:
+                    return
+            
                 if random.random() &lt;= 0.1: 
                     # wander
                     possib = set()
@@ -138,7 +141,7 @@
     <variants>
         <variant name="Baby Dragon" id="baby">
             <attr name="size" value="1.2" />
-            <attr name="health" value="160" />
+            <default key="health" value="160" />
             <attr name="weight" value="45" /> <!-- in kilograms -->
             <attr name="dangerousness" value="90" />
             <flag name="baby" />
@@ -150,7 +153,7 @@
             <default key="mush" value="True" />
             
             <attr name="size" value="1.2" />
-            <attr name="health" value="250" />
+            <default key="health" value="250" />
             <attr name="weight" value="82" /> <!-- in kilograms -->
             <attr name="dangerousness" value="50" />
             <attr name="punchDamage" value="15" /> <!-- would've been called lacerateDamage or slashDamage -->
@@ -158,13 +161,13 @@
     
         <variant name="Small Dragon" id="small">
             <attr name="size" value="2.5" />
-            <attr name="health" value="280" />
+            <default key="health" value="280" />
             <attr name="weight" value="78" /> <!-- in kilograms -->
         </variant>
         
         <variant name="Intelligent Small Dragon" id="small_m">
             <attr name="size" value="2.5" />
-            <attr name="health" value="280" />
+            <default key="health" value="280" />
             <attr name="weight" value="78" /> <!-- in kilograms -->
             <attr name="dangerousness" value="130" />
             <default key="mush" value="True" />
@@ -172,13 +175,13 @@
         
         <variant name="Medium-sized Dragon" id="medium">
             <attr name="size" value="4" />
-            <attr name="health" value="350" />
+            <default key="health" value="350" />
             <attr name="weight" value="138" /> <!-- in kilograms -->
         </variant>
         
         <variant name="Large Dragon" id="large">
             <attr name="size" value="5" />
-            <attr name="health" value="400" />
+            <default key="health" value="400" />
             <attr name="weight" value="210" /> <!-- in kilograms -->
         </variant>
     </variants>

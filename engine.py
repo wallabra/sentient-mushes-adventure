@@ -1,4 +1,4 @@
-import json
+import simplejson as json
 import embedcode
 import time
 import logging
@@ -85,6 +85,9 @@ class EntityType(object):
         return "{}#{}#{}#{}#{}#{}".format(id, self.id, namegen.generate_name(random.randint(3, 10)), place, variant, json.dumps(attr))
         
     def call(self, func, entity, *args, **kwargs):
+        if entity is None:
+            return None
+    
         return self.functions[func](entity, *args, **kwargs)
 
 class LoadedEntity(object):
@@ -99,10 +102,22 @@ class LoadedEntity(object):
         self.variant = self.type.variants[s.split("#")[4]]
         self.attr = json.loads(s.split("#")[5])
         self.ignore_auto_updates = 0
+        self.despawned = False
         
         world.all_loaded_entities.append(self)
+
+    def __dict__(self):
+        return self.attr
+        
+    def __hash__(self):
+        return hash(self.serialize())
         
     def set_variant(self, variant):
+        if self.despawned:
+            return
+    
+        self.now()
+    
         for k, v in self.variant['default'].items():
             if k in self.attr and self.attr[k] == v:
                 self.attr.pop(k)
@@ -116,6 +131,9 @@ class LoadedEntity(object):
         self.update()
         
     def pop(self, key, default=None):
+        if self.despawned:
+            return
+    
         res = self.attr.pop(key, default)
         
         if self.ignore_auto_updates > 0:
@@ -127,6 +145,10 @@ class LoadedEntity(object):
         return res
         
     def __setitem__(self, key, val):
+        if self.despawned:
+            return
+    
+        self.now()
         self.attr[key] = val
         
         if self.ignore_auto_updates > 0:
@@ -179,12 +201,22 @@ class LoadedEntity(object):
         return self.etype.id == type
      
     def set_name(self, name):
+        if self.despawned:
+            return
+            
+        self.now()
         self.name = name
         self.update()
         
+    def serialize(self):
+        return "{}#{}#{}#{}#{}#{}".format(self.id, self.type.id, self.name, self.place, self.variant['id'], json.dumps(self.attr))
+    
+    def __repr__(self):
+        return repr(self.serialize())
+    
     def update(self):
         try:
-            if not self.world.set_with_id(self.id, "{}#{}#{}#{}#{}#{}".format(self.id, self.type.id, self.name, self.place, self.variant['id'], json.dumps(self.attr))):
+            if not self.world.set_with_id(self.id, self.serialize()):
                 logging.warning("Failure updating {}!".format(str(self)))
             
         except TypeError as e:
@@ -202,7 +234,7 @@ class LoadedEntity(object):
         
             raise
             
-        self.world.update_loaded_entities()
+        # self.world.update_loaded_entities()
         
     def __worldlist_unload(self):
         bad = []
@@ -215,7 +247,15 @@ class LoadedEntity(object):
             self.world.all_loaded_entities.pop(num - no)
         
     def now(self):
+        if self.despawned:
+            return
+    
         n = self.world.from_id(self.id)
+        
+        if not n:
+            self.despawned = True
+            return
+        
         self.index = n.index
         self.id = n.id
         self.type = n.type
@@ -226,13 +266,23 @@ class LoadedEntity(object):
         n.__worldlist_unload()
         
     def __getitem__(self, key):
+        if self.despawned:
+            return None 
+    
+        self.now()  
+        
         a = self.attr.get(key)
         b = (a if a is not None else self.variant['attr'].get(key))
             
         return (b if b is not None else (True if key in self.variant['flags'] else None))
     
     def call(self, func, *args, **kwargs):
-        fspace = getattr(func, '__funcspace', "")
+        self.now()
+        
+        if self.despawned:
+            return
+    
+        fspace = getattr(self.type.functions[func], '__funcspace', "")
         
         if fspace != "":
             fspace = "<" + fspace + ">"
@@ -241,6 +291,11 @@ class LoadedEntity(object):
         return self.type.call(func, self, *args, **kwargs)
         
     def event(self, evt, *args, **kwargs):
+        if self.despawned:
+            return
+    
+        self.now()
+    
         for s in self.type.systems:
             s(evt, self, *args, **kwargs)
             
@@ -251,15 +306,29 @@ class LoadedEntity(object):
             s(evt, self, *args, **kwargs)
     
     def set_place(self, p):
+        if self.despawned:
+            return
+    
+        self.now()
         self.place = p
         self.update()
         
-    def despawn(self):
+    def despawn(self, forced=False):
         self.now()
-        self.world.entities.pop(self.index)
+        
+        if forced:
+            self.world.entities.pop(self.index)
+            
+        else:
+            self.world.queue_removal(self.index)
+            
+        self.despawned = True
         self.__worldlist_unload()
             
     def print_attr(self):
+        if self.despawned:
+            return
+    
         for k, v in self.attr.items():
             print('  * {} -> {}'.format(k, v))
             
@@ -283,6 +352,7 @@ class GameWorld(object):
         self.global_systems = []
         
         self.all_loaded_entities = []
+        self._queued_removals = []
         
         t = threading.Thread(name="Game Broadcast Loop", target=self._broadcast_loop)
         t.start()
@@ -374,21 +444,28 @@ class GameWorld(object):
     def tick(self):
         self.all_loaded_entities = []
         perc = 0
-        pinterval = 5000 / len(self.entities)
+        pinterval = 10000 / len(self.entities)
         _pipos = 1
         
         print("[tick progress broadcast interval: {:.2f}%]".format(pinterval))
         
         for i, e in enumerate(self.entities):
-            en = LoadedEntity(self, i, e)
-
-            if 'tick' in en.type.functions:
-                en.call('tick')
+            if i not in self._queued_removals:
+                en = LoadedEntity(self, i, e)
                 
-            for s in en.type.systems:
-                s('tick', en)
+                if 'tick' in en.type.functions:
+                    try:
+                        en.call('tick')
+                        
+                    except BaseException:
+                        print(repr(en))
+                        raise
+                    
+                for s in en.type.systems:
+                    s('tick', en)
+                    
+                self.all_loaded_entities = []
                 
-            self.all_loaded_entities = []
             perc += 1
             
             if (100 * perc / len(self.entities)) > _pipos * pinterval or i == len(self.entities) - 1:
@@ -396,6 +473,15 @@ class GameWorld(object):
                 _pipos += 1
             
             logging.debug("TICK: {:.2f}% complete.".format(100.0 * perc / len(self.entities)))
+        
+        self.resolve_removals()
+        
+    def queue_removal(self, entity_index):
+        self._queued_removals.append(entity_index)
+        
+    def resolve_removals(self):
+        for ind, val in enumerate(sorted(self._queued_removals)):
+            self.entities.pop(val - ind)
         
     def add_entity(self, e):
         self.entities.append(e)

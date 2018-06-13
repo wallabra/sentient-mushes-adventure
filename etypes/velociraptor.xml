@@ -38,6 +38,9 @@
             def tick(entity):
                 entity.call('creature_tick')
             
+                if entity['isPlayer']:
+                    return
+            
                 if random.random() &lt;= 0.3:
                     # wander
                     possib = set()
@@ -104,7 +107,7 @@
     <variants>
         <variant name="Velociraptor Player" id="p_raptor">
             <attr name="size" value="0.9" />
-            <attr name="health" value="90" />
+            <default key="health" value="90" />
             <attr name="weight" value="87" /> <!-- in kilograms -->
             <attr name="dangerousness" value="90" />
             <attr name="punchDamage" value="20" /> <!-- would've been called lacerateDamage or slashDamage -->
@@ -115,13 +118,13 @@
     
         <variant name="Green Velociraptor" id="green">
             <attr name="size" value="1.15" />
-            <attr name="health" value="130" />
+            <default key="health" value="130" />
             <attr name="weight" value="104" /> <!-- in kilograms -->
         </variant>
     
         <variant name="Lime Velociraptor" id="lime">
             <attr name="size" value="0.87" />
-            <attr name="health" value="85" />
+            <default key="health" value="85" />
             <attr name="weight" value="72" /> <!-- in kilograms -->
         </variant>
         
@@ -129,7 +132,7 @@
             <flag name="baby" />
         
             <attr name="size" value="0.4" />
-            <attr name="health" value="52" />
+            <default key="health" value="52" />
             <attr name="weight" value="45" /> <!-- in kilograms -->
         </variant>
     </variants>

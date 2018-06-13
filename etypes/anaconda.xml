@@ -113,6 +113,9 @@
             def tick(entity):
                 entity.call('creature_tick')
             
+                if entity['isPlayer']:
+                    return
+            
                 if random.random() &lt;= 0.02:
                     # wander
                     possib = set()
@@ -190,7 +193,7 @@
             
             <attr name="size" value="0.225" />
             <attr name="weight" value="28" />
-            <attr name="health" value="47" />
+            <default key="health" value="47" />
         </variant>
     
         <variant name="Striped Anaconda" id="striped">
@@ -200,7 +203,7 @@
             
             <attr name="size" value="0.6" />
             <attr name="weight" value="50" />
-            <attr name="health" value="75" />
+            <default key="health" value="75" />
         </variant>
         
         <variant name="Rock-Encrusted Anaconda" id="rock">
@@ -210,7 +213,7 @@
             
             <attr name="size" value="0.7" />
             <attr name="weight" value="80" />
-            <attr name="health" value="100" />
+            <default key="health" value="100" />
             
             <default key="drops" value="{ 'raw steak': (0, 1), 'snake tooth': (2, 2), 'pebble': 1 }" />
         </variant>
@@ -218,7 +221,7 @@
         <variant name="Beach Anaconda" id="beach">
             <attr name="weight" value="60" />
             <attr name="size" value="0.8" />
-            <attr name="health" value="80" />
+            <default key="health" value="80" />
         </variant>
         
         <variant name="Striped Anaconda Player" id="player_snek">
@@ -230,7 +233,7 @@
             
             <attr name="size" value="0.65" />
             <attr name="weight" value="50" />
-            <attr name="health" value="75" />
+            <default key="health" value="75" />
             
             <default key="mush" value="True" />
         </variant>

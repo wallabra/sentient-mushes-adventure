@@ -1,9 +1,43 @@
 <?xml version="1.0"?>
-<world beginning="Prairies of Yohansville;Port Ludicrous;Australocampus;Furrow Hills">
+<world beginning="Prairies of Yohansville;Port Ludicrous;Borealocampus West;Borealocampus East">
     <places>
-        <place name="Vallis Ordo">
-            <flock type="anaconda" amount="3-9" variant="striped" />
-            <flock type="sheep" amount="5-12" variant="*" />
+    
+        <place name="Vallis Ordo West">
+            <flock type="anaconda" amount="2-4" variant="striped" />
+            <flock type="sheep" amount="3-9" variant="*" />
+            
+            <items type="flint" amount="3-10" />
+            <items type="pebble" amount="12-28" />
+            <items type="stick" amount="9-25" />
+            <items type="leaf" amount="22-45" />
+            <items type="straw" amount="24-38" />
+        </place>
+        
+        <place name="Vallis Ordo East">
+            <flock type="anaconda" amount="2-4" variant="striped" />
+            <flock type="sheep" amount="3-9" variant="*" />
+            
+            <items type="flint" amount="3-10" />
+            <items type="pebble" amount="12-28" />
+            <items type="stick" amount="9-25" />
+            <items type="leaf" amount="22-45" />
+            <items type="straw" amount="24-38" />
+        </place>
+        
+        <place name="Vallis Ordo North">
+            <flock type="anaconda" amount="2-4" variant="striped" />
+            <flock type="sheep" amount="3-9" variant="*" />
+            
+            <items type="flint" amount="3-10" />
+            <items type="pebble" amount="12-28" />
+            <items type="stick" amount="9-25" />
+            <items type="leaf" amount="22-45" />
+            <items type="straw" amount="24-38" />
+        </place>
+        
+        <place name="Vallis Ordo South">
+            <flock type="anaconda" amount="2-4" variant="striped" />
+            <flock type="sheep" amount="3-9" variant="*" />
             
             <items type="flint" amount="3-10" />
             <items type="pebble" amount="12-28" />
@@ -38,7 +72,7 @@
             <items type="flint" amount="10-30" />
         </place>
             
-        <place name="Australocampus">
+        <place name="Borealocampus West">
             <flock type="kangaroo" amount="5-18" variant="brown;yellow;baby" />
             <flock type="anaconda" amount="3-7" variant="striped;rock" />
             <flock type="human" amount="2-5" variant="peasant" />
@@ -49,6 +83,19 @@
             <items type="straw" amount="20-40" />
             <items type="leaf" amount="35-55" />
             <items type="flint" amount="4-9" />
+        </place>
+        
+        <place name="Borealocampus East">
+            <flock type="kangaroo" amount="5-18" variant="brown;yellow;baby" />
+            <flock type="sheep" amount="4-10" variant="*" />
+            <flock type="human" amount="2-5" variant="peasant" />
+            <flock type="human" amount="8-15" variant="farmer" />
+            
+            <items type="stick" amount="10-18" />
+            <items type="pebble" amount="12-30" />
+            <items type="straw" amount="20-40" />
+            <items type="leaf" amount="35-55" />
+            <items type="apple" amount="12-38" />
         </place>
         
         <place name="Prairies of Yohansville">
@@ -119,16 +166,18 @@
     </places>
     
     <paths> 
-        <path ends="Mount Bayoku;Prairies of Yohansville;Australocampus" />
+        <path ends="Mount Bayoku;Prairies of Yohansville;Borealocampus West" />
         <path ends="Yohansville;Prairies of Yohansville;Port Ludicrous" />
         <path ends="Port Ludicrous;Beach of Harmony;Yohansville" />
         <path ends="Port Ludicrous;Lighthouse Anne Ground Floor" />
         <path ends="Lighthouse Anne Ground Floor;Lighthouse Anne Basement" />
         <path ends="Lighthouse Anne Ground Floor;Lighthouse Anne 1st Floor" />
         <path ends="Lighthouse Anne Lamp Floor;Lighthouse Anne 1st Floor" />
-        <path ends="Mount Bayoku;North Bridge;Australocampus" />
-        <path ends="Australocampus;Furrow Hills" />
-        <path ends="Vallis Ordo;North Bridge" />
+        <path ends="Mount Bayoku;North Bridge;Borealocampus West" />
+        <path ends="Borealocampus East;Furrow Hills" />
+        <path ends="Borealocampus East;Borealocampus West" />
+        <path ends="Vallis Ordo South;North Bridge" />
+        <path ends="Vallis Ordo South;Vallis Ordo North;Vallis Ordo East;Vallis Ordo West" />
     </paths>
     
     <etypes> <!-- entity dependencies -->

@@ -86,21 +86,21 @@
         <variant name="White Sheep" id="white">
             <attr name="maxGrazeHealth" value="135" />
             <attr name="size" value="1.3" />
-            <attr name="health" value="120" />
+            <default key="health" value="120" />
             <attr name="weight" value="70" /> <!-- in kilograms -->
         </variant>
         
         <variant name="Brown Sheep" id="brown">
             <attr name="maxGrazeHealth" value="135" />
             <attr name="size" value="1.3" />
-            <attr name="health" value="120" />
+            <default key="health" value="120" />
             <attr name="weight" value="70" /> <!-- in kilograms -->
         </variant>
         
         <variant name="Baby Sheep" id="pup">
             <attr name="maxGrazeHealth" value="85" />
             <attr name="size" value="0.8" />
-            <attr name="health" value="70" />
+            <default key="health" value="70" />
             <attr name="weight" value="55" /> <!-- in kilograms -->
             <flag name="baby" />
             <default key="drops" value="{'wool': (1, 2), 'raw steak': (0, 1)}" />
@@ -109,14 +109,14 @@
         <variant name="Summerine Sheep" id="summer">
             <attr name="maxGrazeHealth" value="125" />
             <attr name="size" value="1.2" />
-            <attr name="health" value="115" />
+            <default key="health" value="115" />
             <attr name="weight" value="64" /> <!-- in kilograms -->
         </variant>
         
         <variant name="Intelligent Sheep" id="mushy">
             <attr name="maxGrazeHealth" value="122" />
             <attr name="size" value="1.3" />
-            <attr name="health" value="115" />
+            <default key="health" value="115" />
             <attr name="weight" value="64" /> <!-- in kilograms -->
             <attr name="courage" value="3.5" />
             <default key="mush" value="True" />
@@ -125,7 +125,7 @@
         <variant name="Very Wooly Sheep" id="xwool">
             <attr name="maxGrazeHealth" value="140" />
             <attr name="size" value="1.6" />
-            <attr name="health" value="125" />
+            <default key="health" value="125" />
             <attr name="weight" value="75" /> <!-- in kilograms -->
             <default key="drops" value="{'wool': (2, 7), 'raw steak': (1, 3)}" />
         </variant>
