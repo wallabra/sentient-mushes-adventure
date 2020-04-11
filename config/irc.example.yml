@@ -6,7 +6,7 @@
     channels:
         - "#jongtest"
         - "#SMAdventure"
-        
+
 -   name: "mibbit"
     server: "irc.mibbit.net"
     port: 6667
