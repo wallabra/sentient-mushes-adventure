@@ -1,125 +1,132 @@
 <?xml version="1.0"?>
 <entitytype name="Human" id="human">
     <functions>
+        <!--
         <function name="player_special">
             def player_special(entity, player, args):
                 if not entity['weapon']:
                     player.print_out("{}: Wield a weapon first!".format(entity), place=entity.place)
                     return False
-            
+
                 player.print_out("{}: Performing the Human's weapon sharpening.".format(entity), place=entity.place)
-                
+
                 if entity['weapon'] in entity['sharpening']:
                     entity['sharpening'][entity['weapon']] += 1
-                
+
                 else:
                     entity['sharpening'][entity['weapon']] = 1
-                    
+
                 return True
         </function>
-    
+        -->
+
         <function name="tick">
             import random
-        
+
             def tick(entity):
                 entity.call('creature_tick')
-            
-                if entity['isPlayer']:
+
+                if entity['isPlayer'] or entity['dead']:
                     return
-            
-                if random.random() &lt;= 0.02: 
+
+                if random.random() &lt;= 0.02:
                     # wander
                     possib = set()
-                    
+
                     for p in entity.world.paths:
                         if entity.place in p:
                             possib |= p
-                            
+
                     possib -= {entity.place}
-                            
+
                     if len(possib) &gt; 0:
                         p = random.choice(tuple(possib))
-                        entity.world.broadcast(0, entity, " fearlessly went to ", p, ".")
+                        entity.world.broadcast(0, entity, " fearlessly went to ", p, ".", place={p, entity.place})
                         entity.call('move', p)
         </function>
-        
+
         <function name="hoe_attack">
             import random
-            
+
             def hoe_attack(entity):
                 entity.call('attack', entity.world.from_id(entity['target']), random.uniform(8, 15))
-                
+
                 if random.random() &lt;= 0.175:
                     entity.world.from_id(entity['target']).call('mutilated')
         </function>
-        
+
         <function name="pickaxe_attack">
             import random
-            
+
             def pickaxe_attack(entity):
                 entity.call('attack', entity.world.from_id(entity['target']), random.uniform(12, 30))
         </function>
-        
+
         <function name="sword_attack">
             import random
-            
+
             def sword_attack(entity):
                 entity.call('attack', entity.world.from_id(entity['target']), random.uniform(30, 55))
-                
+
                 if random.random() &lt;= 0.325:
                     entity.world.from_id(entity['target']).call('mutilated')
         </function>
     </functions>
 
     <base>
+        <flag name="not promiscuous" />
+
         <attr name="obituary" value="'{killer} humanized {victim}!'" />
-    
+
          <!-- reactive and social traits, in a scale from 1 to 10 -->
-        <attr name="hostility" value="1.2" /> <!-- negativity of reaction to living entities of other kinds --> 
+        <attr name="hostility" value="1.2" /> <!-- negativity of reaction to living entities of other kinds -->
         <attr name="courage" value="3.5" /> <!-- likelihood to stay when underwhelmed or outnumbered -->
         <attr name="sociality" value="8" /> <!-- likelihood to form 'friends' (will tend to follow each other and share friends and enemies) -->
         <attr name="leadership" value="5" /> <!-- likelihood to become leader (most likely to be followed by friends) -->
         <attr name="dangerousness" value="90" /> <!-- apparent dangerousness, in a vague hitpoint scale -->
         <attr name="postTransfer" value="'farmer'" />
-    
+
         <!-- kinetic (movement & combat) attributes -->
         <attr name="speed" value="0.4" /> <!-- likelihood to evade enemy attacks, from 0 to 1 -->
         <attr name="moveSpeed" value="0.9" /> <!-- chance, from 0 to 1, for a succesful tile move -->
-        
-        <attr name="defaultMature" value="['peasant']" />
+
+        <attr name="defaultMature" value="['peasant', 'farmer', 'miner', 'dagger', 'dagger']" />
+
+        <flag name="carnivore" />
+        <flag name="herbivore" />
     </base>
-    
+
     <default>
         <import name="creatureattr" href="attributes/creatureattr.xml" />
-        
+
         <attribute key="drops" value="{'coin': (0, 20)}" />
         <attribute key="sharpening" value="{}" />
     </default>
-    
+
     <systems>
         <system name="drops" href="systems/drops.py" />
         <system name="pinata_drops" href="systems/pinata_drops.py" />
     </systems>
-    
+
     <itemdefs>
         <item name="coin">
             <flag name="alwaysDrop" />
         </item>
-        
+
         <item name="steel hoe">
             <flag name="weapon" />
             <attr key="uses" value="95" />
             <attr key="minDamage" value="16" />
             <attr key="maxDamage" value="30" />
         </item>
-        
+
         <item name="steel pickaxe">
             <flag name="weapon" />
             <attr key="uses" value="100" />
             <attr key="minDamage" value="24" />
             <attr key="maxDamage" value="60" />
         </item>
-        
+
         <item name="curvy dagger">
             <flag name="weapon" />
             <attr key="uses" value="80" />
@@ -127,7 +134,7 @@
             <attr key="maxDamage" value="66" />
         </item>
     </itemdefs>
-    
+
     <variants>
         <variant name="Kid" id="kid">
             <flag name="baby" />
@@ -139,7 +146,7 @@
             <attr name="meleeAttackFunc" value="None" /> <!-- kids can't play with weapons! -->
             <default key="accuracy" value="0.4" />
         </variant>
-    
+
         <variant name="Citizen" id="peasant">
             <attr name="obituary" value="'{killer} poked {victim} some holes with a kitchen knife!'" />
             <attr name="size" value="1.00" />
@@ -148,10 +155,10 @@
             <attr name="dangerousness" value="12" />
             <attr name="meleeAttackFunc" value="'hoe_attack'" />
             <default key="accuracy" value="0.5" />
-            
+
             <default name="inventory" value="{ 'dagger': 1 }" />
         </variant>
-        
+
         <variant name="Land Owner" id="farmer">
             <attr name="obituary" value="'{killer} poked {victim} some holes with a hoe!'" />
             <attr name="size" value="1.00" />
@@ -160,10 +167,10 @@
             <attr name="dangerousness" value="15" />
             <attr name="meleeAttackFunc" value="'hoe_attack'" />
             <default key="accuracy" value="0.8" />
-            
+
             <default name="inventory" value="{ 'steel hoe': 1 }" />
         </variant>
-        
+
         <variant name="Miner" id="miner">
             <attr name="obituary" value="'{killer} poked {victim} some holes with a hoe!'" />
             <attr name="size" value="1.00" />
@@ -171,11 +178,13 @@
             <attr name="weight" value="65" /> <!-- in kilograms -->
             <attr name="dangerousness" value="15" />
             <attr name="meleeAttackFunc" value="'pickaxe_attack'" />
-            
+
             <default name="inventory" value="{ 'steel pickaxe': 1 }" />
         </variant>
-        
+
         <variant name="Thief" id="dagger">
+            <unflag name="not promiscuous" />
+
             <attr name="obituary" value="'{killer} slayed {victim} with a couple deadly stabs!'" />
             <attr name="size" value="1.05" />
             <default key="health" value="102" />
@@ -183,10 +192,10 @@
             <attr name="dangerousness" value="25" />
             <attr name="meleeAttackFunc" value="'sword_attack'" />
             <default key="accuracy" value="0.7" />
-            
+
             <default name="inventory" value="{ 'curvy dagger': 1 }" />
         </variant>
-        
+
         <variant name="Sword Bandit" id="knight">
             <attr name="obituary" value="'{killer} mutilated {victim} with multiple wide lacerations!'" />
             <attr name="size" value="1.05" />
@@ -194,10 +203,10 @@
             <attr name="weight" value="75" /> <!-- in kilograms -->
             <attr name="dangerousness" value="40" />
             <attr name="meleeAttackFunc" value="'sword_attack'" />
-            
+
             <default name="inventory" value="{ 'steel sword': 1 }" />
         </variant>
-                
+
         <variant name="Lighthouse Keeper" id="lhkeeper">
             <attr name="obituary" value="'{killer} wiped {victim} off the Lamp Floor of Lighthouse Anne! (because wiping them from the face of Earth is NOT enough)'" />
             <attr name="size" value="1.08" />
@@ -205,10 +214,10 @@
             <attr name="weight" value="82" /> <!-- in kilograms -->
             <attr name="dangerousness" value="55" />
             <attr name="meleeAttackFunc" value="'sword_attack'" />
-            
+
             <default name="inventory" value="{ 'steel sword': 1 }" />
         </variant>
-        
+
         <!--
         <variant name="Human Player" id="player">
             <attr name="size" value="1.05" />
@@ -216,9 +225,9 @@
             <attr name="weight" value="65" /> (in kilograms)
             <attr name="dangerousness" value="30" />
             <attr name="punchDamage" value="8" />
-            
+
             <attr name="isPlayer" value="True" />
-            
+
             <declare name="weapon" />
             <default name="weaponUses" value="{}" />
             <default key="mush" value="True" />

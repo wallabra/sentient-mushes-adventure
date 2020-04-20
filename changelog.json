@@ -1,0 +1,139 @@
+{
+    "vtrack_version": "2.1.1",
+    "name": "Sentient Mushes: Adventure",
+    "packages": ["smadventure"],
+    "tags": ["game", "rpg"],
+    "description": "A large RPG game.",
+
+    "license": "MIT",
+    "dependencies": [
+        "triarc>=0.2.0",
+        "PyYAML>=5.3.1"
+    ],
+
+    "authorName": "Gustavo6046",
+    "authorRealName": "Gustavo R. Rehermann",
+    "authorEmail": "rehermann6046@gmail.com",
+
+    "versions": [
+        {
+            "changes": [
+                "Now friends are bidirectional!",
+                "Added stats command."
+            ],
+            "done": [],
+            "name": "v2018.06.03.7",
+            "todo": {}
+        },
+        {
+            "changes": [
+                "Removed the Huamn Player.",
+                "Added the Green and Lime Velociraptor NPCs.",
+                "Renamed etypes/player.xml to etypes/velociraptor.xml due to the NPC raptors.",
+                "Moved material and weapon items (like straw and flint sword) from etypes/player.xml (now velociraptor.xml) to attributes/player.xml.",
+                "Replaced gethealth by the more informative stats command.",
+                "Added Vallis Ordo (from Latin: Valley of Order) and North Bridge",
+                "Fixed the Kangaroo player not importing attributes/player.xml.",
+                "Fixed broadcasting-related issues with the part command.",
+                "Fixed the Small Dragon Player's special (firebreath).",
+                "Fixed broadcast handling with channels that already had players in the past.",
+                "Added a custom attack message to the Kangaroo's kick, instead of broadcasting it along with the default attack message.",
+                "Fixed the message parameter for take_damage."
+            ],
+            "done": [],
+            "name": "v2018.06.04.1",
+            "todo": {}
+        },
+        {
+            "changes": [
+                "Added Lighthouse Anne at Port Ludicrous, and an alternative path around Mount Bayoku: Australocampus.",
+                "Added random food items eating for creatures. Only for items lying in the place.",
+                "Added the eat command for inventory foods.",
+                "Added apples.",
+                "Added dumpplaces."
+            ],
+            "done": [],
+            "name": "v2018.06.04.2",
+            "todo": {}
+        },
+        {
+            "changes": [
+                "Fixed __worldlist_unload (an internal LoadedEntity method to unload itself from the world's master list).",
+                "Added G to consonantal ditongs for the name generator (g*, *g and gg).",
+                "Fixed pathmove broadcasts.",
+                "Added tick progress info (broadcasts) when too many entities are ticked."
+            ],
+            "done": [],
+            "name": "v2018.06.05.1",
+            "todo": {}
+        },
+        {
+            "changes": [
+                "Fixed world.tick :S",
+                "Fixed other float formats as well.",
+                "Fixed tick progress broadcasts. :S",
+                "Added creature genders."
+            ],
+            "done": [],
+            "name": "v2018.06.06.1",
+            "todo": {
+                "breeding": {
+                    "description": "A slightly nasty, but nonetheless accurate way to avoid lack of fauna ingame. It can be made less nasty in a couple ways.",
+                    "name": "Creature Breeding",
+                    "notes": [
+                        "Creatures have two variables: willTimer and gestationTimer. Once willTimer is set to 0, there is a chance the humor of two creatures of the same entity type is raised significantly, and if gestationTimer < 2, there is a good chance one of the entities will become pregnant."
+                    ]
+                },
+                "traps": {
+                    "description": "Traps would be layed down by human players. Living entities (Creatures) that lie in the same place as traps have a chance to be damaged or even killed.",
+                    "name": "Trap System",
+                    "notes": [
+                        "Container Traps prevent smaller entities from moving for a set amount of turns. Example: arapuca, rope trap.",
+                        "Simple Traps damage smaller entities and are destroyed easily by large entities. Example: rabbit snare.",
+                        "Blunt Traps deal a bit less damage, but are reusable and require 2 turns for a larger creature to be able to destroy them. Example: pebble fall trap.",
+                        "Sturdy Traps deal a decent damage, and can be used a set number of times. Can not be destroyed without a mush or human creature to disarm. Example: bear trap.",
+                        "Lethal Traps are one-use, so they are destroyed when they are used, but can kill small entities and severely damage larger entities. Example: landmine."
+                    ]
+                }
+            }
+        },
+        {
+            "changes": [
+                "Performance improvements on world loading and ticking.",
+                "Added creature merrying and breeding system.",
+                "Added creature aging and growing system.",
+                "Fixed creature_init for player entities."
+            ],
+            "done": [
+                "breeding"
+            ],
+            "name": "v2018.06.06.2",
+            "todo": {}
+        },
+        {
+            "changes": [
+                "Allowed NPC creatures to merry with player creatures temporarily, while I ask in a poll if such should be allowed.",
+                "Fixed a KeyError when running the pregnancy (period?) timer.",
+                "Creatures with a target can't merry.",
+                "Setting attributes now only updates 1 LoadedEntity class, as opposed to earlier. Huge performance improvements ensue.",
+                "Renamed help command to list.",
+                "Changed the bot prefix from '}]' to '=='.",
+                "Added the recipe, quickstart, and guide commands.",
+                "Removed the large join message.",
+                "Made it so that the bot automatically says who's turn it is when someone joins.",
+                "Disabled world reset.",
+                "Added hangman minigame."
+            ],
+            "done": [],
+            "name": "v2018.06.12.1",
+            "todo": {}
+        },
+        {
+            "name": "v2020.04.15.1",
+            "changes": [
+                "Changed internal entity representation; bye, useless strings!",
+                "Large rewrite to use Triarc!"
+            ]
+        }
+    ]
+}

@@ -4,156 +4,162 @@
         <function name="player_special">
             def player_special(entity, player, args):
                 target = args[0]
-                
+
                 if not entity.world.from_name(target):
                     player.print_out("{}: No such entity to target!".format(entity), place=entity.place)
                     return False
-                    
+
                 target = entity.world.from_name(target)
-                    
+
                 player.print_out("{}: Performing the Anaconda's constriction.".format(entity), place=entity.place)
                 entity['target'] = target.id
                 entity.call('constrict')
                 return True
         </function>
-    
+
         <function name="on_kill">
             def on_kill(entity, other):
                 if other.id == entity['target']:
                     entity['constricting'] = False
         </function>
-    
+
         <function name="constrict">
             import random
-            
+
             def constrict(entity):
-                t = entity.world.from_id(entity['target']) 
-            
+                t = entity.world.from_id(entity['target'])
+
                 if not t or t['dead']:
                     return
-                    
+
                 if not entity['constricting']:
                     if random.random() &lt;= 1 - entity['constrictChance']:
                         entity.world.broadcast(2, entity, " leaps to constrict ", t, ", but misses!", place=entity.place)
                         return # Missed constriction!
-                        
-                    
+
                     if not t['dead']:
                         entity.world.broadcast(2, entity, " leaps and constricts ", t, "!", place=entity.place)
-                    
+
                         # fall damage
                         t['instigator'] = entity.id
-                        t.call('take_damage', 5)
-                        
+                        t.call('take_damage', 10)
+
                         if t['dead'] and random.random() &lt; entity['vore']:
                             entity.world.broadcast(2, entity, " devours what remained of ", t, "!", place=entity.place)
                             entity['feeding'] += t['weight'] / 10
                             t.despawn()
-                        
+
                         else:
-                            entity['constricting'] = True
-                                
+                            entity['constricting'] = t.id
+
                             t['speedModifier'] /= 10
                             t['accuracy'] /= 1.2
                             entity['_oldSpeedMod'] = entity['speedModifier']
                             entity['_fullDmg'] = 0
                             entity['speedModifier'] = 0
-                            
+
                             entity['_constrictHealth'] = t['health']
-                
-                elif t.place != entity.place or t['dead']:
-                    entity['constricting'] = False
-                    entity['speedModifier'] = entity['_oldSpeedMod']
-                    t['speedModifier'] *= 10
-                    t['accuracy'] *= 1.2
-                    
-                    if t.place == entity.place and random.random() &lt;= entity['vore']:
-                        entity.world.broadcast(2, entity, " devours what remained of ", t, "!", place=entity.place)
-                        entity['feeding'] += t['weight'] / 10
-                        t.despawn()
-                
-                elif random.random() &lt;= 0.8:
-                    dmg = random.uniform(25, 65) * entity['weight'] / t['weight']
-                    
-                    entity['_fullDmg'] += dmg
-                    entity.world.broadcast(2, entity, " crushes ", t, (' further' if entity['_fullDmg'] == dmg else ''), ", provoking ", 100 * dmg / entity['_constrictHealth'], "% vital damage, for a total of ", min(100, 100 * entity['_fullDmg'] / entity['_constrictHealth']), "%!", place=entity.place)
-                    
-                    t['instigator'] = entity.id
-                    t.call('take_damage', dmg)   
-                    
-                    if t['dead']:
-                        entity['constricting'] = False
-                        entity['speedModifier'] = entity['_oldSpeedMod']
-                        t['speedModifier'] *= 10
-                        t['accuracy'] *= 1.2
-                        
-                        if random.random() &lt; entity['vore']:
-                            entity.world.broadcast(2, entity, " devours what remained of ", t, "!", place=entity.place)
-                            entity['feeding'] += t['weight'] / 10
-                            t.despawn()
-                    
+
         </function>
-        
+
         <function name="bite">
             import random
-            
+
             def bite(entity):
                 t = entity.pointer('target')
-                
+
                 if not t:
                     return
-                    
+
                 dmg = random.uniform(20, 35)
                 t.call('attack', entity, dmg, "{} bites {}!".format(entity, t))
         </function>
-    
+
         <function name="tick">
             import random
-        
+
             def tick(entity):
                 entity.call('creature_tick')
-            
+
                 if entity['isPlayer']:
                     return
-            
-                if random.random() &lt;= 0.02:
-                    # wander
-                    possib = set()
+
+                if entity['living'] and not entity['dead']:
+                    if entity['constricting']:
+                        t = entity.pointer('constricting')
                     
-                    for p in entity.world.paths:
-                        if entity.place in p:
-                            possib |= p
-                            
-                    possib -= {entity.place}
-                            
-                    if len(possib) &gt; 0:
-                        p = random.choice(tuple(possib))
-                        entity.world.broadcast(2, entity, " wanders to ", p, "!", place=p) # important because, well, anacondas
-                        entity.call('move', p)
-                        
-                if entity['feeding'] &gt; 0:
-                    pts = entity['feeding'] * 2.5
-                    entity['feeding'] = entity['feeding'] - 1
-                    entity.call('heal', entity, pts, '{} healed {:.2f} points from nutrition.'.format(entity, pts))
+                        if t.place != entity.place or t['dead']:
+                            entity['constricting'] = False
+                            entity['speedModifier'] = entity['_oldSpeedMod']
+                            t['speedModifier'] *= 10
+                            t['accuracy'] *= 1.2
+        
+                            if t.place == entity.place and random.random() &lt;= entity['vore']:
+                                entity.world.broadcast(2, entity, " devours what remained of ", t, "!", place=entity.place)
+                                entity['feeding'] += t['weight'] / 10
+                                t.despawn()
+
+                            elif t['living']:
+                                entity.world.broadcast(2, t, " broke free from ", entity, "!", place=entity.place)
+        
+                        elif random.random() &lt;= 0.8:
+                            dmg = random.uniform(25, 65) * entity['weight'] / t['weight']
+        
+                            entity['_fullDmg'] += dmg
+                            entity.world.broadcast(2, entity, " crushes ", t, (' further' if entity['_fullDmg'] == dmg else ''), ", provoking ", 100 * dmg / entity['_constrictHealth'], "% vital damage, for a total of ", min(100, 100 * entity['_fullDmg'] / entity['_constrictHealth']), "%!", place=entity.place)
+        
+                            t['instigator'] = entity.id
+                            t.call('take_damage', dmg)
+        
+                            if t['dead']:
+                                entity['constricting'] = False
+                                entity['speedModifier'] = entity['_oldSpeedMod']
+                                t['speedModifier'] *= 10
+                                t['accuracy'] *= 1.2
+        
+                                if random.random() &lt; entity['vore']:
+                                    entity.world.broadcast(2, entity, " devours what remained of ", t, "!", place=entity.place)
+                                    entity['feeding'] += t['weight'] / 10
+                                    t.despawn()
+                
+                    elif random.random() &lt;= 0.02:
+                        # wander
+                        possib = set()
+
+                        for p in entity.world.paths:
+                            if entity.place in p:
+                                possib |= p
+
+                        possib -= {entity.place}
+
+                        if len(possib) &gt; 0:
+                            p = random.choice(tuple(possib))
+                            entity.world.broadcast(0, entity, " wanders to ", p, ".", place={p, entity.place})
+                            entity.call('move', p)
+
+                    elif entity['feeding']:
+                        pts = entity['feeding'] * 2.5
+                        entity['feeding'] = entity['feeding'] - 1
+                        entity.call('heal', entity, pts, '{} healed {:.2f} points from nutrition.'.format(entity, pts))
         </function>
     </functions>
-    
+
     <base>
         <flag name="hasRanged" />
-        
+
         <attr name="meleeAttackFunc" value="'bite'" />
         <attr name="rangedAttackFunc" value="'constrict'" /> <!-- technically, ranged applies for smaler entities.
                                                                   If it doesn't have a melee attack, it runs from
                                                                   larger entities. -->
-                                                                  
+
         <!-- anaconda traits -->
         <attr name="maxFoodHeal" value="20" />
         <attr name="vore" value="0.8" /> <!-- chance to eat the target, from 0 to 1 -->
         <attr name="constrictChance" value="0.4" />
         <attr name="obituary" value="'{killer} crushed {victim} into a creamy flesh! (yuck)'" />
-    
+
         <!-- reaction traits, in a scale from 1 to 10 -->
-        <attr name="hostility" value="4" /> <!-- negativity of reaction to living entities of other kinds --> 
+        <attr name="hostility" value="4" /> <!-- negativity of reaction to living entities of other kinds -->
         <attr name="courage" value="7" /> <!-- likelihood to stay when underwhelmed or outnumbered -->
         <attr name="sociality" value="5" /> <!-- likelihood to form 'friends' (will tend to
                                                  follow each other and share friends and enemies) -->
@@ -163,78 +169,82 @@
         <!-- kinetic (movement & combat) attributes -->
         <attr name="speed" value="0.16" /> <!-- likelihood to evade enemy attacks, from 0 to 1 -->
         <attr name="moveSpeed" value="0.6" /> <!-- chance, from 0 to 1, for a succesful tile move -->
-        
+
         <attr name="postTransfer" value="'striped'" />
-        
+
         <attr name="defaultMature" value="['striped', 'rock', 'beach']" />
+
+        <flag name="carnivore" />
     </base>
-    
+
     <default>
         <import name="player" href="attributes/player.xml" />
+
         <attribute key="drops" value="{'raw steak': (0, 2), 'snake tooth': (2, 2)}" />
         <attribute key="feeding" value="0" />
+        <attribute key="constricting" value="False" />
     </default>
-    
+
     <systems>
         <system name="drops" href="systems/drops.py" />
     </systems>
-    
+
     <itemdefs>
         <item name="snake tooth" />
     </itemdefs>
-        
+
     <variants>
         <variant nme="Baby Anaconda" id="baby">
             <flag name="baby" />
-        
+
             <attr name="vore" value="0.8" />
             <attr name="dangerousness" value="40" />
             <attr name="hostility" value="0.5" />
-            
+
             <attr name="size" value="0.225" />
             <attr name="weight" value="28" />
             <default key="health" value="47" />
         </variant>
-    
+
         <variant name="Striped Anaconda" id="striped">
             <attr name="vore" value="0.5" />
             <attr name="dangerousness" value="70" />
             <attr name="hostility" value="1.5" />
-            
+
             <attr name="size" value="0.6" />
             <attr name="weight" value="50" />
             <default key="health" value="75" />
         </variant>
-        
+
         <variant name="Rock-Encrusted Anaconda" id="rock">
             <attr name="vore" value="0.2" />
             <attr name="dangerousness" value="100" />
             <attr name="hostility" value="7" />
-            
+
             <attr name="size" value="0.7" />
             <attr name="weight" value="80" />
             <default key="health" value="100" />
-            
+
             <default key="drops" value="{ 'raw steak': (0, 1), 'snake tooth': (2, 2), 'pebble': 1 }" />
         </variant>
-        
+
         <variant name="Beach Anaconda" id="beach">
             <attr name="weight" value="60" />
             <attr name="size" value="0.8" />
             <default key="health" value="80" />
         </variant>
-        
+
         <variant name="Striped Anaconda Player" id="player_snek">
             <attr name="isPlayer" value="True" />
             <attr name="vore" value="1.0" />
             <attr name="dangerousness" value="70" />
             <attr name="punchDamage" value="35" /> <!-- would've been called biteDamage -->
             <attr name="constrictChance" value="0.8" />
-            
+
             <attr name="size" value="0.65" />
             <attr name="weight" value="50" />
             <default key="health" value="75" />
-            
+
             <default key="mush" value="True" />
         </variant>
     </variants>

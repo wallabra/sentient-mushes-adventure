@@ -1,56 +1,58 @@
 <?xml version="1.0"?>
 <entitytype name="Sheep" id="sheep">
     <functions>
-        <function name="spit">
+        <function name="spit" type="text/python">
             import random
-            
+
             def spit(entity):
                 t = entity.world.from_id(entity['target'])
-                
+
                 if not t or entity['dead']:
                     return
-                    
+
                 stress = random.uniform(.05, .25)
                 t['humor'] = t['humor'] - stress
-                
+
                 entity.world.broadcast(2, entity, " spat at ", t, ", lowering their humor by ", stress, " points!", place=entity.place)
         </function>
-    
+
         <function name="tick">
             import random
-        
+
             def tick(entity):
                 entity.call('creature_tick')
-            
-                if random.random() &lt;= 0.275:
-                    # wander
-                    possib = set()
-                    
-                    for p in entity.world.paths:
-                        if entity.place in p:
-                            possib |= p
-                            
-                    possib -= {entity.place}
-                            
-                    if len(possib) &gt; 0:
-                        p = random.choice(tuple(possib))
-                        entity.world.broadcast(0, entity, " wanders to ", p, ".", place=p)
-                        entity.call('move', p)
-                
-                if entity['health'] &lt; entity['maxGrazeHealth'] and random.random() &lt;= 0.2:
-                    # grazed
-                    entity.call('heal', entity, min(entity['maxGrazeHealth'] - entity['health'], random.uniform(5, 15)))
+
+                if entity['living'] and not entity['dead']:
+                    if random.random() &lt;= 0.2:
+                        # wander
+                        possib = set()
+
+                        for p in entity.world.paths:
+                            if entity.place in p:
+                                possib |= p
+
+                        possib -= {entity.place}
+
+                        if len(possib) &gt; 0:
+                            p = random.choice(tuple(possib))
+                            entity.world.broadcast(0, entity, " wanders to ", p, ".", place={p, entity.place})
+                            entity.call('move', p)
+
+                    if entity['health'] &lt; entity['maxGrazeHealth'] and random.random() &lt;= 0.2:
+                        # grazed
+                        entity.call('heal', entity, min(entity['maxGrazeHealth'] - entity['health'], random.uniform(5, 15)))
         </function>
     </functions>
-    
+
     <base>
         <flag name="hasRanged" />
-        
+
         <attr name="rangedAttackFunc" value="'spit'" /> <!-- Poor sheep... I wonder if we should give them some attack. Old Sentient Mushes IRCRPG (MushyBot/SMBot) used to let animals fight back as well. -->
 
-    
+        <attr name="obituary" value="'{killer} spat {victim} until they became a big, mildly acidic clump of dead weight!'" />
+
         <!-- reaction traits, in a scale from 1 to 10 -->
-        <attr name="hostility" value="0.05" /> <!-- negativity of reaction to living entities of other kinds --> 
+        <attr name="hostility" value="0.05" /> <!-- negativity of reaction to living entities of other kinds -->
         <attr name="courage" value="3.5" /> <!-- likelihood to stay when underwhelmed or outnumbered -->
         <attr name="sociality" value="8.5" /> <!-- likelihood to form 'friends' (will tend to follow each other and share friends and enemies) -->
         <attr name="leadership" value="2" /> <!-- likelihood to become leader (least likely to follow friends, most likely to be followed) -->
@@ -58,30 +60,32 @@
         <!-- kinetic (movement & combat) attributes -->
         <attr name="speed" value="0.6" /> <!-- likelihood to evade enemy attacks, from 0 to 1 -->
         <attr name="moveSpeed" value="0.85" /> <!-- chance, from 0 to 1, for a succesful tile move -->
-        
+
         <attr name="defaultMature" value="['white', 'brown', 'xwool']" />
+
+        <flag name="herbivore" />
     </base>
-    
+
     <default>
         <import name="creatureattr" href="attributes/creatureattr.xml" />
         <attribute key="drops" value="{'wool': (1, 5), 'raw steak': (1, 3)}" />
     </default>
-    
+
     <systems>
-        <system name="drops" href="systems/drops.py" />    
+        <system name="drops" href="systems/drops.py" />
     </systems>
-    
+
     <itemdefs>
         <item name="wool">
             <function name="modify_damage">
                 import random
-                
+
                 def modify_damage(entity, world, dmg):
                     return max(0, random.uniform(dmg - 15, dmg - 5))
             </function>
         </item>
     </itemdefs>
-        
+
     <variants>
         <variant name="White Sheep" id="white">
             <attr name="maxGrazeHealth" value="135" />
@@ -89,14 +93,14 @@
             <default key="health" value="120" />
             <attr name="weight" value="70" /> <!-- in kilograms -->
         </variant>
-        
+
         <variant name="Brown Sheep" id="brown">
             <attr name="maxGrazeHealth" value="135" />
             <attr name="size" value="1.3" />
             <default key="health" value="120" />
             <attr name="weight" value="70" /> <!-- in kilograms -->
         </variant>
-        
+
         <variant name="Baby Sheep" id="pup">
             <attr name="maxGrazeHealth" value="85" />
             <attr name="size" value="0.8" />
@@ -105,14 +109,14 @@
             <flag name="baby" />
             <default key="drops" value="{'wool': (1, 2), 'raw steak': (0, 1)}" />
         </variant>
-        
+
         <variant name="Summerine Sheep" id="summer">
             <attr name="maxGrazeHealth" value="125" />
             <attr name="size" value="1.2" />
             <default key="health" value="115" />
             <attr name="weight" value="64" /> <!-- in kilograms -->
         </variant>
-        
+
         <variant name="Intelligent Sheep" id="mushy">
             <attr name="maxGrazeHealth" value="122" />
             <attr name="size" value="1.3" />
@@ -121,7 +125,7 @@
             <attr name="courage" value="3.5" />
             <default key="mush" value="True" />
         </variant>
-        
+
         <variant name="Very Wooly Sheep" id="xwool">
             <attr name="maxGrazeHealth" value="140" />
             <attr name="size" value="1.6" />

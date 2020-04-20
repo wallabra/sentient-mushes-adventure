@@ -1,304 +1,278 @@
 <?xml version="1.0"?>
 <default name="player">
     <import name="creatureattr" href="attributes/creatureattr.xml" />
-    
+
     <function name="tick">
         def tick(entity):
             if entity['pickups'] &gt;= 20:
                 entity['pickups'] = 0
-                
+
             entity.call('creature_tick')
     </function>
 
     <function name="on_death">
-        def dummy(_):  
-            pass
-    
         def on_death(entity):
             if entity['isPlayer']:
                 print("Removing player: " + str(entity))
-                entity.type.variants[entity.variant['id']]['__handle_dead_player'].get(entity.name, dummy)(entity)
+                entity.type.variants[entity.variant['id']]['__handle_dead_player'].get(entity.name, lambda:0)()
                 entity.type.variants[entity.variant['id']]['__handle_dead_player'].pop(entity.name, None)
-                
+
                 if len(entity.type.variants[entity.variant['id']]['__handle_dead_player']) &lt;= 0:
                     entity.type.variants[entity.variant['id']].pop('__handle_dead_player')
     </function>
-    
+
     <function name="eat">
         import random
         random_wtfs = ['a cooking utensil', 'an electronic device', 'furniture', 'a vacuum cleaner', 'trash', 'rubbish', 'some much wow item', 'a 64 item stack', 'a Notch apple', 'a block', 'a deadly heavy piano', 'my swamp', 'a null pointer', "your mother's deadly dough roll", 'a new addition', 'the everforgotten Minecraft 1.13 version', 'lava', 'a pile of soap', 'a soap gun', 'a waterarm', 'my son, the Sock Puppet', 'my boyfriend', 'my girlfriend', 'random.choice(random_wtfs)', 'entropy', 'a black hole', 'space and time']
-    
+
         def eat(entity, player, item=None):
             if entity['dead']:
                 return False
-            
+
             if item is None:
                 entity.world.broadcast(2, entity, " is eating thin air! To no effect! (turn wasn't consumed)", entity.place)
                 return False
-            
+
             else:
                 i = entity.world.find_item(item)
-                
+
                 if not i:
                     player.print_out("{}: Is that {}? That doesn't exist in this game!".format(entity.name, random.choice(random_wtfs)))
                     return False
-                   
+
                 if 'food' not in i['flags'] and not i['attr'].get('food', False):
                     player.print_out("{}: That is not food, that's just {}!".format(entity.name, random.choice(random_wtfs)))
                     return False
-                
+
                 if item not in entity['inventory'] or entity['inventory'][item] &lt;= 0:
                     player.print_out("{}: Imaginary food doesn't kill hunger! You don't have that!".format(entity.name))
                     return False
-                    
+
                 heal = i['attr']['heal']
-                
+
                 if type(heal) in (list, tuple):
                     heal = random.uniform(heal[0], heal[1])
-                
+
                 entity['health'] += heal
                 entity.world.broadcast(2, entity, ' ate a {} and healed {} points!'.format(item, heal), place=entity.place)
-                
+
                 return True
     </function>
 
     <function name="wield">
         import random
         random_wtfs = ['a cooking utensil', 'an electronic device', 'furniture', 'a vacuum cleaner', 'trash', 'rubbish', 'some much wow item', 'a 64 item stack', 'a Notch apple', 'a block', 'a deadly heavy piano', 'my swamp', 'a null pointer', "your mother's deadly dough roll", 'a new addition', 'the everforgotten Minecraft 1.13 version', 'lava', 'a pile of soap', 'a soap gun', 'a waterarm', 'my son, the Sock Puppet', 'my boyfriend', 'my girlfriend', 'random.choice(random_wtfs)', 'entropy', 'a black hole', 'space and time']
-    
+
         def wield(entity, player, item=None):
             if entity['dead']:
                 return False
-            
+
             if item is None:
                 entity['weapon'] = None
                 entity.world.broadcast(2, entity, ' is now fighting with their own body instead of a weapon!', entity.place)
                 return True
-            
+
             else:
                 i = entity.world.find_item(item)
-                
+
                 if not i:
                     player.print_out("{}: Is that {}? That doesn't exist in this game!".format(entity.name, random.choice(random_wtfs)))
                     return False
-                   
+
                 if 'weapon' not in i['flags'] and not i['attr'].get('weapon', False):
                     player.print_out("{}: That is not a weapon, that's just {}!".format(entity.name, random.choice(random_wtfs)))
                     return False
-                
+
                 if item not in entity['inventory'] or entity['inventory'][item] &lt;= 0:
                     player.print_out("{}: Imaginary weapons don't do real damage! You don't have that!".format(entity.name))
                     return False
-                    
+
                 entity['weapon'] = item
                 entity.world.broadcast(2, entity, ' is now wielding a {}!'.format(item), place=entity.place)
-                
+
                 return True
     </function>
 
     <function name="player_move">
         def player_move(entity, player, place):
-            return entity.call('pathmove', place, True)
+            return entity.call('pathmove', place)
     </function>
-    
-    <function name="craft">
-        import namegen
-    
-        def plural(name, amount=2):
-            if amount == 1:
-                return name
-            
-            elif name.endswith('us') or name.endswith('is'):
-                return name[:-2] + 'i'
 
-            elif name[-1] == 's':
-                return name + 'es'
-                
-            else:
-                return name + 's'
-    
+    <function name="craft">
+        from .common import plural
+
+
         def craft(entity, player, desired, amount):
             if entity['dead']:
                 return
-        
+
             if not entity.world.find_item(desired):
                 player.print_out(entity.name, ": That recipe does not seem to exist.")
                 return False
-            
+
             if 'recipe' not in entity.world.find_item(desired)['attr']:
                 player.print_out(entity.name, ": That recipe does not seem to be possible. This is Einsteinian stuff!")
                 return False
-                
+
             for k, v in entity.world.find_item(desired)['attr']['recipe'].items():
                 if k not in entity['inventory'] or entity['inventory'][k] &lt; entity.world.find_item(desired)['attr']['recipe'][k] * amount:
                     player.print_out(entity.name, ": You do not have enough {} to craft {} {} items ({}/{}).".format(k, amount, desired, entity['inventory'].get(k, 0), entity.world.find_item(desired)['attr']['recipe'][k] * amount))
                     return False
-                    
+
             for r in entity.world.find_item(desired)['attr'].get('prerequisites', ()):
                 if r not in entity['inventory'] or entity['inventory'][r] &lt;= 0:
                     player.print_out(entity.name, ": As a prerequisite, in order to craft any {}, you must have a {} in your inventory.".format(plural(desired), r))
                     return False
-            
+
             inv = entity['inventory']
-                
+
             for k, v in entity.world.find_item(desired)['attr']['recipe'].items():
                 inv[k] -= v * amount
-                
+
             if desired not in inv:
                 inv[desired] = amount
-                
+
             else:
                 inv[desired] += amount
-                
+
             entity['inventory'] = inv
             player.print_out(entity.name, ": {} {} crafted successfully.".format(amount, plural(desired, amount)))
-            
+
             return True
     </function>
-    
+
     <function name="player_attack">
         import random
-    
+
         def player_attack(entity, player, other):
             if entity['dead'] or not other:
                 return False
-        
+
             entity['target'] = other.id
             entity.call('attack', other, (entity['punchDamage'] * random.uniform(0.7, 1.3) if (not entity['weapon'] or entity['inventory'].get(entity['weapon'], 0) &lt;= 0) else random.uniform(entity.world.item_type(entity['weapon'])['attr']['minDamage'], entity.world.item_type(entity['weapon'])['attr']['maxDamage'])))
-            
+
             if entity['weapon'] and entity['inventory'].get(entity['weapon'], 0) > 0:
                 if entity['weapon'] in entity['weaponUses']:
                     wu = entity['weaponUses']
                     wu[entity['weapon']] -= 1
                     entity['weaponUses'] = wu
-                    
+
                 else:
                     wu = entity['weaponUses']
                     wu[entity['weapon']] = entity.world.item_type(entity['weapon'])['attr']['weaponUses'] - 1
                     entity['weaponUses'] = wu
-                    
+
                 if entity['weaponUses'][entity['weapon']] &lt;= 0:
                     entity['inventory'][entity['weapon']] = entity['inventory'][entity['weapon']] - 1
                     wu = entity['weaponUses']
                     wu[entity['weapon']] = world.item_type(entity['weapon'])['attr']['weaponUses']
                     entity['weaponUses'] = wu
-                    
+
                     if entity['inventory'][entity['weapon']] &lt;= 0:
                         entity['weapon'] = None # back to bare hands, so don't forget to always wield a good weapon when one's available!
-                        
+
             return True
     </function>
-    
-    <function name="pick_up">
-        import random
-        import namegen
-        
-        def plural(name, amount=2):
-            if amount == 1:
-                return name
-            
-            elif name.endswith('us') or name.endswith('is'):
-                return name[:-2] + 'i'
 
-            elif name[-1] == 's':
-                return name + 'es'
-                
-            else:
-                return name + 's'
-        
+    <function name="pick_up">
+        from .common import plural
+
+        import random
+
+
+
         def pick_up(entity, player, amount=1, item=None):
             if entity['dead']:
-                return False
-        
+                return 'DEAD', "Your immobile body doesn't seem to be able to pick stuff up from the ground. What a shame."
+
             picked = {}
-            
+
+            left = -1
             a = 0
-        
+
             while amount &gt;= 1:
                 _item = item
-            
+
                 if item is None or item == "":
                     p = tuple(filter(lambda k: entity.world.find_place(entity.place)['items'][k] &gt; 0, tuple(entity.world.find_place(entity.place)['items'].keys())))
-                
+
                     if p:
                         _item = random.choice(p)
-                        
+
                     else:
-                        player.print_out("No more items left at {}!".format(player.place))
                         break
-                    
+
                 elif _item not in entity.world.find_place(entity.place)['items'] or entity.world.find_place(entity.place)['items'][_item] &lt;= 0:
-                    player.print_out("There is no such item at the current place!")
-                    return False
-                    
+                    return 'NOITEM', 'No such item at that location!'
+
                 if _item in picked:
                     picked[_item] += 1
-                    
+
                 else:
                     picked[_item] = 1
-                    
+
                 entity.world.find_place(entity.place)['items'][_item] -= 1
                 
                 if entity.world.find_place(entity.place)['items'][_item] &lt;= 0:
                     entity.world.find_place(entity.place)['items'].pop(_item)
-                    
+                    left = 0
+
+                else:
+                    left = entity.world.find_place(entity.place)['items'][_item]
+
                 amount -= 1
                 a += 1
-            
+
             inv = entity['inventory'] # __setitem__ isn't perfect, yo
-            
+
             for k, v in picked.items():
                 if k in inv:
                     inv[k] += v
-                    
+
                 else:
                     inv[k] = v
-            
+
             entity['inventory'] = inv
             entity['pickups'] += a
-            
+
             if len(tuple(picked.keys())) > 0:
                 # print(plural(k, v))
                 msg = "{} picks up {}!".format(entity.name, ', '.join("{} {}".format((('an' if k[0] in namegen.vowels else 'a') if v == 1 else v), plural(k, v)) for k, v in picked.items()))
-            
+
+                if left == 0:
+                    msg += " There are no {} remaining at the location as a reuslt." .format(plural(k))
+
                 if entity['pickups'] &gt;= 20:
                     msg += " The turn is spent picking up all of these items."
-                    
-                player.print_out(msg)
-            
+
+                return 'SUCCESS', msg
+
             return len(picked) &gt; 0
     </function>
-    
+
     <!--=====-->
     <!-- ITEMS -->
     <!--=====-->
-    
+
     <!-- Materials -->
     <item name="stick" />
     <item name="pebble" />
     <item name="flint" />
     <item name="leaf" />
-    
-    <item name="apple">
-        <flag name="herbivorousFood" />
-        <flag name="food" />
-        <attribute key="heal" value="(5, 12)" />
-    </item>
-    
     <item name="wheat" />
     <item name="straw" />
-    
+
     <item name="rope">
         <flag name="craftable" />
         <attribute key="recipe" value="{ 'stray': 3 }" />
     </item>
-    
+
     <item name="plank">
         <flag name="craftable" />
         <attribute key="recipe" value="{ 'stick': 5 }" />
         <attribute key="prerequisites" value="set('flint')" /> <!-- ingredients that aren't consumed in the process -->
     </item>
-    
+
     <!-- Weapons -->
     <item name="flint sword">
         <flag name="weapon" />
@@ -307,7 +281,7 @@
         <attribute key="maxDamage" value="80" />
         <attribute key="recipe" value="{ 'stick': 2, 'flint': 1, 'straw': 3 }" />
     </item>
-    
+
     <item name="poisonous flint sword">
         <flag name="weapon" />
         <attribute key="poison" value="3" />
@@ -316,14 +290,14 @@
         <attribute key="maxDamage" value="60" />
         <attribute key="recipe" value="{ 'flint sword': 1, 'poison sac': 1 }" />
     </item>
-    
+
     <item name="steel sword">
         <flag name="weapon" />
         <attribute key="uses" value="125" />
         <attribute key="minDamage" value="40" />
         <attribute key="maxDamage" value="95" />
     </item>
-    
+
     <item name="grenades">
         <flag name="weapon" />
         <attribute key="uses" value="8" />
@@ -331,9 +305,9 @@
         <attribute key="maxDamage" value="250" />
     </item>
     <!--=====-->
-    
+
     <attribute key="pickups" value="0" />
     <attribute key="weaponUses" value="{}" />
-    
+
     <declare name="weapon" />
 </default>

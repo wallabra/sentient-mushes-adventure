@@ -3,71 +3,72 @@
     <functions>
         <function name="player_special">
             import random
-        
+
             def player_special(entity, player, args):
                 place = ' '.join(args)
-                
+
                 if entity.place == place:
                     player.print_out("{}: You are already there!".format(entity), place=entity.place)
-                    return False                    
-                
+                    return False
+
                 if not entity.world.find_place(place):
                     player.print_out("{}: No such place!".format(entity), place=entity.place)
                     return False
-                    
+
                 dmg = random.uniform(5, 15)
                 player.print_out("{}: Performing the Velociraptor's run, at the expense of {} health.".format(entity, dmg), place=entity.place)
-                    
+
                 a = None
-                    
+
                 for _ in range(3):
                     if entity.place == place:
                         a = 2
                         break
-                        
+
                     b = entity.call('pathmove', place, 0)
                     a = (a and min(a, b)) or b
-                    
+
                 entity.call('take_damage', dmg)
                 return a
         </function>
-        
+
         <function name="tick">
             import random
-        
+
             def tick(entity):
                 entity.call('creature_tick')
-            
+
                 if entity['isPlayer']:
                     return
-            
-                if random.random() &lt;= 0.3:
-                    # wander
-                    possib = set()
-                    
-                    for p in entity.world.paths:
-                        if entity.place in p:
-                            possib |= p
-                            
-                    possib -= {entity.place}
-                            
-                    if len(possib) &gt; 0:
-                        p = random.choice(tuple(possib))
-                        entity.world.broadcast(0, entity, " wanders to ", p, ".", place=p)
-                        entity.call('move', p)
+
+                if entity['living'] and not entity['dead']:
+                    if random.random() &lt;= 0.3:
+                        # wander
+                        possib = set()
+
+                        for p in entity.world.paths:
+                            if entity.place in p:
+                                possib |= p
+
+                        possib -= {entity.place}
+
+                        if len(possib) &gt; 0:
+                            p = random.choice(tuple(possib))
+                            entity.world.broadcast(0, entity, " wanders to ", p, ".", place={p, entity.place})
+                            entity.call('move', p)
         </function>
-        
+
         <function name="claw_slash">
             import random
-        
+
             def claw_slash(entity):
                 t = entity.pointer('target')
-                
+
                 if not t:
                     return False
-                
-                entity.call('attack', t, random.uniform(10, 65))
-                
+
+                entity.call('attack', t, random.uniform(10, 65), "{} slashes their claws deep into {}'s flesh!".format(entity, t))
+
                 if random.random() &lt;= 0.4:
                     t.call('mutilated')
         </function>
@@ -76,61 +77,64 @@
     <base>
         <attr name="meleeAttackFunc" value="'claw_slash'" />
 
-    
+
         <!-- reaction traits, in a scale from 1 to 10 -->
-        <attr name="hostility" value="0.2" /> <!-- negativity of reaction to living entities of other kinds --> 
+        <attr name="hostility" value="0.2" /> <!-- negativity of reaction to living entities of other kinds -->
         <attr name="courage" value="5" /> <!-- likelihood to stay when underwhelmed or outnumbered -->
         <attr name="sociality" value="8.6" /> <!-- likelihood to form 'friends' (will tend to follow each other and share friends and enemies) -->
         <attr name="leadership" value="6" /> <!-- likelihood to become leader (most likely to be followed by friends) -->
         <attr name="dangerousness" value="50" /> <!-- apparent dangerousness, in a vague hitpoint scale -->
         <attr name="postTransfer" value="'green'" />
-    
+
         <attr name="obituary" value="&quot;{victim} was teared in plural parts by {killer}'s velociraptor claws!&quot;" />
-        
+
         <!-- kinetic (movement & combat) attributes -->
         <attr name="speed" value="0.4" /> <!-- likelihood to evade enemy attacks, from 0 to 1 -->
         <attr name="moveSpeed" value="0.8" /> <!-- chance, from 0 to 1, for a succesful tile move -->
-        
+
         <attr name="defaultMature" value="['lime', 'green']" />
+
+        <flag name="carnivore" />
     </base>
-    
+
     <default>
         <import name="player" href="attributes/player.xml" />
+        
+        <attribute key="drops" value="{ 'raw steak': (2, 4) }" />
     </default>
-    
+
     <systems>
         <system name="pinata_drops" href="systems/pinata_drops.py" />
         <system name="drops" href="systems/drops.py" />
-        <attribute key="drops" value="{ 'raw steak': (2, 4) }" />
     </systems>
-    
+
     <variants>
         <variant name="Velociraptor Player" id="p_raptor">
             <attr name="size" value="0.9" />
             <default key="health" value="90" />
             <attr name="weight" value="87" /> <!-- in kilograms -->
             <attr name="dangerousness" value="90" />
-            <attr name="punchDamage" value="20" /> <!-- would've been called lacerateDamage or slashDamage -->
+            <attr name="punchDamage" value="32" /> <!-- would've been called lacerateDamage or slashDamage -->
             <attr name="isPlayer" value="True" />
-            
+
             <default name="mush" value="True" />
         </variant>
-    
+
         <variant name="Green Velociraptor" id="green">
             <attr name="size" value="1.15" />
             <default key="health" value="130" />
             <attr name="weight" value="104" /> <!-- in kilograms -->
         </variant>
-    
+
         <variant name="Lime Velociraptor" id="lime">
             <attr name="size" value="0.87" />
             <default key="health" value="85" />
             <attr name="weight" value="72" /> <!-- in kilograms -->
         </variant>
-        
+
         <variant name="Baby Velociraptor" id="baby">
             <flag name="baby" />
-        
+
             <attr name="size" value="0.4" />
             <default key="health" value="52" />
             <attr name="weight" value="45" /> <!-- in kilograms -->

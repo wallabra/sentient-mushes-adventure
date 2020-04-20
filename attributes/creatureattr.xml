@@ -2,7 +2,7 @@
 <default name="creature">
     <flag name="living" />
     <attribute key="dead" value="False" />
-    
+
     <static name="speed" value="0.4" />
     <static name="moveSpeed" value="0.5" />
     <static name="hostility" value="0" />
@@ -11,117 +11,130 @@
     <static name="leadership" value="0" />
     <static name="dangerousness" value="15" /> <!-- uses health scale -->
     <static name="flammable" value="True" />
-    
+
     <static name="specialMoveFunc" value="None" />
     <static name="rangedAttackFunc" value="None" />
     <static name="meleeAttackFunc" value="None" />
-    
+
     <static name="isPlayer" value="False" />
 
-    <attribute key="health" value="100" /> # default health amount
+    <attribute key="health" value="100" /> <!-- default health amount -->
     <attribute key="speedModifier" value="1" />
     <attribute key="mush" value="False" />
     <attribute key="humor" value="0.5" /> <!-- open scale, but general between 0 to 1 -->
     <attribute key="inventory" value="{}" />
     <attribute key="accuracy" value="1.0" />
     <attribute key="immune" value="5" /> <!-- Rehermann scale :) -->
-    
+
     <attribute key="burning" value="False" />
-    
+
     <declare key="instigator" />
-    <declare key="burnInstigator" />    
+    <declare key="burnInstigator" />
     <declare key="target" />
     <declare key="destination" />
-    
+
     <attribute key="friends" value="[]" />
-    
+
     <item name="raw steak">
         <flag name="food" />
+        <flag name="carnivoreFood" />
+        <attribute key="heal" value="(8, 22)" />
     </item>
-    
+
+    <item name="apple">
+        <flag name="food" />
+        <flag name="herbivoreFood" />
+        <attribute key="heal" value="(6, 14)" />
+    </item>
+
+    <item name="carrot">
+        <flag name="food" />
+        <flag name="herbivoreFood" />
+        <attribute key="heal" value="(4, 9)" />
+    </item>
+
     <function name="creature_tick">
         import random
-        
+
         def weighted_random(l):
-            if not isinstance(l, list):
-                return None
-            
+            l = list(l)
+
             tot = sum(map(lambda x: x[1], l), 0)
-            
+
             if tot == 0:
                 return None
-            
+
             r = random.uniform(0, tot)
             t = .0
-            
+
             for d in l:
                 t += d[1]
-                
+
                 if r &lt; t:
                     return d[0]
-                
-            print(r, t)    
-            return None # something weird happened!
-        
+
+            print(r, t)
+
+            raise RuntimeError("Issue in weighted random algorithm.")
+
         def creature_tick(entity):
             # print('[DEBUG]', entity, 'creature tick.')
             # print('[DEBUG] * Life check...')
-        
+
             if entity['dead']:
-                entity.now()
                 entity.despawn() # rotten or perished
                 return
-                
+
             if entity['target'] and ((not entity.pointer('target')) or entity.pointer('target')['dead']):
                 entity['target'] = None
-                
+
             # print('[DEBUG]   Not dead.')
-        
+
             bad = []
-        
+
             for i, f in enumerate(entity['friends']):
                 if not entity.world.from_id(f):
                     bad.append(i)
-                   
+
             for i, b in enumerate(bad):
                 entity['friends'].pop(b - i)
-        
+
             if entity['burning'] and random.random() &lt;= 0.5:
                 dmg = random.uniform(2, 9)
                 entity.world.broadcast(1, "Ouch! ", entity, " is taking burn damage!", place=entity.place)
                 entity['instigator'] = entity['burnInstigator']
                 entity.call("take_damage", dmg)
-                
+
             if entity['burning'] and random.random() &lt;= 0.15:
                 entity['burning'] = False
                 entity.world.broadcast(1, entity, "'s flames have extinguished naturally.", place=entity.place)
-                
+
             # print('[DEBUG] * Player check....')
-                
+
             if entity['isPlayer']:
                 return
-                
+
             # print('[DEBUG]   Not player.')
-                
+
             if entity['destination'] and entity['destination'] != entity.place and not entity['target']:
                 entity.call('pathmove', entity['destination'])
-                
+
             elif entity['target'] and entity.pointer('target') and entity['specialMoveFunc'] and random.random() &lt;= 0.7:
                 entity['destination'] = entity.pointer('target').place
-                
+
                 if entity.place == entity.pointer('target').place:
                     entity.call('pick_attack')
-                
+
                 else:
                     entity.call(entity['specialMoveFunc'] or 'pathmove_dest')
-                
+
             else:
                 if entity['target'] and entity.pointer('target')['dead']:
                     entity['target'] = None
-            
+
                 # Hostility.
                 if not entity['target']:
-                    strangers = tuple(map(
+                    strangers = [x for x in map(
                         lambda x: entity.world.from_id(x),
                         tuple(
                             set(map(
@@ -139,17 +152,17 @@
                                 ))
                             )) - set(entity['friends'])
                         )
-                    ))
-                    
+                    ) if x]
+
                     if random.random() * 20 &lt;= entity['hostility'] / 2.5 + 10 - entity['humor'] * 10 and len(strangers) > 0:
                         entity['target'] = random.choice(strangers).id
                         entity.world.broadcast((2.5 if entity.pointer('target')['isPlayer'] else 1), entity, ' suddenly turns to attack ', entity.pointer('target'), '!', place=entity.place)
                         entity.call('pick_attack')
-                    
+
                 # Sociality.
-                friends = tuple(filter(lambda e: ((bool(e['mush']) and bool(entity['mush'])) or e.type.name == entity.type.name) and e['health'] &gt; 0, entity.world.all_in_place(entity.place)))
-                friends = tuple(filter(lambda f: f.id not in entity['friends'] and entity.id != f.id, friends))
-                
+                friends = filter(lambda e: ((bool(e['mush']) and bool(entity['mush'])) or e.type.name == entity.type.name) and e['health'] &gt; 0, entity.world.all_in_place(entity.place))
+                friends = [x for x in filter(lambda f: f.id not in entity['friends'] and entity.id != f.id, friends) if x]
+
                 if random.random() * 10 &lt;= entity['sociality'] * entity['humor'] and len(friends) &gt; 0:
                     f = random.choice(friends)
                     fl = entity['friends']
@@ -158,12 +171,12 @@
                     fl = f['friends']
                     fl.append(entity.id)
                     f['friends'] = fl
-                    entity.world.broadcast((2 if f['isPlayer'] else 0), entity, " made a new friend: ", f, "!", place=entity.place)
-                    
+                    entity.world.broadcast((2 if f['isPlayer'] else -1), entity, " made a new friend: ", f, "!", place=entity.place)
+
                 # Sympathy.
                 if entity['target'] and entity['sociality'] + entity['humor'] * 15 &gt; random.uniform(0, 49.99):
-                    teammates = tuple(filter(lambda e: e.type.name != entity.type.name and e['health'] &gt; 0 and e['target'] == entity['target'], entity.world.all_in_place(entity.place)))
-                    
+                    teammates = [x for x in filter(lambda e: e.type.name != entity.type.name and e['health'] &gt; 0 and e['target'] == entity['target'], entity.world.all_in_place(entity.place)) if x]
+
                     if len(teammates) &gt; 0:
                         tmate = random.choice(teammates)
                         fl = entity['friends']
@@ -172,231 +185,252 @@
                         fl = tmate['friends']
                         fl.append(entity.id)
                         tmate['friends'] = fl
-                        entity.update()
-                        tmate.update()
-                        entity.world.broadcast((2 if tmate['isPlayer'] else 0), entity, " felt sympathy for ", tmate, ", and became friends!", place=entity.place)
-                    
+                        entity.world.broadcast((2 if tmate['isPlayer'] else -1), entity, " felt sympathy for ", tmate, ", and became friends!", place=entity.place)
+
                 # Following friends.
                 if len(entity['friends']) &gt; 0 and random.random() * 10 &lt;= entity['humor'] * 8 + 2:
-                    to_follow = list({e: e['leadership'] for e in filter(lambda e: e.place != entity.place, entity.pointer_list('friends'))}.items())
-                    
+                    to_follow = {e: e['leadership'] for e in filter(lambda e: e and e.place != entity.place, entity.pointer_list('friends'))}.items()
+
                     if len(to_follow) &gt; 0:
                         to_follow = weighted_random(to_follow)
-                        entity.world.broadcast((2 if to_follow['isPlayer'] else 0), entity, " decided to follow ", to_follow, ".", place=to_follow.place)
+                        entity.world.broadcast((2 if to_follow['isPlayer'] else -1), entity, " decided to follow ", to_follow, ".", place=to_follow.place)
                         entity.call('pathmove', to_follow.place)
-                        
+
                 # Sharing battles with friends.
                 if not entity['target'] and entity['friends']:
                     for f_ in entity['friends']:
-                        f = entity.world.from_id(f_)
-                        
-                        if f['target'] and f.pointer('target') and not f.pointer('target')['dead'] and random.random() &lt;= 0.1:
-                            entity.world.broadcast((2 if f['isPlayer'] or f.pointer('target')['isPlayer'] else 0), entity, " decided to help his friend ", f, " in its battle aggainst ", f.pointer('target'), '!', place=entity.place)
-                            entity['target'] = f['target']
-                            break
-                            
+                        if f_:
+                            f = entity.world.from_id(f_)
+
+                            if f and f['target'] and f.pointer('target') and not f.pointer('target')['dead'] and random.random() &lt;= 0.1:
+                                entity.world.broadcast((2 if f['isPlayer'] or f.pointer('target')['isPlayer'] else -1), entity, " decided to help his friend ", f, " in its battle aggainst ", f.pointer('target'), '!', place=entity.place)
+                                entity['target'] = f['target']
+                                break
+
                 # Eat.
                 if (entity['herbivore'] or entity['carnivore']) and random.random() &lt;= 0.3:
-                    food = [k for k, v in entity.world.find_place(entity.place)['items'] if v &gt; 0 and ((entity['herbivore'] and entity.world.item_type(k)['attr'].get('herbivoreFood', False)) or (entity['carnivore'] and entity.world.item_type(k)['attr'].get('carnivoreFood', False)))]
-                    
+                    food = [k for k, v in entity.world.find_place(entity.place)['items'].items() if v &gt; 0 and ((entity['herbivore'] and entity.world.find_item(k)['attr'].get('herbivoreFood', False)) or (entity['carnivore'] and entity.world.find_item(k)['attr'].get('carnivoreFood', False)))]
+
                     if len(food) &gt; 0:
-                        food = entity.world.item_type(random.choice(food))
+                        food = entity.world.find_item(random.choice(food))
                         heal = food['attr']['heal']
-                
+
                         if type(heal) in (list, tuple):
                             heal = random.uniform(heal[0], heal[1])
-                            
+
                         entity.world.find_place(entity.place)['items'][food] -= 1
                         entity['health'] += heal
-                        entity.world.broadcast((1 if f['isPlayer'] or f.pointer('target')['isPlayer'] else 0), entity, " ate a randomly lying ", food, " and healed {:.2f} HP.".format(heal), place=entity.place)
-                        
+                        entity.world.broadcast((1 if f['isPlayer'] or f.pointer('target')['isPlayer'] else 0), entity, " ate a randomly lying ", food, " and healed {:.2f} HP, for a total of {:.2f} HP.".format(heal, entity['health']), place=entity.place)
+
                 # Breed and merry.
-                if entity['gender'] in ('male', 'female'):
-                    entity['willTimer'] -= entity['humor']
-                    
+                if entity['gender'] in ('male', 'female') and not entity['baby']:
+                    entity['willTimer'] -= entity['humor'] * (1.8 if entity['gender'] == 'female' and entity['pregnancyTimer'] &lt;= 5 else 1)
+
                     if entity['gender'] == 'female':
-                        entity['pregnancyTimer'] -= 1
-                        
+                        entity['pregnancyTimer'] -= random.randint(1, 2)
+
                         if entity['pregnancyTimer'] &lt;= 0:
-                            entity['pregnancyTimer'] = entity['_origPregnancy'] + random.randint(-4, 4)
-                        
+                            entity['pregnancyTimer'] = 0
+
                     if entity['willTimer'] &lt;= 0:
                         entity['willTimer'] = entity['_origWill'] + random.randint(-4, 4)
-                        partner = entity.pointer('partner') or random.choice(filter(lambda e: not e.pointer('target') and e['gender'] != entity['gender'] and not e['baby'] and entity.type.id == e.type.id and e['gender'] in ('male', 'female'), entity.world.all_in_place(entity.place))) # should I disallow creatures from merrying with player entities?
-                        
-                        if partner and not partner.pointer('target') and not entity.pointer('target'):
+
+                        possib_partners = [x for x in filter(
+                            lambda e: not (e.pointer('target') or entity.pointer('target')) and e['gender'] != entity['gender'] and not e['baby'] and e['gender'] in ('male', 'female') and (e.type is entity.type or random.random() &lt; 0.17),
+                            entity.world.all_in_place(entity.place)
+                        ) if x] # should I disallow creatures from merrying with player entities?... eh, whatever
+
+                        prev_partner = entity.pointer('partner')
+
+                        if prev_partner and prev_partner['dead']:
+                            prev_partner = None
+                            entity.set_pointer('partner', None)
+
+                        partner = prev_partner or (possib_partners and random.choice(possib_partners)) or None
+
+                        if not partner:
+                            entity['humor'] -= 0.05
+                            entity['willTimer'] *= random.uniform(0.3, 0.55)
+
+                        elif not partner.pointer('target') and not entity.pointer('target'):
                             if not entity.pointer('partner'):
-                                world.broadcast(1, entity, ' and ', partner, ' merry, looking forward for the future!', place=entity.place)
-                                entity['partner'] = partner.id
-                                
+                                entity.world.broadcast(1, entity, ' and ', partner, ' merry{}!'.format('' if entity.type is partner.type else ", looking forward for the future"), place=entity.place)
+
+                                if entity.type is partner.type:
+                                    if entity['not promiscuous'] and partner['not promiscuous']:
+                                        entity['partner'] = partner.id
+                                        partner['partner'] = entity.id
+
                             else:
-                                world.broadcast(1, entity, ' and ', partner, ' joyfully merry again!', place=entity.place)
-                            
+                                entity.world.broadcast(1, entity, ' and ', partner, ' joyfully merry again!', place=entity.place)
+
                             fem = entity if entity['gender'] == 'female' else partner
                             male = entity if partner.id == fem.id else partner
-                            
-                            if fem['pregnancyTimer'] &lt;= 3 and not fem['pregnant']:
-                                fem['pregnant'] = random.randint(10, 20) 
+
+                            if fem['pregnancyTimer'] &lt;= 4 and not fem['pregnant'] and male.type is fem.type:
+                                fem['pregnant'] = random.randint(10, 20)
                                 world.broadcast(2, fem, ' is now pregnant!', place=entity.place)
-                                
-                                if partner['isPlayer']:
-                                    fem['babyVariant'] = entity.variant['id']
-                                
+
+                                if male['isPlayer'] and fem['isPlayer']:
+                                    fem['babyVariant'] = random.choice([k for k, v in fem.type.variants.items() if not ('isPlayer' in v['flags'] or v['attr'].get('isPlayer', False)) and ('baby' in v['flags'] or v['attr'].get('baby', False))])
+
+                                elif male['isPlayer']:
+                                    fem['babyVariant'] = fem.variant['id']
+
+                                elif fem['isPlayer']:
+                                    fem['babyVariant'] = male.variant['id']
+
                                 else:
                                     fem['babyVariant'] = random.choice(fem.variant['id'], male.variant['id'])
-                                
+
                             else:
-                                fem['pregnancyTimer'] += random.randint(20, 25)
-               
+                                fem['pregnancyTimer'] += random.randint(6, 11)
+
                 # Aging.
                 if entity['age'] &gt; 0:
-                    entity['age'] -= 1
-                    
+                    entity['age'] -= random.randint(1, 3)
+
                     if entity['age'] &lt;= 0 and entity['baby']:
-                        world.broadcast(2, entity, " grew up to be a ", entity.type.variants[entity['matureVariant']]['name'], "!", place=entity.place)
+                        entity.world.broadcast(2, entity, " grew up to be a ", entity.type.variants[entity['matureVariant']]['name'], "!", place=entity.place)
                         entity.set_variant(entity['matureVariant'])
-                        entity['health'] *= entity.variant['spawnHealth'] / entity['spawnHealth']
-               
+                        entity.attr['health'] *= entity.variant['default']['health'] / entity['spawnHealth']
+                        entity['spawnHealth'] = entity.variant['default']['health']
+
                 # Gestation.
                 if entity['gender'] == 'female' and entity['pregnant'] &gt; 0:
                     entity['pregnant'] -= entity['humor']
-                    
+
                     if entity['pregnant'] &lt;= 0:
                         entity['pregnant'] = 0
-                        world.broadcast(2, entity, " gave birth to ", entity.spawn(variant=random.choice(filter(lambda v: 'baby' in v['flags'], entity.type.variants))['id'], extra_attr={ 'age': random.randint(12, 30), 'matureVariant': entity['babyVariant'] }), "!", place=entity.place)
+                        entity.world.broadcast(2, entity, " gave birth to ", entity.spawn(variant=random.choice(tuple(filter(lambda v: 'baby' in v['flags'], entity.type.variants))['id'], extra_attr={ 'age': random.randint(12, 30), 'matureVariant': entity['babyVariant'] })), "!", place=entity.place)
     </function>
-    
+
     <function name="flee">
         import random
-    
+
         def flee(entity, other=None):
             if not entity['target'] or entity['dead']:
                 return
-                
+
             targ = entity.pointer('target')
-                
+
             possib = set()
-            
+
             for p in entity.world.paths:
                 if entity.place in p:
                     possib |= p
-                    
+
             possib -= {entity.place, targ.place}
-            
+
             if len(possib) > 0:
                 place = random.choice(tuple(possib))
                 entity.world.broadcast(0, entity, " fled from ", targ, " towards ", place, "!", place=entity.place)
                 entity.call('move', place)
-                
+
     </function>
-    
+
     <function name="pick_attack">
         import random
-    
+
         def pick_attack(entity):
             if not entity['target'] or entity['dead'] or (entity.pointer('target').place != entity.place):
                 return
-                
+
             if (entity['dangerousness'] + entity['health']) * entity['courage'] / 10.0 &lt; (entity.pointer('target')['dangerousness'] + entity.pointer('target')['health']) * entity.pointer('target')['courage'] / 10.0:
                 entity.call('flee')
-            
+
             else:
                 # print("{}  r={}  m={}  v={}".format(str(entity), entity['rangedAttackFunc'], entity['meleeAttackFunc'], entity.variant['attr']))
-            
+
                 if entity.pointer('target')['size'] &lt;= entity['size'] and entity['rangedAttackFunc'] and random.random() &lt;= 0.7:
                     entity.call(entity['rangedAttackFunc'])
-                    
+
                 elif entity['meleeAttackFunc']:
                     entity.call(entity['meleeAttackFunc'])
-                    
+
                 elif random.random() &lt;= entity['courage'] / 10:
                     entity.call('flee')
     </function>
-    
+
     <function name="move">
         import random
-    
-        def move(entity, place, bPrint=False):
+
+        def move(entity, place):
             if place == entity.place:
                 return 0
-                
-            possib = set() 
-            
+
+            possib = set()
+
             for path in entity.world.paths:
                 if entity.place in path:
                     possib |= path
-                    
+
             if place in possib:
-                if random.random() &lt;= (entity['moveSpeed'] + entity['humor'] / 1.25) / 1.25 * entity['speedModifier']:
-                    if bPrint:
-                        entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " has just moved from ", entity.place, " to ", place, "!", place=place)
-                        
+                if 1 - (random.random() ** (1 / entity['speedModifier'])) &lt;= entity['moveSpeed'] + entity['humor'] * 0.5:
                     entity.set_place(place)
                     entity.event('movement')
-                    return 2
-                    
-                elif bPrint:
-                    entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " failed to move to ", place, " in one turn!", place=entity.place)
-                
-                return 1
-                    
+                    return 'SUCCESS'
+
+                return 'SLOW'
+
             else:
-                print("Place not in possible paths!")
-                    
-            return 0
+                return 'NOPATH'
     </function>
-    
+
     <function name="creature_init">
         import random
-    
-        def creature_init(entity):  
+
+        def creature_init(entity):
             entity['spawnHealth'] = entity['health']
             entity['_origPregnancy'] = entity['pregnancyTimer']
             entity['_origWill'] = entity['willTimer']
             entity['gender'] = random.choice(('male', 'female'))
             # print(entity['gender'])
-            
+
             if entity['baby'] and not entity['mother']:
                 entity['age'] = random.randint(5, 20)
                 entity['matureVariant'] = random.choice(entity['defaultMature'])
-                
+
             else:
-                entity['pregnancyTimer'] = random.randint(int(entity['pregnancyTimer'] / 3), entity['pregnancyTimer'])
-                entity['willTimer'] = random.randint(int(entity['willTimer'] / 5), entity['willTimer'])
+                entity['pregnancyTimer'] = random.randint(entity['pregnancyTimer'] // 1.6, int(entity['pregnancyTimer']))
+                entity['willTimer'] = random.randint(entity['willTimer'] // 3, int(entity['willTimer']))
     </function>
-           
+
     <function name="pathmove_dest">
         def pathmove_dest(entity):
             entity.call('pathmove', entity['destination'])
     </function>
-       
+
     <function name="init">
         def init(entity):
             entity.call('creature_init')
     </function>
-    
+
     <function name="pathmove">
         import random
         import logging
-        
+
         from queue import PriorityQueue, Empty
-        
-    
+
+
         def neighbor_paths(place, world):
             res = set()
-        
+
             for p in world.paths:
                 if place in p:
                     res |= p
-                    
+
             res -= {place}
-            
+
             return res
-        
-        def pathmove(entity, navdest, _print=False):
-            if (entity['dead']) or (entity.place == navdest):
-                return 0
-        
+
+        def pathmove(entity, navdest):
+            if entity['dead']:
+                return "DEAD"
+
+            if entity.place == navdest:
+                return "ALREADY"
+
             # Super basic pathfinder.
             open = PriorityQueue()
             open.put_nowait((0, entity.place))
@@ -404,276 +438,263 @@
             come_from = { entity.place: None }
             rcost = { entity.place: 0 }
             p = False
-            
+
             def baddies(place):
                 b = 1
-            
+
                 for a in entity.world.all_in_place(place):
                     if not (a['mush'] and entity['mush']) and a.type.id != entity.type.id:
                         b += a['dangerousness'] + a['health']
-                    
+
                 return b
-            
+
             while True:
                 try:
                     cur = open.get_nowait()[1]
-                    
+
                 except Empty:
                     break
-            
+
                 for n in neighbor_paths(cur, entity.world):
                     if n in closed:
                         continue
-                
+
                     if n not in come_from or rcost[cur] &lt; rcost[come_from[n]]:
                         come_from[n] = cur
-                    
+
                     if navdest == n:
                         p = True
                         break
-                    
+
                     rcost[n] = rcost[cur] + baddies(n)
                     open.put((rcost[n], n))
-                    
+
                 closed.add(cur)
-                    
+
             if not p:
                 # print("@")
-                entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " can't find a path to ", navdest, "!", place=entity.place)
-                return 0
-                
+                return 'NOPATH'
+
             path = []
-            
+
             c = navdest
             while c is not None:
                 # print(c, entity.place)
                 path.append(c)
-                
+
                 if c not in come_from:
-                    # print("!" + c)
-                    entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " can't find a path to ", navdest, "!", place=entity.place)
-                    return 0
-                    
+                    return 'NOPATH'
+
                 c = come_from[c]
-                
+
             logging.debug(" &lt;= ".join(path))
-            
+
             path.reverse()
-                
+
             while path[0] == entity.place:
                 path = path[1:]
-                
+
             old_place = entity.place
-            res = entity.call('move', path[0], _print and (path[0] == navdest))
-                
-            # if res:
-            #     entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " wants to go to ", navdest, ("; just went through {}!".format(path[0]) if path[0] != navdest else "!"), place=path[0])
-                
-            if _print and path[0] != navdest:
-                if res == 1:
-                    entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " failed to move to ", path[0], " while trying to reach ", navdest, ".", place=path[0])
-                    
-                else:
-                    entity.world.broadcast((3 if entity['isPlayer'] else 0), entity, " moved from ", old_place, " to ", path[0], ", wanting to reach ", navdest, ".", place=path[0])
-                
+            res = entity.call('move', path[0])
+
             return res
     </function>
-    
+
     <function name="tick">
         def tick(entity):
             entity.call('creature_tick')
     </function>
-    
+
     <function name="on_death">
         def on_death(entity):
             pass
     </function>
-        
+
     <function name="on_kill">
         def on_kill(entity, other):
             pass
     </function>
-    
+
     <function name="infect">
         import random
-    
+
         def plural(name, amount=2):
             if amount == 1:
                 return name
-            
+
             elif name.endswith('us') or name.endswith('is') or name.endswith('os'):
                 return name[:-2] + 'i'
 
             elif name[-1] == 's':
                 return name + 'es'
-                
+
             else:
                 return name + 's'
-    
+
         def infect(entity, player, target):
             if entity['dead']:
                 player.print_out("You're dead! And your spores can't penetrate the vascular system by themselves.", place=entity.place)
                 return False
-                
+
             print(target)
-                
+
             if not target:
                 player.print_out("No such target!", place=entity.place)
                 return False
-                
+
             if not entity['mush']:
                 player.print_out("You're not mush!", place=entity.place)
                 return False
-                
+
             if target['mush']:
                 player.print_out("Your target is not mush!", place=entity.place)
                 return False
-                
+
             if entity.place != target.place:
                 player.print_out("You're at different places!", place=entity.place)
                 return False
-                
+
             if target['brainless']:
                 player.print_out(entity, " nearly attmpts to infect ", target, ", but remembers that {} don't have brains that could be infected; avoids being jocular about the situation and calling the target 'brainless', since stealth is required!".format(plural(target.type.name)), place=entity.place)
                 return False
-                
+
             dmg = random.uniform(0.5, 3.25) * target['spawnHealth'] / target['health'] # wounds ease it
             target['immune'] -= dmg
-            
+
             if target['immune'] &lt;= 0:
                 target['mush'] = True
-                
+
                 # Reset social attributes.
                 target['instigator'] = None
                 target['target'] = None
-                target['friends'] = [entity]
-                
+                target['friends'] = [entity.id]
+
                 target['humor'] += 0.2
                 entity['humor'] += 0.35
-                
+
                 entity.world.broadcast(2, entity, " has infected ", target, "! Now it is mush!", place=entity.place)
-                
+
             else:
                 entity.world.broadcast(2, entity, " has attempted to infect ", target, ", dealing ", dmg, " immunologic system damage!", place=entity.place)
-                
+
             return True
     </function>
-    
+
     <function name="attack">
         import random
-    
+
         def attack(entity, other, damage, message=None):
             if entity['dead'] or not other or (entity.place != other.place):
                 return False
-        
+
             if random.random() * 0.8 + min(1, max(entity['humor'], 0)) * entity['accuracy'] &lt;= other['speed']:
                 if message:
                     entity.world.broadcast(2, message + " It missed!", place=entity.place)
-                
+
                 else:
                     entity.world.broadcast(2, entity, " tried to attack ", other, "! It missed!", place=entity.place)
-                    
+
                 entity['humor'] -= 0.08
                 return False
-                
+
             other['instigator'] = entity.id
-            
+
             if message:
                 entity.world.broadcast(2, message + " It receives {} damage!".format(damage), place=entity.place)
-            
+
             else:
                 entity.world.broadcast(2, entity, " attacks ", other, "!", place=entity.place)
-                
+
             other.call('take_damage', damage, message is None)
-            
+
             entity.event('attack')
-            
+
             return True
     </function>
-    
+
     <function name="mutilated">
         def mutilated(entity):
             entity['accuracy'] /= 3
             entity.world.broadcast((3 if entity['isPlayer'] else 2), entity, " got mutilated! Now its chance of missing an attack is far higher!", place=entity.place)
     </function>
-    
+
     <function name="take_damage">
         def take_damage(entity, damage, broadcast=True):
             if entity['dead']:
                 return
-        
+
             changed = False
             dmg = damage
-        
+
             for i in entity['inventory'].keys():
-                if entity['inventory'].get(i) &gt; 0 and 'modify_damage' in entity.world.item_type(i)['functions']:
-                    damage = entity.world.item_type(i)['functions']['modify_damage'](entity, world, damage)
+                if entity['inventory'].get(i) &gt; 0 and 'modify_damage' in entity.world.find_item(i)['functions']:
+                    damage = entity.world.find_item(i)['functions']['modify_damage'](entity, world, damage)
                     changed = True
-                   
+
             # if changed and dmg != damage:
             #     # superseded
             #     entity.world.broadcast(1, entity, "'s damage was {} from {:.2f} to {:.2f} hitpoints!".format(('amplified' if damage > dmg else 'reduced'), dmg, damage))
-                
+
             entity['health'] = entity['health'] - damage
 
             if entity['health'] &lt;= 0:
                 if entity['instigator']:
                     entity.pointer('instigator')['humor'] = entity.pointer('instigator')['humor'] + 0.02 * entity.pointer('instigator')['hostility'] - 5
-                
+
                     if broadcast:
                         if entity.pointer('instigator')['obituary']:
                             entity.world.broadcast(2, '* ' + entity.pointer('instigator')['obituary'].format(killer=entity.pointer('instigator'), victim=entity, damage=damage, place=entity.place), place=entity.place)
-                            
+
                         else:
                              entity.world.broadcast(2, '* ', entity, " took {:.2f} damage from ".format(damage), entity.pointer('instigator'), " and died!", place=entity.place)
-                         
+
                     entity.pointer('instigator').call('on_kill', entity)
-            
+
                 elif broadcast:
                     entity.world.broadcast(2, '* ', entity, " took {:.2f} damage and died!".format(damage), place=entity.place)
-                    
+
                 entity.call('on_death')
                 entity['dead'] = True
                 entity.event('death')
-            
+
             else:
                 entity['humor'] -= damage / entity['health'] / 1.5
-            
+
                 if entity.pointer('instigator'):
                     entity['humor'] -= 7
-                
+
                     if broadcast:
                         entity.world.broadcast(2, entity, " took ", damage, " damage!", place=entity.place)
-                    
+
                     if not entity.pointer('target') or (entity.pointer('instigator')['dangerousness'] + entity.pointer('instigator')['health'] &gt; entity.pointer('target')['dangerousness'] + entity.pointer('target')['health']):
                         entity['target'] = entity['instigator']
-                        
+
                     entity['instigator'] = None
-                    
+
                 elif broadcast:
                     entity.world.broadcast((2 if entity['isPlayer'] else 1), entity, " took ", damage, " damage!", place=entity.place)
-            
+
     </function>
-    
+
     <function name="heal">
         def heal(entity, other, amount, print_msg=None):
             if entity['dead']:
                 return
-        
+
             if entity.place == other.place:
                 if print_msg:
                     entity.world.broadcast((3 if entity['isPlayer'] else 1), print_msg, place=entity.place)
-                
+
                 else:
                     if entity.id == other.id:
                         entity.world.broadcast((2 if entity['isPlayer'] else 0), entity, " is healing itself by ", amount, " hitpoints!", place=entity.place)
-                    
+
                     else:
                         entity.world.broadcast((2 if entity['isPlayer'] else 1), entity, " is healing ", other, " by ", amount, " hitpoints!", place=entity.place)
-                    
+
                 other['health'] = other['health'] + amount
     </function>
-    
+
     <attribute key="gender" value="'genderless'" />
     <attribute key="spawnHealth" value="0" />
     <attribute key="_origPregnancy" value="-1" />
@@ -681,9 +702,9 @@
     <attribute key="pregnancyTimer" value="25" />
     <attribute key="pregnant" value="0" />
     <attribute key="age" value="0" />
-    
+
     <attribute key="willTimer" value="11" />
     <attribute key="pregnancyTimer" value="35" />
-    
+
     <declare key="matureVariant" />
 </default>

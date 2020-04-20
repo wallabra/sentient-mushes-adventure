@@ -105,10 +105,3 @@ venv.bak/
 
 # mypy
 .mypy_cache/
-
-# Bot configuration
-config/*.yml
-!config/*.example.yml
-
-# Embedded Code 
-tmp_*.py

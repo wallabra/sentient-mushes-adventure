@@ -1,0 +1,109 @@
+<?xml version="1.0"?>
+<entitytype name="Fox" id="fox">
+    <functions>
+        <function name="tick">
+            import random
+
+            def tick(entity):
+                entity.call('creature_tick')
+
+                if entity['isPlayer']:
+                    return
+
+                if entity['living'] and not entity['dead']:
+                    if random.random() &lt;= 0.3:
+                        # wander
+                        possib = set()
+
+                        for p in entity.world.paths:
+                            if entity.place in p:
+                                possib |= p
+
+                        possib -= {entity.place}
+
+                        if len(possib) &gt; 0:
+                            p = random.choice(tuple(possib))
+                            entity.world.broadcast(0, entity, " wanders to ", p, ".", place=p)
+                            entity.call('move', p)
+        </function>
+
+        <function name="bite">
+            import random
+
+            def bite(entity):
+                t = entity.pointer('target')
+
+                if not t:
+                    return False
+
+                entity.call('attack', t, random.uniform(22, 50) * entity['weight'] / 51, "{} bites firmly into {}!".format(entity, t))
+        </function>
+    </functions>
+
+    <base>
+        <attr name="meleeAttackFunc" value="'bite'" />
+
+
+        <!-- reaction traits, in a scale from 1 to 10 -->
+        <attr name="hostility" value="0.2" /> <!-- negativity of reaction to living entities of other kinds -->
+        <attr name="courage" value="5" /> <!-- likelihood to stay when underwhelmed or outnumbered -->
+        <attr name="sociality" value="8.6" /> <!-- likelihood to form 'friends' (will tend to follow each other and share friends and enemies) -->
+        <attr name="leadership" value="6" /> <!-- likelihood to become leader (most likely to be followed by friends) -->
+        <attr name="dangerousness" value="50" /> <!-- apparent dangerousness, in a vague hitpoint scale -->
+        <attr name="postTransfer" value="'green'" />
+
+        <attr name="obituary" value="&quot;{victim} was teared in plural parts by {killer}'s velociraptor claws!&quot;" />
+
+        <!-- kinetic (movement & combat) attributes -->
+        <attr name="speed" value="0.4" /> <!-- likelihood to evade enemy attacks, from 0 to 1 -->
+        <attr name="moveSpeed" value="0.8" /> <!-- chance, from 0 to 1, for a succesful tile move -->
+
+        <attr name="defaultMature" value="['lime', 'green']" />
+
+        <flag name="carnivore" />
+        <flag name="herbivore" />
+    </base>
+
+    <default>
+        <import name="creatureattr" href="attributes/creatureattr.xml" />
+
+        <attribute key="drops" value="{ 'raw steak': (1, 3), 'furry skin': (1, 2) }" />
+    </default>
+
+    <systems>
+        <system name="pinata_drops" href="systems/pinata_drops.py" />
+        <system name="drops" href="systems/drops.py" />
+    </systems>
+
+    <variants>
+        <variant name="Red Fox" id="red">
+            <attr name="size" value="0.7" />
+            <default key="health" value="86" />
+            <attr name="weight" value="54" /> <!-- in kilograms -->
+        </variant>
+
+        <variant name="Yellow Fox" id="yellow">
+            <attr name="size" value="0.56" />
+            <default key="health" value="69" />
+            <attr name="weight" value="47" /> <!-- in kilograms -->
+        </variant>
+
+        <variant name="Fox Pup" id="puppy">
+            <attr name="size" value="0.21" />
+            <default key="health" value="37" />
+            <attr name="weight" value="47" /> <!-- in kilograms -->
+        </variant>
+
+        <variant name="Polar Fox" id="polar">
+            <attr name="size" value="0.64" />
+            <default key="health" value="70" />
+            <attr name="weight" value="40" /> <!-- in kilograms -->
+        </variant>
+
+        <variant name="Fennec Fox" id="fennec">
+            <attr name="size" value="0.46" />
+            <default key="health" value="37" />
+            <attr name="weight" value="32" /> <!-- in kilograms -->
+        </variant>
+    </variants>
+</entitytype>

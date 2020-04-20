@@ -4,144 +4,147 @@
         <function name="player_special">
             def player_special(entity, player, args):
                 target = args[0]
-                
+
                 if not entity.world.from_name(target):
                     player.print_out("{}: No such entity to target!".format(entity), place=entity.place)
                     return False
-                    
+
                 target = entity.world.from_name(target)
-                    
+
                 player.print_out("{}: Performing the Kangaroo's kick.".format(entity), place=entity.place)
                 entity['target'] = target.id
                 entity.call('kick')
                 return True
         </function>
-    
+
         <function name="kick">
             import random
-            
+
             def kick(entity):
                 t = entity.world.from_id(entity['target'])
-                
-                if not t or entity['dead']:
+
+                if not t or entity['dead'] or t['dead']:
                     return
-                
+
                 if random.random() &lt;= 0.3:
                     dmg = random.uniform(70, 135)
                     entity.call('attack', t, dmg, "{} powerfully kicks {}!!".format(entity, t, dmg))
-                
+
                 else:
                     dmg = random.uniform(25, 60)
                     entity.call('attack', t, dmg, "{} kicks {}!".format(entity, t, dmg))
-                    
+
         </function>
-    
+
         <function name="tick">
             import random
-        
+
             def tick(entity):
                 entity.call('creature_tick')
-            
+
                 if entity['isPlayer']:
                     return
-            
-                if random.random() &lt;= 0.125:
-                    # wander
-                    possib = set()
-                    
-                    for p in entity.world.paths:
-                        if entity.place in p:
-                            possib |= p
-                            
-                    possib -= {entity.place}
-                            
-                    if len(possib) &gt; 0:
-                        p = random.choice(tuple(possib))
-                        entity.world.broadcast(0, entity, " wanders to ", p, ".", place=p)
-                        entity.call('move', p)
-                
-                if entity['health'] &lt; entity['maxGrazeHealth'] and random.random() &lt;= 0.2:
-                    # graze
-                    entity.call('heal', entity, min(entity['maxGrazeHealth'] - entity['health'], random.uniform(5, 15)))
+
+                if entity['living']:
+                    if random.random() &lt;= 0.125:
+                        # wander
+                        possib = set()
+
+                        for p in entity.world.paths:
+                            if entity.place in p:
+                                possib |= p
+
+                        possib -= {entity.place}
+
+                        if len(possib) &gt; 0:
+                            p = random.choice(tuple(possib))
+                            entity.world.broadcast(0, entity, " wanders to ", p, ".", place={p, entity.place})
+                            entity.call('move', p)
+
+                    if entity['living'] and entity['health'] &lt; entity['maxGrazeHealth'] and random.random() &lt;= 0.2:
+                        # graze
+                        entity.call('heal', entity, min(entity['maxGrazeHealth'] - entity['health'], random.uniform(5, 15)))
         </function>
     </functions>
-    
+
     <base>
         <attr name="meleeAttackFunc" value="'kick'" />
-        
+
         <!-- reaction traits, in a scale from 1 to 10 -->
-        <attr name="hostility" value="0.09" /> <!-- negativity of reaction to living entities of other kinds --> 
+        <attr name="hostility" value="0.09" /> <!-- negativity of reaction to living entities of other kinds -->
         <attr name="courage" value="3.5" /> <!-- likelihood to stay when underwhelmed or outnumbered -->
         <attr name="sociality" value="8.5" /> <!-- likelihood to form 'friends' (will tend to follow each other and share friends and enemies) -->
         <attr name="leadership" value="2" /> <!-- likelihood to become leader (least likely to follow friends, most likely to be followed) -->
-        <attr name="dangerousness" value="0" /> <!-- apparent dangerousness, in a vague hitpoint scale -->
-        
+        <attr name="dangerousness" value="18" /> <!-- apparent dangerousness, in a vague hitpoint scale -->
+
         <!-- kinetic (movement & combat) attributes -->
         <attr name="speed" value="0.6" /> <!-- likelihood to evade enemy attacks, from 0 to 1 -->
         <attr name="moveSpeed" value="0.85" /> <!-- chance, from 0 to 1, for a succesful tile move -->
-        
+
         <attr name="postTransfer" value="'brown'" />
-        
+
         <attr name="obituary" value="'{killer} flattened {victim} with a bunch of strong and distorting kicks!'" />
-        
+
         <attr name="defaultMature" value="['brown', 'yellow']" />
+
+        <flag name="herbivore" />
     </base>
-    
+
     <default>
         <import name="player" href="attributes/player.xml" />
         <attribute key="drops" value="{'furry skin': (1, 3), 'raw steak': (1, 2)}" />
     </default>
-    
+
     <systems>
-        <system name="drops" href="systems/drops.py" />    
+        <system name="drops" href="systems/drops.py" />
     </systems>
-    
+
     <itemdefs>
         <item name="furry skin">
             <function name="modify_damage">
                 import random
-                
+
                 def modify_damage(entity, world, dmg):
                     return max(0, random.uniform(dmg - 9, dmg - 3))
             </function>
         </item>
     </itemdefs>
-        
+
     <variants>
         <variant name="Brown Kangaroo" id="brown">
             <attr name="maxGrazeHealth" value="140" />
-            <attr name="size" value="1.7" />
+            <attr name="size" value="1.4" />
             <default key="health" value="125" />
             <attr name="weight" value="0.8" /> <!-- in kilograms -->
         </variant>
-        
+
         <variant name="Yellow Kangaroo" id="yellow">
             <attr name="maxGrazeHealth" value="140" />
-            <attr name="size" value="1.7" />
+            <attr name="size" value="1.2" />
             <default key="health" value="135" />
             <attr name="weight" value="0.8" /> <!-- in kilograms -->
-            
+
             <attr name="hostility" value="0.073" />
         </variant>
-                
+
         <variant name="Baby Kangaroo" id="baby">
             <flag name="baby" />
             <attr name="maxGrazeHealth" value="90" />
-            <attr name="size" value="1.1" />
+            <attr name="size" value="0.7" />
             <default key="health" value="80" />
             <attr name="weight" value="0.65" /> <!-- in kilograms -->
             <default key="drops" value="{'furry skin': (0, 1), 'raw steak': (0, 2)}" />
         </variant>
-             
+
         <variant name="Brown Kangaroo Player" id="kplayer">
             <attr name="isPlayer" value="True" />
             <attr name="dangerousness" value="80" />
-            <attr name="punchDamage" value="20" />
-            
-            <attr name="size" value="1.7" />
+            <attr name="punchDamage" value="30" />
+
+            <attr name="size" value="1.325" />
             <attr name="weight" value="0.85" /> <!-- in kilograms -->
             <default key="health" value="130" />
-            
+
             <default key="mush" value="True" />
         </variant>
     </variants>

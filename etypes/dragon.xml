@@ -4,140 +4,145 @@
         <function name="player_special">
             def player_special(entity, player, args):
                 target = args[0]
-                
+
                 if not entity.world.from_name(target):
                     player.print_out("{}: No such entity to target!".format(entity), place=entity.place)
                     return False
-                    
+
                 target = entity.world.from_name(target)
-                    
+
                 player.print_out("{}: Performing the Dragon's firebreath.".format(entity), place=entity.place)
                 entity['target'] = target.id
                 entity.call('firebreath')
                 return True
         </function>
-    
+
         <function name="tick">
             import random
-        
+
             def tick(entity):
                 entity.call('creature_tick')
-            
+
                 if entity['isPlayer']:
                     return
-            
-                if random.random() &lt;= 0.1: 
-                    # wander
-                    possib = set()
-                    
-                    for p in entity.world.paths:
-                        if entity.place in p:
-                            possib |= p
-                            
-                    possib -= {entity.place}
-                            
-                    if len(possib) &gt; 0:
-                        p = random.choice(tuple(possib))
-                        entity.world.broadcast(0, entity, " wanders to ", p, ".", place=p)
-                        entity.call('move', p)
+
+                if entity['living'] and not entity['dead']:
+                    if random.random() &lt;= 0.1:
+                        # wander
+                        possib = set()
+
+                        for p in entity.world.paths:
+                            if entity.place in p:
+                                possib |= p
+
+                        possib -= {entity.place}
+
+                        if len(possib) &gt; 0:
+                            p = random.choice(tuple(possib))
+                            entity.world.broadcast(0, entity, " wanders to ", p, ".", place={p, entity.place})
+                            entity.call('move', p)
         </function>
-        
+
         <function name="fly">
             def fly(entity):
                 if entity['destination'] == entity.place:
                     return False
-                    
+
                 i = 3
-                
+
                 while entity['destination'] != entity.place and i &gt; 0:
                     if not entity.call('pathmove', entity['destination']):
                         return False
-                        
+
                     i -= 1
-                    
+
                 return i &gt; 0
-        </function> 
-        
+        </function>
+
         <function name="slash">
             def slash(entity):
                 if entity.attr['target'] is None:
                     return
-                    
+
                 entity.call('attack', entity.world.from_id(entity['target']), __import__('random').uniform(30, 50))
         </function>
-        
+
         <function name="firebreath">
             import random
-        
+
             def firebreath(entity):
                 if entity.pointer('target') is None:
                     return
-                    
+
                 # print(entity.id)
-                    
+
                 entity.world.broadcast(2, entity, " breathes a burst of flames towards ", entity.world.from_id(entity['target']), "!", place=entity.place)
                 for _ in range(random.randint(3, 6)):
                     entity.pointer('target')['instigator'] = entity.id
                     entity.pointer('target').call('take_damage', random.uniform(10, 25))
-                    
+
                 if entity.world.from_id(entity['target'])['flammable'] and random.random() &lt;= 0.625:
                     entity.world.broadcast(2, entity, " lit ", entity.world.from_id(entity['target']), " on flames!", place=entity.place)
                     entity.world.from_id(entity['target'])['burning'] = True
-                    
+
                 possib = tuple(filter(lambda e: e.place == entity.place and e['flammable'] and e.id != entity['target'].split('#')[0], entity.world.all_in_place(entity.place)))
                 collateral = min(random.randint(0, 2), len(possib))
-                    
+
                 if collateral > 0:
                     on_fire = random.sample(possib, collateral)
-                    
+
                     for e in on_fire:
                         entity.world.broadcast(2, entity, " accidentally lit ", e, " on flames!", place=entity.place)
                         e['burnInstigator'] = entity.id
                         e['burning'] = True
         </function>
     </functions>
-    
+
     <base>
         <flag name="hasMelee" />
         <flag name="hasRanged" />
         <attr name="meleeAttackFunc" value="'slash'" /> <!-- function called when attacking a close enemy (larger enemies) -->
         <attr name="rangedAttackFunc" value="'firebreath'" /> <!-- function called when attacking a far enemy (smaller enemies) -->
-        
+
         <attr name="obituary" value="'{killer} turned {victim} into a giant barbecue!'" />
-        
+
         <!-- reactive and social traits, in a scale from 1 to 10 -->
-        <attr name="hostility" value="2" /> <!-- negativity of reaction to living entities of other kinds --> 
+        <attr name="hostility" value="2" /> <!-- negativity of reaction to living entities of other kinds -->
         <attr name="courage" value="8" /> <!-- likelihood to stay when underwhelmed or outnumbered -->
         <attr name="sociality" value="6" /> <!-- likelihood to form 'friends' (will tend to follow each other and share friends and enemies) -->
         <attr name="leadership" value="7.75" /> <!-- likelihood to become leader (most likely to be followed by friends) -->
         <attr name="dangerousness" value="100" /> <!-- apparent dangerousness, in a vague hitpoint scale -->
-        
+
         <!-- kinetic (movement & combat) attributes -->
         <attr name="specialMoveFunc" value="'fly'" /> <!-- special movement is used when hunting, chasing or fleeing -->
         <attr name="speed" value="0.25" /> <!-- likelihood to evade enemy attacks, from 0 to 1 -->
         <attr name="moveSpeed" value="0.8" /> <!-- chance, from 0 to 1, for a succesful tile move -->
-        
+
         <!-- physical characteristics -->
         <attr name="flammable" value="False" />
         <attr name="postTransfer" value="'small'" />
-        
+
         <attr name="defaultMature" value="['small', 'medium', 'large']" />
+
+        <flag name="carnivore" />
+        <flag name="herbivore" />
     </base>
-    
+
     <default>
         <import name="player" href="attributes/player.xml" />
+
         <attribute key="drops" value="{'scale': (1, 3)}" />
         <attribute key="immune" value="7" /> <!-- Rehermann scale :) -->
     </default>
-    
+
     <systems>
         <system name="drops" href="systems/drops.py" />
     </systems>
-    
+
     <itemdefs>
         <item name="scale" />
     </itemdefs>
-    
+
     <variants>
         <variant name="Baby Dragon" id="baby">
             <attr name="size" value="1.2" />
@@ -147,24 +152,24 @@
             <flag name="baby" />
             <attr name="obituary" value="'{killer} ripped {victim} with its small (but not tiny) claws!'" />
         </variant>
-        
+
         <variant name="Small Dragon Player" id="p_sdragon">
             <attr name="isPlayer" value="True" />
             <default key="mush" value="True" />
-            
+
             <attr name="size" value="1.2" />
             <default key="health" value="250" />
             <attr name="weight" value="82" /> <!-- in kilograms -->
             <attr name="dangerousness" value="50" />
-            <attr name="punchDamage" value="15" /> <!-- would've been called lacerateDamage or slashDamage -->
+            <attr name="punchDamage" value="20" /> <!-- would've been called lacerateDamage or slashDamage -->
         </variant>
-    
+
         <variant name="Small Dragon" id="small">
             <attr name="size" value="2.5" />
             <default key="health" value="280" />
             <attr name="weight" value="78" /> <!-- in kilograms -->
         </variant>
-        
+
         <variant name="Intelligent Small Dragon" id="small_m">
             <attr name="size" value="2.5" />
             <default key="health" value="280" />
@@ -172,13 +177,13 @@
             <attr name="dangerousness" value="130" />
             <default key="mush" value="True" />
         </variant>
-        
+
         <variant name="Medium-sized Dragon" id="medium">
             <attr name="size" value="4" />
             <default key="health" value="350" />
             <attr name="weight" value="138" /> <!-- in kilograms -->
         </variant>
-        
+
         <variant name="Large Dragon" id="large">
             <attr name="size" value="5" />
             <default key="health" value="400" />

@@ -1,0 +1,3 @@
+# Configuration
+*.yml
+!*.example.yml

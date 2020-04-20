@@ -1,171 +1,178 @@
 <?xml version="1.0"?>
 <world beginning="Prairies of Yohansville;Port Ludicrous;Borealocampus West;Borealocampus East">
     <places>
-    
+
         <place name="Vallis Ordo West">
             <flock type="anaconda" amount="2-4" variant="striped" />
             <flock type="sheep" amount="3-9" variant="*" />
-            
+
             <items type="flint" amount="3-10" />
             <items type="pebble" amount="12-28" />
             <items type="stick" amount="9-25" />
             <items type="leaf" amount="22-45" />
             <items type="straw" amount="24-38" />
         </place>
-        
+
         <place name="Vallis Ordo East">
             <flock type="anaconda" amount="2-4" variant="striped" />
             <flock type="sheep" amount="3-9" variant="*" />
-            
+
             <items type="flint" amount="3-10" />
             <items type="pebble" amount="12-28" />
             <items type="stick" amount="9-25" />
             <items type="leaf" amount="22-45" />
             <items type="straw" amount="24-38" />
         </place>
-        
+
         <place name="Vallis Ordo North">
             <flock type="anaconda" amount="2-4" variant="striped" />
             <flock type="sheep" amount="3-9" variant="*" />
-            
+
             <items type="flint" amount="3-10" />
             <items type="pebble" amount="12-28" />
             <items type="stick" amount="9-25" />
             <items type="leaf" amount="22-45" />
             <items type="straw" amount="24-38" />
         </place>
-        
+
         <place name="Vallis Ordo South">
             <flock type="anaconda" amount="2-4" variant="striped" />
             <flock type="sheep" amount="3-9" variant="*" />
-            
+            <flock type="fox" amount="7-15" variant="fennec" />
+
             <items type="flint" amount="3-10" />
             <items type="pebble" amount="12-28" />
             <items type="stick" amount="9-25" />
             <items type="leaf" amount="22-45" />
             <items type="straw" amount="24-38" />
         </place>
-    
+
         <place name="North Bridge">
             <flock type="velociraptor" amount="3-19" variant="green;lime" />
             <flock type="anaconda" amount="4-12" variant="beach;striped;rock" />
             <flock type="sheep" amount="8-25" variant="*" />
             <flock type="kangaroo" amount="3-9" variant="brown;yellow;baby" />
-            
+
             <items type="flint" amount="10-30" />
             <items type="pebble" amount="15-40" />
             <items type="stick" amount="5-12" />
             <items type="straw" amount="15-24" />
         </place>
-    
+
         <place name="Mount Bayoku">
             <flock type="dragon" amount="8-12" variant="small;medium" /> <!-- ';' separates random choices -->
             <flock type="dragon" amount="3-10" variant="baby"/>
             <flock type="dragon" amount="1-4" variant="large" />
-            <flock type="kangaroo" amount="2-4" variant="brown;yellow;baby" />
-            <flock type="anaconda" amount="2-5" variant="striped;rock" />
-            
+            <flock type="anaconda" amount="1-4" variant="striped;rock" />
+            <flock type="goat" amount="8-16" variant="white;brown" />
+            <flock type="goat" amount="1-5" variant="black" />
+            <flock type="fox" amount="3-7" variant="polar" />
+
             <items type="straw" amount="8-18" />
             <items type="stick" amount="4-8" />
             <items type="pebble" amount="30-50" />
             <items type="leaf" amount="20-30" />
             <items type="flint" amount="10-30" />
         </place>
-            
+
         <place name="Borealocampus West">
             <flock type="kangaroo" amount="5-18" variant="brown;yellow;baby" />
             <flock type="anaconda" amount="3-7" variant="striped;rock" />
             <flock type="human" amount="2-5" variant="peasant" />
             <flock type="human" amount="8-15" variant="farmer" />
-            
+
             <items type="stick" amount="10-18" />
             <items type="pebble" amount="12-30" />
             <items type="straw" amount="20-40" />
             <items type="leaf" amount="35-55" />
             <items type="flint" amount="4-9" />
         </place>
-        
+
         <place name="Borealocampus East">
             <flock type="kangaroo" amount="5-18" variant="brown;yellow;baby" />
             <flock type="sheep" amount="4-10" variant="*" />
             <flock type="human" amount="2-5" variant="peasant" />
             <flock type="human" amount="8-15" variant="farmer" />
-            
+
             <items type="stick" amount="10-18" />
             <items type="pebble" amount="12-30" />
             <items type="straw" amount="20-40" />
             <items type="leaf" amount="35-55" />
             <items type="apple" amount="12-38" />
         </place>
-        
+
         <place name="Prairies of Yohansville">
             <flock type="sheep" amount="10-35" variant="*" /> <!-- "*" means random variant -->
             <flock type="kangaroo" amount="5-25" variant="brown;yellow;baby" />
-            
+
             <items type="stick" amount="4-8" />
             <items type="pebble" amount="20-40" />
             <items type="straw" amount="30-55" />
         </place>
-                
+
         <place name="Furrow Hills">
             <flock type="sheep" amount="20-50" variant="white;brown;xwool" />
+            <flock type="fox" amount="25-35" variant="red;yellow;puppy" />
+            <flock type="goat" amount="8-20" variant="white;brown;pup" />
             <flock type="anaconda" amount="1-3" variant="beach" />
-            
+
             <items type="stick" amount="4-8" />
             <items type="pebble" amount="20-40" />
             <items type="straw" amount="30-55" />
             <items type="wheat" amount="40-90" />
             <items type="apple" amount="15-20" />
         </place>
-        
+
         <place name="Yohansville">
             <flock type="human" amount="25-60" variant="peasant;farmer;miner" />
             <flock type="human" amount="5-20" variant="dagger" />
             <flock type="human" amount="3-8" variant="knight" />
-            
+
             <items type="leaf" amount="12-30" />
             <items type="stick" amount="20-40" />
             <items type="pebble" amount="12-30" />
-            <items type="leaf" amount="18-30" />
+            <items type="leaf" amount="5-14" />
             <items type="straw" amount="15-35" />
+            <items type="carrot" amount="21-55" />
         </place>
-        
+
         <place name="Port Ludicrous">
             <flock type="human" amount="5-15" variant="farmer" />
             <flock type="human" amount="2-4" variant="dagger" />
             <flock type="anaconda" amount="0-2" variant="beach" />
             <entity type="sheep" variant="*" />
-            
+
             <items type="pebble" amount="20-30" />
         </place>
-        
+
         <place name="Lighthouse Anne Ground Floor">
         </place>
-        
+
         <place name="Lighthouse Anne Basement">
             <flock type="human" amount="2-4" variant="dagger" />
             <items type="curved dagger" amount="1-3" />
         </place>
-        
+
         <place name="Lighthouse Anne 1st Floor">
             <flock type="human" amount="3-9" variant="peasant" /> <!-- admiring the litoral from the 1st floor -->
         </place>
-        
+
         <place name="Lighthouse Anne Lamp Floor">
             <entity type="human" variant="lhkeeper" /> <!-- like flock, but amount is always 1 -->
             <items type="iron sword" amount="2-3" />
         </place>
-        
+
         <place name="Beach of Harmony">
             <flock type="human" amount="10-20" variant="peasant" />
             <flock type="anaconda" amount="2-5" variant="beach;striped" />
-        
+            <flock type="fox" amount="6-13" variant="fennec;yellow" />
+
             <items type="flint" amount="20-40" />
             <items type="pebble" amount="10-30" />
         </place>
     </places>
-    
-    <paths> 
+
+    <paths>
         <path ends="Mount Bayoku;Prairies of Yohansville;Borealocampus West" />
         <path ends="Yohansville;Prairies of Yohansville;Port Ludicrous" />
         <path ends="Port Ludicrous;Beach of Harmony;Yohansville" />
@@ -179,7 +186,7 @@
         <path ends="Vallis Ordo South;North Bridge" />
         <path ends="Vallis Ordo South;Vallis Ordo North;Vallis Ordo East;Vallis Ordo West" />
     </paths>
-    
+
     <etypes> <!-- entity dependencies -->
         <etype filename="etypes/dragon.xml" />
         <etype filename="etypes/sheep.xml" />
@@ -187,5 +194,7 @@
         <etype filename="etypes/human.xml" />
         <etype filename="etypes/kangaroo.xml" />
         <etype filename="etypes/anaconda.xml" />
+        <etype filename="etypes/goat.xml" />
+        <etype filename="etypes/fox.xml" />
     </etypes>
 </world>
