@@ -78,17 +78,12 @@
             raise RuntimeError("Issue in weighted random algorithm.")
 
         def creature_tick(entity):
-            # print('[DEBUG]', entity, 'creature tick.')
-            # print('[DEBUG] * Life check...')
-
             if entity['dead']:
                 entity.despawn() # rotten or perished
                 return
 
             if entity['target'] and ((not entity.pointer('target')) or entity.pointer('target')['dead']):
                 entity['target'] = None
-
-            # print('[DEBUG]   Not dead.')
 
             bad = []
 
@@ -637,7 +632,7 @@
 
             entity['health'] = entity['health'] - damage
 
-            if entity['health'] &lt;= 0:
+            if entity['health'] &lt;= 0 or not entity['health']:
                 if entity['instigator']:
                     entity.pointer('instigator')['humor'] = entity.pointer('instigator')['humor'] + 0.02 * entity.pointer('instigator')['hostility'] - 5
 
@@ -664,7 +659,7 @@
                     entity['humor'] -= 7
 
                     if broadcast:
-                        entity.world.broadcast(2, entity, " took ", damage, " damage!", place=entity.place)
+                        entity.world.broadcast(2, entity, " took ", damage, " HP of damage, and now has {} HP!".format(entity['health']), place=entity.place)
 
                     if not entity.pointer('target') or (entity.pointer('instigator')['dangerousness'] + entity.pointer('instigator')['health'] &gt; entity.pointer('target')['dangerousness'] + entity.pointer('target')['health']):
                         entity['target'] = entity['instigator']

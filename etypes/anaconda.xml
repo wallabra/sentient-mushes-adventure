@@ -47,7 +47,6 @@
                         if t['dead'] and random.random() &lt; entity['vore']:
                             entity.world.broadcast(2, entity, " devours what remained of ", t, "!", place=entity.place)
                             entity['feeding'] += t['weight'] / 10
-                            t.despawn()
 
                         else:
                             entity['constricting'] = t.id
@@ -97,7 +96,6 @@
                             if t.place == entity.place and random.random() &lt;= entity['vore']:
                                 entity.world.broadcast(2, entity, " devours what remained of ", t, "!", place=entity.place)
                                 entity['feeding'] += t['weight'] / 10
-                                t.despawn()
 
                             elif t['living']:
                                 entity.world.broadcast(2, t, " broke free from ", entity, "!", place=entity.place)
@@ -120,7 +118,6 @@
                                 if random.random() &lt; entity['vore']:
                                     entity.world.broadcast(2, entity, " devours what remained of ", t, "!", place=entity.place)
                                     entity['feeding'] += t['weight'] / 10
-                                    t.despawn()
                 
                     elif random.random() &lt;= 0.02:
                         # wander

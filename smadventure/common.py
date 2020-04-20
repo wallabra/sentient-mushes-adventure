@@ -23,7 +23,7 @@ def size_cm(centimetres: float):
 
     else:
         metres = math.floor(centimetres / 100)
-        metric = '{}m{:.2f}cm'.format(metres, centimetres - metres * 100)
+        metric = '{}m{}cm'.format(metres, int(centimetres - metres * 100))
 
     inches = centimetres / 2.54
 
@@ -32,6 +32,6 @@ def size_cm(centimetres: float):
 
     else:
         feet = math.floor(inches / 12)
-        imperial = '{}\'{:.2f}"'.format(feet, inches - feet * 12)
+        imperial = '{}\'{}"'.format(feet, int(inches - feet * 12))
 
     return '{} ({})'.format(metric, imperial)

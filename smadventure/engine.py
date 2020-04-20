@@ -81,7 +81,7 @@ class EntityType(object):
         if isinstance(variant, dict):
             variant = variant['id']
 
-        attr = self.default_attr
+        attr = dict(self.default_attr)
 
         for k, v in self.variants[variant]['default'].items():
             attr[k] = v
@@ -168,6 +168,12 @@ class LoadedEntity(object):
         for k, v in self.variant['default'].items():
             if k not in self.attr:
                 self.attr[k] = v
+
+    def __deitem__(self, key):
+        sentinel = object()
+        
+        if self.pop(key, sentinel) is sentinel:
+            loggings.warn('No attribute "{}" found when trying to delete it in entity "{}" ({})'.format(key, str(self), self.id))
 
     def pop(self, key, default=None):
         if self.despawned:
@@ -283,17 +289,8 @@ class LoadedEntity(object):
 
         self.place = p
 
-    def despawn(self, forced=False):
-        if forced:
-            i = self.id
-            del self.world.entities[i]
-
-            for k in self.world.entity_names.keys():
-                if self.world.entity_names[k] == i:
-                    del self.world.entity_names[k]
-
-        else:
-            self.world.queue_removal(self.id)
+    def despawn(self):
+        self.world.queue_removal(self.id)
 
         self.despawned = True
 
@@ -316,7 +313,12 @@ class GameWorld(object):
         self.paths = list(paths)
         self.places = dict(places)
         self.entities = dict(entities)
-        self.entity_names = { e[2]: e[0] for e in self.entities }
+        
+        self.entity_names = {}
+        
+        for e in self:
+            self.entity_names.setdefault(e[2], set()).add(e[0])
+        
         self.item_types = dict(item_types)
         self.beginning = beginning
 
@@ -324,7 +326,9 @@ class GameWorld(object):
         self.broadcast_channels = set()
         self.global_systems = []
 
-        self._queued_removals = set()
+        self._last_tick_removals = set()
+
+        self._queued_removals = None
 
     def dumps(self, yaml=True):
         save = {
@@ -407,6 +411,8 @@ class GameWorld(object):
     async def tick(self):
         perc = 0
 
+        self._queued_removals = set()
+
         for eid, e in self.entities.items():
             if eid not in self._queued_removals:
                 en = LoadedEntity(self, e)
@@ -416,32 +422,34 @@ class GameWorld(object):
                         en.call('tick')
 
                     except BaseException:
-                        print(repr(en))
+                        print(repr(en), str(en))
                         raise
 
-                for s in en.type.systems:
-                    s('tick', en)
+                en.event('tick')
 
             perc += 1
 
             logging.debug("TICK: {:.2f}% complete.".format(100.0 * perc / len(self.entities)))
 
         self.broadcast(4, '<Tick finished.>')
-
         self.resolve_removals()
+
+        self._queued_removals = None
 
     def queue_removal(self, eid):
         self._queued_removals.add(eid)
 
     def resolve_removals(self):
         for qr in self._queued_removals:
+            self._last_tick_removals.add(qr)
+            n = self.from_id(qr).name
+
             del self.entities[qr]
 
-            ekeys = set(self.entity_names.keys())
+            self.entity_names[n].remove(qr)
 
-            for k in ekeys:
-                if self.entity_names[k] == qr:
-                    del self.entity_names[k]
+            if not self.entity_names[n]:
+                del self.entity_names[n]
 
         self._queued_removals = set()
 
@@ -449,7 +457,7 @@ class GameWorld(object):
         ent = LoadedEntity(self, e)
 
         self.entities[ent.id] = e
-        self.entity_names[ent.name] = ent.id
+        self.entity_names.setdefault(ent.name, set()).add(ent.id)
 
         if 'init' in self.etypes[e[1]].functions:
             ent.call('init')
@@ -467,10 +475,10 @@ class GameWorld(object):
         return None
 
     def from_id(self, eid):
-        if eid in self.entities.keys():
-            return self.from_ent(self.entities[eid])
-
-        return None
+        if eid not in self.entities:
+            return None
+    
+        return self.from_ent(self.entities[eid])
 
     def from_ent(self, e):
         assert e[0] in self.entities
