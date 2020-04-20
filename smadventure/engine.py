@@ -94,7 +94,7 @@ class EntityType(object):
         while world.from_id(id):
             id = ''.join([random.choice('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789') for _ in range(24)])
 
-        return [id, self.id, name or namegen.generate_name(random.randint(3, 12)), place, variant, attr]
+        return [id, self.id, name or namegen.generate_name(random.randint(6, 15)), place, variant, attr]
 
     def call(self, func, entity, *args, **kwargs):
         if entity is None:
@@ -470,7 +470,7 @@ class GameWorld(object):
 
     def from_name(self, name):
         if name in self.entity_names:
-            return self.from_id(self.entity_names[name])
+            return [self.from_id(x) for x in self.entity_names[name]][0]
 
         return None
 
@@ -644,7 +644,8 @@ class XMLGameLoader(object):
 
                 for a in imported.getroot():
                     if a.tag == "attribute":
-                        default[a.get('key')] = eval(a.get('value'))
+                        if a.get('key') not in default:
+                            default[a.get('key')] = eval(a.get('value'))
 
                     elif a.tag == "declare":
                         default[a.get('key')] = None

@@ -262,14 +262,14 @@ def make_game(world_file: str, prefix: str) -> (triarc.bot.CommandBot, engine.Ga
         type = random.choice(tuple(types.keys()))
         variant = random.choice(types[type])
 
-        p = player.PlayerInterface.join(world, event.author_name, random.choice(world.beginning.split(';')), type, variant)
+        p = player.PlayerInterface.join(world, pl_name, random.choice(world.beginning.split(';')), type, variant)
 
         async def _super_channel(m: str, place: Set[str], level: int):
             if place and p.entity.place in place and level < engine.BCAST_EVENT:
                 await last_chan[event.author_addr].reply(m)
                 return True
 
-        world.add_broadcast_channel(engine.BCAST_INFO, _super_channel, name='superchannel:{}'.format(event.author_addr))
+        world.add_broadcast_channel(engine.BCAST_INFO, _super_channel, name='superchannel:{}'.format(pl_name))
         
         players[pl_name] = p
 
@@ -279,6 +279,8 @@ def make_game(world_file: str, prefix: str) -> (triarc.bot.CommandBot, engine.Ga
 
             while pl_name in turn_rotation:
                 turn_rotation.remove(pl_name)
+
+            world.remove_broadcast_channel('superchannel:{}'.format(pl_name))
 
         if '__handle_dead_player' not in p.entity.type.variants[p.entity.variant['id']]:
             p.entity.type.variants[p.entity.variant['id']]['__handle_dead_player'] = { p.entity.name: __handle_dead_player }

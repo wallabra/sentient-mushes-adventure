@@ -4,12 +4,12 @@
     <attribute key="dead" value="False" />
 
     <static name="speed" value="0.4" />
-    <static name="moveSpeed" value="0.5" />
-    <static name="hostility" value="0" />
-    <static name="courage" value="1" />
-    <static name="sociality" value="5" />
-    <static name="leadership" value="0" />
-    <static name="dangerousness" value="15" /> <!-- uses health scale -->
+    <static name="moveSpeed" value="1.1" />
+    <static name="hostility" value="0.0" />
+    <static name="courage" value="1.0" />
+    <static name="sociality" value="5.0" />
+    <static name="leadership" value="0.0" />
+    <static name="dangerousness" value="15.0" /> <!-- uses health scale -->
     <static name="flammable" value="True" />
 
     <static name="specialMoveFunc" value="None" />
@@ -18,13 +18,13 @@
 
     <static name="isPlayer" value="False" />
 
-    <attribute key="health" value="100" /> <!-- default health amount -->
-    <attribute key="speedModifier" value="1" />
+    <attribute key="health" value="100.0" /> <!-- default health amount -->
+    <attribute key="speedModifier" value="1.0" />
     <attribute key="mush" value="False" />
     <attribute key="humor" value="0.5" /> <!-- open scale, but general between 0 to 1 -->
     <attribute key="inventory" value="{}" />
     <attribute key="accuracy" value="1.0" />
-    <attribute key="immune" value="5" /> <!-- Rehermann scale :) -->
+    <attribute key="immune" value="5.0" /> <!-- Rehermann scale :) -->
 
     <attribute key="burning" value="False" />
 
@@ -361,7 +361,7 @@
                     possib |= path
 
             if place in possib:
-                if 1 - (random.random() ** (1 / entity['speedModifier'])) &lt;= entity['moveSpeed'] + entity['humor'] * 0.5:
+                if entity['speedModifier'] and 1 - (random.random() ** (1 / entity['speedModifier'])) &lt;= entity['moveSpeed'] + entity['humor'] * 0.5:
                     entity.set_place(place)
                     entity.event('movement')
                     return 'SUCCESS'

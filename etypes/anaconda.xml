@@ -17,12 +17,6 @@
                 return True
         </function>
 
-        <function name="on_kill">
-            def on_kill(entity, other):
-                if other.id == entity['target']:
-                    entity['constricting'] = False
-        </function>
-
         <function name="constrict">
             import random
 
@@ -59,6 +53,9 @@
 
                             entity['_constrictHealth'] = t['health']
 
+                elif entity['isPlayer']:
+                    entity.world.broadcast(3, entity, " cannot constrict two things at once!", place=entity.place)
+
         </function>
 
         <function name="bite">
@@ -88,8 +85,9 @@
                         t = entity.pointer('constricting')
                     
                         if t.place != entity.place or t['dead']:
-                            entity['constricting'] = False
-                            entity['speedModifier'] = entity['_oldSpeedMod']
+                            entity['constricting'] = None
+                            if entity['_oldSpeedMod']: entity['speedModifier'] = entity['_oldSpeedMod']
+                            
                             t['speedModifier'] *= 10
                             t['accuracy'] *= 1.2
         
@@ -110,8 +108,9 @@
                             t.call('take_damage', dmg)
         
                             if t['dead']:
-                                entity['constricting'] = False
-                                entity['speedModifier'] = entity['_oldSpeedMod']
+                                entity['constricting'] = None
+                                if entity['_oldSpeedMod']: entity['speedModifier'] = entity['_oldSpeedMod']
+                                
                                 t['speedModifier'] *= 10
                                 t['accuracy'] *= 1.2
         
@@ -165,7 +164,7 @@
         <attr name="dangerousness" value="90" /> <!-- apparent dangerousness, in a vague hitpoint scale -->
         <!-- kinetic (movement & combat) attributes -->
         <attr name="speed" value="0.16" /> <!-- likelihood to evade enemy attacks, from 0 to 1 -->
-        <attr name="moveSpeed" value="0.6" /> <!-- chance, from 0 to 1, for a succesful tile move -->
+        <attr name="moveSpeed" value="0.715" /> <!-- chance, from 0 to 1, for a succesful tile move -->
 
         <attr name="postTransfer" value="'striped'" />
 
@@ -179,7 +178,7 @@
 
         <attribute key="drops" value="{'raw steak': (0, 2), 'snake tooth': (2, 2)}" />
         <attribute key="feeding" value="0" />
-        <attribute key="constricting" value="False" />
+        <attribute key="constricting" value="None" />
     </default>
 
     <systems>
