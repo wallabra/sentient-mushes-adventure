@@ -387,8 +387,8 @@
                 entity['matureVariant'] = random.choice(entity['defaultMature'])
 
             else:
-                entity['pregnancyTimer'] = random.randint(entity['pregnancyTimer'] // 1.6, int(entity['pregnancyTimer']))
-                entity['willTimer'] = random.randint(entity['willTimer'] // 3, int(entity['willTimer']))
+                entity['pregnancyTimer'] = random.randint(int(entity['pregnancyTimer'] // 1.6), int(entity['pregnancyTimer']))
+                entity['willTimer'] = random.randint(int(entity['willTimer'] // 3), int(entity['willTimer']))
     </function>
 
     <function name="pathmove_dest">
