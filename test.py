@@ -1,4 +1,4 @@
-import engine
+from smadventure import engine
 
 loader = engine.XMLGameLoader()
 world = loader.load_world('mushworld.xml')
