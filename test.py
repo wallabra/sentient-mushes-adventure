@@ -17,8 +17,8 @@ world.add_broadcast_channel(-2, log_channel)
 if __name__ == "__main__":
     print("There are {} entities loaded.\n".format(len(world.entities)))
 
-    for i, e in enumerate(world.entities):
-        le = engine.LoadedEntity(world, i, e)
+    for e in world.entities.values():
+        le = engine.LoadedEntity(world, e)
         print("[{}] {} the {} from {}".format(le.id, le.name, le.variant['name'], le.place))
         
         for k, v in le.attr.items():
